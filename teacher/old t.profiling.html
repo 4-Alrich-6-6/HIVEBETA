@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" style="visibility:hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Profiling</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="t.profiling.css">
+    <link rel="stylesheet" href="../lib/loading.css">
+    <script src="../lib/offline-banner.js" defer></script>
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="icon" href="../Logo.png">
+</head>
+<body>
+    <div class="container">
+        <div class="back-button">
+            <img src="../assets/Back.png" alt="Back">
+        </div>
+        <div class="center">
+            <div class="hex-wrap">
+            <div class="hex-left"></div>
+            <div class="hex-mid">
+                <div class="hex-container">
+                    <div class="title">
+                        <h1>WELCOME TO</h1>
+                        <img src="../Title.png" class="title-image" alt="Logo">
+                        <h2>Where Teamwork Thrives!</h2>
+                    </div>
+                    <div class="selection">
+                        <h1>Let's get you started...</h1>
+                    </div>
+                        <div class="info">
+                            <div class="info-title">
+                                <h2>Instructor</h2>
+                            </div>
+                            <div class="info-card">
+                                <div class="info-content">
+                                    <div class="profile-image">
+                                        <img id="profilePicPreview" src="../assets/profile.png" alt="Profile">
+                                        <div class="edit-profile">
+                                            <button type="button" id="editProfilePicBtn" aria-label="Change profile picture"><img src="../assets/Edit.png" alt="Edit"></button>
+                                        </div>
+                                        <input type="file" id="profilePicInput" accept="image/png,image/jpeg,image/jpg" hidden>
+                                    </div>
+                                    <div class="profile-info">
+                                        <div class="display-name">
+                                            <input type="text" id="displayNameInput" placeholder="Enter your Display Name" required>
+                                        </div>
+                                        <div class="select-program">
+                                            <select name="program" id="program">
+                                                <option value="">Select Department</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="save-button">
+                                <button>Save</button>
+                            </div>
+                        </div>
+                </div>
+            </div>
+            <div class="hex-right"></div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../lib/supabaseClient.js"></script>
+    <script src="../lib/auth-guard.js"></script>
+    <script src="../lib/loading.js"></script>
+    <script src="t.profiling.js"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+    </script>
+</body>
+</html>

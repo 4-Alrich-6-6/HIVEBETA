@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0;url=auth/landing-page.html">
+    <title>PARTI-HIVE</title>
+    <style>body{margin:0;background:#000;}</style>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="HIVE">
+    <link rel="apple-touch-icon" href="Logo.png">
+    <link rel="icon" href="Logo.png">
+</head>
+<body>
+    <script>window.location.replace("auth/landing-page.html");</script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+.mp-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 2000;
+}
+
+.mp-overlay.open {
+    display: flex;
+}
+
+.mp-modal {
+    width: min(100%, 460px);
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+}
+
+.mp-header {
+    background: #ffcc00;
+    padding: 14px 18px;
+}
+
+.mp-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 900;
+    color: #111;
+}
+
+.mp-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.mp-avatar-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 6px;
+    position: relative;
+}
+
+.mp-avatar {
+    width: 108px;
+    height: 108px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #cda500;
+    background: #cfcfcf;
+    position: relative;
+}
+
+.mp-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.mp-avatar-edit {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    background: #ffcc00;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.mp-avatar-edit img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.mp-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mp-field label {
+    font-size: 13px;
+    font-weight: 800;
+    color: #222;
+}
+
+.mp-field input[type="text"],
+.mp-field select {
+    width: 100%;
+    border: 1px solid #cfcfcf;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fffdf0;
+}
+
+.mp-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 0 20px 20px;
+}
+
+.mp-btn {
+    border: none;
+    min-height: 34px;
+    border-radius: 999px;
+    padding: 0 16px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+
+.mp-btn-cancel {
+    background: #111111;
+    color: #ffffff;
+}
+
+.mp-btn-save {
+    background: #ffcc00;
+    color: #111111;
+}

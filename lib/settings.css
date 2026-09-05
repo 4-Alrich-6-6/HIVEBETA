@@ -1,0 +1,447 @@
+.settings-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 5000;
+}
+
+.settings-overlay.open {
+    display: flex;
+}
+
+.settings-modal {
+    background: #fff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-header {
+    padding: 14px 18px;
+    background: #ffffbf;
+    flex: 0 0 auto;
+}
+
+.settings-header h2 {
+    margin: 0;
+    font-size: 44px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    color: #111;
+}
+
+.settings-body {
+    padding: 18px;
+    min-height: 0;
+    overflow-y: auto;
+    flex: 1 1 auto;
+    scrollbar-color: #FFCC00 #f4f4f4;
+    scrollbar-width: auto;
+}
+
+.settings-body::-webkit-scrollbar {
+    width: 12px;
+}
+
+.settings-body::-webkit-scrollbar-track {
+    background: #f4f4f4;
+}
+
+.settings-body::-webkit-scrollbar-thumb {
+    background: #FFCC00;
+    border-radius: 6px;
+}
+
+.settings-profile-row {
+    align-items: center;
+}
+
+.settings-row-content {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    gap: 12px;
+}
+
+.settings-profile-avatar {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    border: 1px solid #111;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settings-section h3 {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #000;
+}
+
+.settings-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+    gap: 12px;
+}
+
+.settings-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+}
+
+.settings-value {
+    font-family: 'Kodchasan', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    color: #000;
+}
+
+.settings-btn {
+    border: none;
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    transition: all 0.2s ease;
+}
+
+.settings-btn-action {
+    min-height: 34px;
+    padding: 7px 12px;
+    background: #f4f0bd;
+    color: #111;
+    font-size: 12px;
+}
+
+.settings-btn-action:hover,
+.settings-btn-action:focus-visible {
+    background: #ffcc00;
+    outline: none;
+}
+
+.settings-notification-section {
+    margin-top: 10px;
+    padding-top: 12px;
+}
+
+.settings-row-title,
+.settings-row-description {
+    display: block;
+}
+
+.settings-row-title {
+    color: #111;
+    font-size: 14px;
+}
+
+.settings-row-description {
+    margin-top: 3px;
+    color: #777;
+    font-size: 12px;
+}
+
+.settings-switch {
+    position: relative;
+    width: 46px;
+    height: 26px;
+    flex: 0 0 auto;
+}
+
+.settings-switch input {
+    position: absolute;
+    opacity: 0;
+}
+
+.settings-switch-slider {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: #c8c8c8;
+    cursor: pointer;
+    transition: background 160ms ease;
+}
+
+.settings-switch-slider::before {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff;
+    content: "";
+    box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+    transition: transform 160ms ease;
+}
+
+.settings-switch input:checked + .settings-switch-slider {
+    background: #ffcc00;
+}
+
+.settings-switch input:checked + .settings-switch-slider::before {
+    transform: translateX(20px);
+}
+
+.settings-switch input:focus-visible + .settings-switch-slider {
+    outline: 2px solid #111;
+    outline-offset: 2px;
+}
+
+.settings-btn-edit {
+    background: #000;
+    color: #fff;
+    align-self: flex-start;
+}
+
+.settings-btn-edit:hover {
+    background: #333;
+}
+
+.settings-btn-edit img {
+    width: 16px;
+    height: 16px;
+}
+
+.settings-btn-mini {
+    background: transparent;
+    color: #000;
+    padding: 6px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease;
+}
+
+.settings-btn-mini:hover {
+    background: #f0f0f0;
+}
+
+.settings-btn-mini img {
+    width: 16px;
+    height: 16px;
+}
+
+.settings-btn-close {
+    background: #f7fff7;
+    color: #000;
+    border: 2px solid #ffcc00;
+}
+
+.settings-btn-close:hover {
+    background: #000;
+    color: #fff;
+}
+
+.settings-actions {
+    padding: 14px 18px;
+    background: #ffffbf;
+    display: flex;
+    justify-content: flex-end;
+    flex: 0 0 auto;
+}
+
+.settings-edit-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 5100;
+}
+
+.settings-edit-overlay.open {
+    display: flex;
+}
+
+.settings-edit-modal {
+    background: #fff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+}
+
+.settings-crop-modal {
+    max-width: 430px;
+}
+
+.settings-crop-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 24px;
+}
+
+.settings-crop-frame {
+    width: min(320px, 100%);
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 50%;
+    background: #111;
+    box-shadow: 0 0 0 5px #ffcc00;
+}
+
+.settings-crop-frame canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+    touch-action: none;
+}
+
+.settings-crop-frame canvas:active {
+    cursor: grabbing;
+}
+
+.settings-zoom-control {
+    display: flex;
+    align-items: center;
+    width: min(320px, 100%);
+    gap: 12px;
+    color: #111;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.settings-zoom-control input {
+    flex: 1;
+    accent-color: #111;
+}
+
+.settings-crop-actions {
+    padding: 0 24px 24px;
+}
+
+.settings-edit-form {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settings-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.settings-form-group label {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+}
+
+.settings-form-group input {
+    height: 44px;
+    border-radius: 10px;
+    border: 1.5px solid #ccc;
+    background: #fff;
+    color: #000;
+    font-size: 14px;
+    padding: 0 14px;
+    font-family: 'Kodchasan', sans-serif;
+}
+
+.settings-form-group input:focus {
+    outline: none;
+    border-color: #000;
+}
+
+.settings-form-group input[readonly] {
+    background: #f5f5f5;
+    color: #666;
+}
+
+#settingsEditNameForm .settings-edit-actions,
+#settingsEditEmailForm .settings-edit-actions,
+#settingsEditPasswordForm .settings-edit-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin: 8px -24px -24px;
+    padding: 14px 24px;
+    background: #ffffbf;
+}
+
+.settings-btn-cancel {
+    background: #f7fff7;
+    color: #000;
+    border: 2px solid #ffcc00;
+}
+
+.settings-btn-cancel:hover {
+    background: #000;
+    color: #fff;
+}
+
+.settings-btn-save {
+    background: #000;
+    color: #fff;
+    border: 2px solid #ffcc00;
+}
+
+.settings-btn-save:hover {
+    background: #ffcc00;
+    color: #000;
+    border-color: #000;
+
+
+}
+
+@media (max-width: 480px) {
+    .settings-modal,
+    .settings-edit-modal {
+        max-width: 100%;
+        border-radius: 16px;
+    }
+
+    .settings-header h2 {
+        font-size: 20px;
+    }
+
+    .settings-section h3 {
+        font-size: 16px;
+    }
+
+    .settings-btn {
+        font-size: 13px;
+        padding: 8px 16px;
+    }
+}

@@ -1,0 +1,326 @@
+@import url('../student/leader/s.leadergrpviewing.css');
+@import url('../student/student-theme.css');
+
+.summary-row {
+    grid-template-columns: repeat(2, minmax(0, 220px));
+}
+
+@media (max-width: 900px) {
+    .summary-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    .summary-card {
+        padding: 10px 8px;
+    }
+    .summary-label {
+        font-size: 10px;
+    }
+    .summary-card h3 {
+        font-size: 20px;
+    }
+    .main-content-title {
+        font-size: 16px;
+    }
+    .header-actions .icon-btn,
+    .header-actions .action-btn {
+        font-size: 11px;
+        min-height: 28px;
+    }
+    .group-label h2 {
+        font-size: 14px;
+    }
+    .group-label p {
+        font-size: 11px;
+    }
+    .teacher-card h3,
+    .member-details h3 {
+        font-size: 13px;
+    }
+    .member-details p {
+        font-size: 11px;
+    }
+    .help-panel h2 {
+        font-size: 14px;
+    }
+    .help-panel p {
+        font-size: 12px;
+    }
+}
+
+/* Comfortable UI size pass */
+.main-content-title,
+.add-members-modal-header h2,
+.remove-members-modal-header h2,
+.select-leader-modal-header h2,
+.confirm-leave-modal-header h2,
+.confirmation-modal-header h2 {
+    font-size: 32px;
+}
+
+.header-actions .icon-btn,
+.header-actions .action-btn,
+.modal-btn {
+    min-height: 40px;
+}
+
+.header-actions .action-btn,
+.modal-btn {
+    padding-left: 18px;
+    padding-right: 18px;
+    font-size: 14px;
+}
+
+.summary-label,
+.group-label p,
+.member-details p,
+.confirm-leave-message,
+.confirmation-message {
+    font-size: 14px;
+}
+
+.summary-card h3 {
+    font-size: 32px;
+}
+
+.group-label h2,
+.help-panel h2 {
+    font-size: 24px;
+}
+
+.teacher-card h3,
+.member-details h3 {
+    font-size: 18px;
+}
+
+.group-label-wrap,
+.group-info-stack,
+.help-panel {
+    width: min(100%, 820px);
+}
+
+.info-card {
+    padding: 18px 22px;
+}
+
+.help-panel p {
+    font-size: 15px;
+}
+
+/* Typography normalization */
+body {
+    font-size: 16px;
+    line-height: 1.45;
+}
+
+.main-content-title {
+    font-size: 32px;
+    line-height: 1.15;
+}
+
+.add-members-modal-header h2,
+.remove-members-modal-header h2,
+.select-leader-modal-header h2,
+.confirm-leave-modal-header h2,
+.confirmation-modal-header h2,
+.group-label h2,
+.help-panel h2 {
+    font-size: 24px;
+    line-height: 1.2;
+}
+
+.teacher-card h3,
+.member-details h3 {
+    font-size: 18px;
+    line-height: 1.25;
+}
+
+.datetime,
+.profile-block h3,
+.profile-link,
+.sidebar-actions .btn,
+.action-btn,
+.summary-label,
+.help-panel p,
+.form-group input,
+.remove-member-item,
+.select-leader-subtitle,
+.select-leader-item,
+.confirm-leave-message,
+.confirmation-message,
+.modal-btn,
+.tab {
+    font-size: 15px;
+    border-radius: 10px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.15;
+}
+
+.group-label p,
+.member-details p,
+.member-details .stats {
+    font-size: 15px;
+    white-space: normal;
+    text-align: left;
+    line-height: 1.15;
+}
+
+.member-details .stats p {
+    white-space: nowrap;
+}
+
+.member-card .member-details h3 {
+    font-size: 14px;
+}
+
+.member-card .member-details p {
+    font-size: 12px;
+}
+
+@media (max-width: 900px) {
+    .main-content-title {
+        font-size: 28px;
+    }
+
+    .add-members-modal-header h2,
+    .remove-members-modal-header h2,
+    .select-leader-modal-header h2,
+    .confirm-leave-modal-header h2,
+    .confirmation-modal-header h2,
+    .group-label h2,
+    .help-panel h2 {
+        font-size: 22px;
+    }
+}
+
+/* Keep sidebar Settings and Log Out buttons square */
+.sidebar-actions .settings,
+.sidebar-actions .logout,
+.sidebar-actions .btn.settings,
+.sidebar-actions .btn.logout {
+    border-radius: 0;
+}
+
+/* Unified page style consistency */
+.topbar {
+    height: 64px;
+    background: var(--student-black, #000000);
+    color: var(--student-white, #ffffff);
+}
+
+.datetime {
+    color: var(--student-white, #ffffff);
+    font-size: 15px;
+}
+
+.layout {
+    min-height: calc(100vh - 64px);
+    padding-left: 0;
+    grid-template-columns: 240px 1fr 252px;
+}
+
+.sidebar {
+    position: sticky;
+    top: 64px;
+    height: calc(100vh - 64px);
+    overflow-y: auto;
+}
+
+.sidebar {
+    width: 240px;
+    background: var(--student-yellow, #ffcc00);
+    color: var(--student-black, #000000);
+    border-right: 2px solid var(--student-yellow, #ffcc00);
+}
+
+.right-rail {
+    width: 220px;
+    margin-right: 32px;
+    background: var(--student-white, #ffffff);
+}
+
+.settings {
+    background: var(--student-white, #ffffff);
+    color: var(--student-black, #000000);
+}
+
+.logout {
+    background: var(--student-black, #000000);
+    color: var(--student-white, #ffffff);
+}
+
+.main-content-container,
+.main-content {
+    background: var(--student-white, #ffffff);
+    color: var(--student-black, #000000);
+}
+
+@media (max-width: 1100px) {
+    .layout {
+        grid-template-columns: 240px 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tab.active,
+.tab:focus-visible {
+    border: 2px solid var(--student-black, #000000) !important;
+    outline: 2px solid var(--student-black, #000000) !important;
+    outline-offset: 0 !important;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.85) !important;
+}
+
+.sidebar {
+    background-color: var(--student-yellow, #ffcc00) !important;
+    background-image:
+        linear-gradient(to top, rgba(255, 204, 0, 0.58), rgba(255, 204, 0, 0.96)),
+        url("../assets/honeycomb.png") !important;
+    background-repeat: no-repeat, repeat !important;
+    background-position: left top, left bottom !important;
+    background-size: auto, 300px auto !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+/* layout stability */
+html,
+body {
+    max-width: 100%;
+    overflow-x: clip;
+}
+
+.layout,
+.main-content-container,
+.main-content,
+.right-rail {
+    min-width: 0;
+}
+
+.tab.active {
+    left: 0 !important;
+    width: 100% !important;
+    transform: translateX(-8px);
+}
+
+.main-header {
+    position: sticky;
+    top: 64px;
+    z-index: 10;
+    background: #fff;
+}
+
+@media (max-width: 900px) {
+    .group-label-wrap,
+    .group-info-stack {
+        width: calc(100% - 28px);
+        max-width: none;
+        margin-left: 14px;
+        margin-right: 14px;
+    }
+}

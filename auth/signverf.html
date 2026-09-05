@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HIVE Log-In / Sign-Up</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Montserrat:wght@100;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kodchasan" rel="stylesheet">
+    <link rel="stylesheet" href="log-sign.css">
+    <script src="/lib/offline-banner.js" defer></script>
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="icon" href="../Logo.png">
+</head>
+<body>
+    <div class="bg-wrapper">
+        <div class="bg-left"></div>
+        <div class="bg-right"></div>
+    </div>
+
+    <nav class="navbar">
+        <a href="landing-page.html"><img class="title-logo" src="../PrimeLogo.png" alt="HIVE Title Logo"></a>
+        <ul class="nav-links"></ul>
+        <a></a>
+    </nav>
+
+    <div class="container">
+        <div class="right">
+            <section class="form verify-form" aria-label="Authentication form">
+                <div class="form-content">
+                    <div class="form-heading-row">
+                        <div class="back-button">
+                            <a href="log-sign.html?mode=signup" id="verifyBackLink">
+                                <img src="../assets/Back.png" alt="Back" class="back-icon">
+                            </a>
+                        </div>
+                        <div class="form-title">
+                            <h2>Verification</h2>
+                        </div>
+                    </div>
+                    <div class="form-description">
+                        <p>Enter the OTP sent to your email...</p>
+                    </div>
+                    <form class="lForm active" autocomplete="on">
+                        <div class="inputs">
+                            <div class="form-group password-group">
+                                <label for="otp">Enter OTP:</label>
+                                <div class="email-wrapper">
+                                    <input id="otp" type="text" class="otp-input" pattern="[0-9]{6}" maxlength="6" required>
+                                    <button type="button" id="resendOtpBtn" class="send-btn">Resend</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="submit" type="submit">Verify OTP</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <section class="footer">
+        <div class="footer">
+            <p class="footer-text">© 2025 HIVE. All rights reserved.</p>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../lib/supabaseClient.js"></script>
+    <script src="signverf.js"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+    </script>
+</body>
+</html>

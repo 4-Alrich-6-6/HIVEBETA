@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" style="visibility:hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Breakdown</title>
+    <link rel="stylesheet" href="s.memberprojectbreakdown.css">
+    <link rel="stylesheet" href="../../lib/loading.css">
+    <link rel="stylesheet" href="../student-theme.css">
+    <script src="../../lib/offline-banner.js" defer></script>
+    <link rel="manifest" href="../../manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="../../Logo.png">
+    <link rel="icon" href="../../Logo.png">
+</head>
+<body>
+    <div class="topbar">
+        <p class="datetime"></p>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="profile-block">
+                <div class="avatar-circle">
+                    <img src="../../assets/profile.png" alt="Profile">
+                </div>
+                <h3></h3>
+                <h3></h3>
+                <a href="#" class="profile-link" data-no-loading>Manage Profile</a>
+            </div>
+
+            <div class="sidebar-actions">
+                <button class="btn settings" type="button">Settings</button>
+                <button class="btn logout" type="button">Log Out</button>
+            </div>
+        </aside>
+
+        <main class="main-content-container">
+            <div class="main-header">
+                <h1 class="main-content-title">PROJECT BREAKDOWN</h1>
+
+                <div class="header-actions">
+                    <button class="icon-btn back" id="backToCategoriesBtn" type="button" aria-label="Back to categories">
+                        <img src="../../assets/Back.png" alt="Back icon">
+                    </button>
+                    <a class="action-btn validation-link" href="../validation/contribution-validation.html?mode=member">
+                        <span>Submit Contribution Proof</span>
+                    </a>
+                </div>
+            </div>
+
+            <section class="main-content">
+                <section class="summary-row">
+                    <article class="summary-card">
+                        <p class="summary-label">My Tasks</p>
+                        <h3>—</h3>
+                    </article>
+
+                    <article class="summary-card">
+                        <p class="summary-label">Other Tasks</p>
+                        <h3>—</h3>
+                    </article>
+
+                    <article class="summary-card">
+                        <p class="summary-label">Verifying</p>
+                        <h3>—</h3>
+                    </article>
+                </section>
+
+                <section class="task-section">
+                    <div class="section-title-wrap">
+                        <h2>Your Task(s)</h2>
+                    </div>
+
+                    <div id="yourTasksList">
+                        <div class="empty-state task-empty-placeholder">
+                            <img src="../../assets/bee-flight.svg" class="empty-state-icon" alt="">
+                            <h2>You Have No Pending Tasks Yet</h2>
+                            <p>Check back later or explore your projects to find other's unfinished tasks and help them like a good team member.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="task-section">
+                    <div class="section-title-wrap">
+                        <h2>Other Task(s)</h2>
+                    </div>
+
+                    <div id="otherTasksList">
+                        <div class="empty-state task-empty-placeholder">
+                            <img src="../../assets/bee-flight.svg" class="empty-state-icon" alt="">
+                            <h2>You Have No Pending Tasks Yet</h2>
+                            <p>Check back later or explore your projects to find other's unfinished tasks and help them like a good team member.</p>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </main>
+
+        <aside class="right-rail">
+            <nav class="side-tabs" aria-label="Group sections">
+                <button class="tab tab-group-info" id="groupInfoTab" type="button"><img src="../../assets/grpinfo.png" alt=""> <span>Group<br>Information</span></button>
+                <button class="tab tab-project-breakdown active" type="button"><img src="../../assets/breakdown.png" alt=""> <span>Project<br>Breakdown</span></button>
+            </nav>
+        </aside>
+    </div>
+
+    <div class="modal-overlay" id="overlay">
+        <div class="project-options-modal" role="dialog" aria-modal="true" aria-labelledby="taskInfoTitle">
+            <div class="project-options-body task-details-body">
+                <p class="task-settings-title" id="taskInfoTitle">Task Information</p>
+                <p><strong>Task:</strong> <span class="popup-task-name"></span></p>
+                <p><strong>Description:</strong> <span class="popup-desc-text"></span></p>
+                <p><strong>Resources:</strong> <span class="popup-resources-text"></span></p>
+                <p><strong>Assignee(s):</strong> <span class="popup-assignees"></span></p>
+                <p><strong>Due Date:</strong> <span id="popupDueDate"></span></p>
+                <p><strong>Due Time:</strong> <span id="popupDueTime"></span></p>
+                <p><strong>Intensity:</strong> <span id="popupIntensity"></span></p>
+                <p><strong>Prioritization:</strong> <span id="popupPriority"></span></p>
+                <p><strong>Time Active:</strong> <span id="popupTimeActive">0h 0m 0s</span></p>
+                <div class="task-details-status-wrap">
+                    <span>Current Status:</span>
+                    <button class="task-status inactive" id="popupStatusDisplay" type="button" disabled>Not Active</button>
+                </div>
+                <div class="project-options-actions">
+                    <button class="modal-btn discard-btn" id="closePopupBtn" type="button">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="pauseVerifyChoiceOverlay" aria-hidden="true">
+        <div class="project-options-modal" role="dialog" aria-modal="true">
+            <div class="project-options-body">
+                <p style="font-weight:800;font-size:14px;margin:0 0 4px;">Task Status</p>
+                <p style="font-size:13px;margin:0 0 12px;">What would you like to do with this task?</p>
+                <div class="project-options-actions">
+                    <button class="modal-btn post-btn" id="pauseVerifyPauseBtn" type="button">On Break</button>
+                    <button class="modal-btn post-btn" id="pauseVerifyVerifyBtn" type="button">Verify</button>
+                    <button class="modal-btn discard-btn" id="pauseVerifyCloseBtn" type="button">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="memberVerifyOverlay" aria-hidden="true">
+        <div class="project-options-modal" role="dialog" aria-modal="true">
+            <div class="project-options-body">
+                <p style="font-weight:800;font-size:14px;margin:0 0 4px;">Submit for Verification</p>
+                <p style="font-size:12px;margin:0 0 8px;">Paste a link to your proof of work (Google Drive, GitHub, etc.)</p>
+                <input id="memberProofLinkInput" type="url" placeholder="https://..." style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1.5px solid #000;font-size:13px;margin-bottom:12px;">
+                <div class="project-options-actions">
+                    <button class="modal-btn post-btn" id="memberVerifyConfirmBtn" type="button">Submit</button>
+                    <button class="modal-btn discard-btn" id="memberVerifyCancelBtn" type="button">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../lib/loading.js"></script>
+    <script src="../../lib/datetime.js"></script>
+    <script src="../../lib/manage-profile.js"></script>
+    <script src="../../lib/settings.js"></script>
+    <script src="../../lib/confirmation-modal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../lib/supabaseClient.js"></script>
+    <script src="../../lib/auth-guard.js"></script>
+    <script src="s.memberprojectbreakdown.js"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+    </script>
+</body>
+</html>

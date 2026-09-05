@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" style="visibility:hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects</title>
+    <link rel="stylesheet" href="s.leadercategory.css">
+    <link rel="stylesheet" href="../../lib/loading.css">
+    <link rel="stylesheet" href="../student-theme.css">
+    <script src="../../lib/offline-banner.js" defer></script>
+    <link rel="manifest" href="../../manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="../../Logo.png">
+    <link rel="icon" href="../../Logo.png">
+</head>
+<body>
+    <div class="topbar">
+        <button class="menu-btn" id="topBackBtn" type="button" aria-label="Back to dashboard">
+            <img src="../../assets/Back.png" alt="Back icon">
+        </button>
+        <p class="datetime"></p>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="profile-block">
+                <div class="avatar-circle">
+                    <img src="../../assets/profile.png" alt="Profile">
+                </div>
+                <h3></h3>
+                <h3></h3>
+                <a href="#" class="profile-link" data-no-loading>Manage Profile</a>
+            </div>
+
+            <div class="sidebar-actions">
+                <button class="btn settings" type="button">Settings</button>
+                <button class="btn logout" type="button">Log Out</button>
+            </div>
+        </aside>
+
+        <main class="main-content-container">
+            <div class="main-header">
+                <h1 class="main-content-title">PROJECTS</h1>
+
+                <div class="header-actions">
+                    <button class="action-btn post-category-btn" id="openPostCategoryModalBtn" type="button">
+                        <span class="post-task-icon">
+                            <img src="../../assets/Plus.png" alt="Plus icon">
+                        </span>
+                        <span>Post Project</span>
+                    </button>
+                </div>
+            </div>
+
+            <section class="main-content">
+                <div class="section-title-wrap">
+                    <h2>Select Project</h2>
+                    <p>Click a project to open the project breakdown task list.</p>
+                </div>
+
+                <div class="category-list" role="list">
+                    <!-- Projects dynamically inserted here -->
+                </div>
+            </section>
+        </main>
+
+        <aside class="right-rail">
+            <nav class="side-tabs" aria-label="Group sections">
+                <button class="tab tab-group-info" id="groupInfoTab" type="button"><img src="../../assets/grpinfo.png" alt=""> <span>Group<br>Information</span></button>
+                <button class="tab tab-project-breakdown active" type="button"><img src="../../assets/breakdown.png" alt=""> <span>Project<br>Breakdown</span></button>
+            </nav>
+        </aside>
+    </div>
+
+    <nav class="mobile-bottom-nav" aria-label="Section navigation">
+        <button class="mob-nav-btn" id="mobileGroupInfoBtn" type="button">
+            <img src="../../assets/grpinfo.png" alt="">
+            <span>Group Info</span>
+        </button>
+        <button class="mob-nav-btn mob-nav-active" type="button" disabled>
+            <img src="../../assets/breakdown.png" alt="">
+            <span>Breakdown</span>
+        </button>
+    </nav>
+
+    <div class="modal-overlay" id="postCategoryModalOverlay" aria-hidden="true">
+        <div class="post-category-modal" role="dialog" aria-modal="true" aria-labelledby="postCategoryModalTitle">
+            <div class="post-category-modal-header">
+                <h2 id="postCategoryModalTitle">Post Project</h2>
+            </div>
+
+            <form id="postCategoryForm" class="post-category-form">
+                <div class="form-group">
+                    <label for="categoryNameInput">Project Name *</label>
+                    <input id="categoryNameInput" name="categoryName" type="text" placeholder="Enter project name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="categoryDescriptionInput">Description</label>
+                    <textarea id="categoryDescriptionInput" name="categoryDescription" rows="4" placeholder="Enter project description"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="categoryDueDateInput">Due Date *</label>
+                    <input id="categoryDueDateInput" name="categoryDueDate" type="date" required>
+                </div>
+
+                <div class="post-category-modal-actions">
+                    <button type="button" class="modal-btn discard-btn" id="discardPostCategoryBtn">Discard</button>
+                    <button type="submit" class="modal-btn post-btn">Post</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="projectOptionsModalOverlay" aria-hidden="true">
+        <div class="project-options-modal" role="dialog" aria-modal="true">
+            <div class="project-options-body">
+                <div class="form-group">
+                    <label for="editProjectNameInput">Edit Project Name</label>
+                    <input id="editProjectNameInput" type="text" placeholder="Enter new name">
+                </div>
+                <div class="form-group">
+                    <label for="editProjectDescriptionInput">Edit Description</label>
+                    <textarea id="editProjectDescriptionInput" rows="3" placeholder="Enter project description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="editProjectDueDateInput">Edit Due Date</label>
+                    <input id="editProjectDueDateInput" type="date">
+                    <button class="modal-btn post-btn" id="saveProjectNameBtn" type="button">Save</button>
+                </div>
+                <div class="project-options-actions">
+                    <button class="option-delete-btn" id="deleteProjectBtn" type="button">Delete Project</button>
+                    <button class="modal-btn discard-btn" id="closeProjectOptionsBtn" type="button">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../lib/supabaseClient.js"></script>
+    <script src="../../lib/auth-guard.js"></script>
+    <script src="../../lib/loading.js"></script>
+    <script src="../../lib/datetime.js"></script>
+    <script src="../../lib/manage-profile.js"></script>
+    <script src="../../lib/settings.js"></script>
+    <script src="../../lib/confirmation-modal.js"></script>
+    <script src="s.leadercategory.js"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+    </script>
+</body>
+</html>

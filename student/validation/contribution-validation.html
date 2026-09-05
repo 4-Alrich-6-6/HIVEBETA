@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" style="visibility:hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contribution Validation</title>
+    <link rel="stylesheet" href="../student-theme.css">
+    <link rel="stylesheet" href="contribution-validation.css">
+    <script src="../../lib/offline-banner.js" defer></script>
+    <link rel="manifest" href="../../manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="../../Logo.png">
+    <link rel="icon" href="../../Logo.png">
+</head>
+<body>
+    <div class="topbar">
+        <p class="datetime"></p>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="profile-block">
+                <div class="avatar-circle">
+                    <img src="../../assets/profile.png" alt="Profile">
+                </div>
+                <h3></h3>
+                <h3></h3>
+                <a href="#" class="profile-link" data-no-loading>Manage Profile</a>
+            </div>
+
+            <div class="sidebar-actions">
+                <button class="btn settings" type="button">Settings</button>
+                <button class="btn logout" type="button">Log Out</button>
+            </div>
+        </aside>
+
+        <main class="main-content-container">
+            <div class="main-header">
+                <h1 class="main-content-title">CONTRIBUTION VALIDATION</h1>
+                <div class="header-actions">
+                    <a class="icon-btn back-link" id="backToProjectBtn" href="../member/s.memberprojectbreakdown.html" aria-label="Back to project breakdown">
+                        <img src="../../assets/Back.png" alt="Back icon">
+                    </a>
+                    <button class="action-btn" id="evalHistoryBtn" style="display:none;" type="button">Evaluation History</button>
+                    <button class="action-btn peer-header-btn" id="peerToggleBtn" type="button">Peer Evaluation</button>
+                </div>
+            </div>
+
+            <section class="main-content">
+                <section class="summary-row">
+                    <article class="summary-card">
+                        <p class="summary-label">Pending</p>
+                        <h3 id="pendingCount">—</h3>
+                    </article>
+                    <article class="summary-card">
+                        <p class="summary-label">Confirmed</p>
+                        <h3 id="confirmedCount">—</h3>
+                    </article>
+                    <article class="summary-card">
+                        <p class="summary-label">Approved</p>
+                        <h3 id="approvedCount">—</h3>
+                    </article>
+                </section>
+
+                <section class="validation-panel leader-panel">
+                    <div class="section-title-wrap">
+                        <h2>Leader Confirmation</h2>
+                    </div>
+                    <div class="validation-list" id="leaderList"></div>
+                </section>
+
+                <section class="validation-panel teacher-panel">
+                    <div class="section-title-wrap">
+                        <h2>Teacher Review</h2>
+                    </div>
+                    <div class="validation-list" id="teacherList"></div>
+                </section>
+
+                <section class="validation-panel submitted-panel">
+                    <div class="section-title-wrap">
+                        <h2 id="submittedSectionTitle">Submitted Contributions</h2>
+                    </div>
+                    <div class="validation-list" id="submissionList"></div>
+                </section>
+
+            </section>
+        </main>
+
+        <aside class="right-rail">
+            <nav class="side-tabs" aria-label="Group sections">
+                <a class="tab" href="#" id="groupInfoLink"><img src="../../assets/grpinfo.png" alt=""> <span>Group<br>Information</span></a>
+                <a class="tab active" href="#" id="projectBreakdownLink"><img src="../../assets/breakdown.png" alt=""> <span>Project<br>Breakdown</span></a>
+            </nav>
+        </aside>
+    </div>
+
+    <div class="modal-overlay" id="peerModalOverlay" aria-hidden="true">
+        <div class="peer-modal" role="dialog" aria-modal="true" aria-labelledby="peerModalTitle">
+            <div class="peer-modal-header">
+                <h2 id="peerModalTitle">Peer Evaluation</h2>
+            </div>
+            <div class="peer-modal-body">
+                <p class="muted">Select the members who contributed. This is supporting evidence only.</p>
+                <div class="peer-checklist" id="peerChecklist">
+                    <label class="peer-check-item">
+                        <input type="checkbox" name="peerContributor" value="Astra Jellyfish" checked>
+                        <span>Astra Jellyfish</span>
+                    </label>
+                    <label class="peer-check-item">
+                        <input type="checkbox" name="peerContributor" value="Demo Member" checked>
+                        <span>Demo Member</span>
+                    </label>
+                    <label class="peer-check-item">
+                        <input type="checkbox" name="peerContributor" value="Current Member">
+                        <span>Current Member</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="peerCommentInput">Remarks</label>
+                    <textarea id="peerCommentInput" rows="4" placeholder="Add peer evaluation remarks"></textarea>
+                </div>
+                <p class="peer-count" id="peerCountText">2 out of 3 members confirmed</p>
+            </div>
+            <div class="peer-modal-actions">
+                <button class="modal-btn discard-btn" id="peerCloseBtn" type="button">Close</button>
+                <button class="modal-btn post-btn" id="peerSaveBtn" type="button">Save Evaluation</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evaluation History Modal -->
+    <div class="modal-overlay" id="evalHistoryOverlay" aria-hidden="true">
+        <div class="peer-modal" role="dialog" aria-modal="true" aria-labelledby="evalHistoryTitle">
+            <div class="peer-modal-header">
+                <h2 id="evalHistoryTitle">Evaluation History</h2>
+            </div>
+            <div class="peer-modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <div id="evalHistoryList"></div>
+            </div>
+            <div class="peer-modal-actions">
+                <button class="modal-btn discard-btn" id="evalHistoryCloseBtn" type="button">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Options Modal -->
+    <div class="modal-overlay" id="rejectOptionsOverlay" aria-hidden="true">
+        <div class="peer-modal" role="dialog" aria-modal="true" aria-labelledby="rejectOptionsTitle">
+            <div class="peer-modal-header">
+                <h2 id="rejectOptionsTitle">Reject Contribution</h2>
+            </div>
+            <div class="peer-modal-body">
+                <p class="muted">What would you like to do with this task?</p>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+                    <button class="modal-btn danger-btn" type="button" id="rejectMarkMissingBtn">Mark as Missing</button>
+                    <button class="modal-btn post-btn" type="button" id="rejectRevisionBtn">Request Revision</button>
+                </div>
+                <div id="revisionDateGroup" style="display:none;margin-top:16px;border-top:1px solid #eee;padding-top:14px;">
+                    <div style="display:flex;gap:10px;margin-bottom:12px;">
+                        <div style="flex:1;">
+                            <label for="revisionDateInput" style="font-size:14px;font-weight:700;display:block;margin-bottom:6px;">New Due Date *</label>
+                            <input type="date" id="revisionDateInput" style="width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid #000;font-size:14px;box-sizing:border-box;">
+                        </div>
+                        <div style="flex:1;">
+                            <label for="revisionTimeInput" style="font-size:14px;font-weight:700;display:block;margin-bottom:6px;">New Due Time *</label>
+                            <input type="time" id="revisionTimeInput" style="width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid #000;font-size:14px;box-sizing:border-box;">
+                        </div>
+                    </div>
+                    <button class="modal-btn post-btn" type="button" id="confirmRevisionBtn" style="width:100%;">Confirm Revision</button>
+                </div>
+            </div>
+            <div class="peer-modal-actions">
+                <button class="modal-btn discard-btn" type="button" id="cancelRejectOptionsBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../lib/supabaseClient.js"></script>
+    <script src="../../lib/auth-guard.js"></script>
+    <script src="../../lib/datetime.js"></script>
+    <script src="../../lib/manage-profile.js"></script>
+    <script src="../../lib/settings.js"></script>
+    <script src="../../lib/confirmation-modal.js"></script>
+    <script src="contribution-validation.js"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+    </script>
+</body>
+</html>

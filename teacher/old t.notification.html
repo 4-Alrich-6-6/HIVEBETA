@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" style="visibility:hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <link rel="stylesheet" href="t.notification.css">
+    <link rel="stylesheet" href="../lib/loading.css">
+    <script src="../lib/offline-banner.js" defer></script>
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="icon" href="../Logo.png">
+</head>
+<body>
+    <div class="topbar">
+        <button class="topbar-btn" id="topBackBtn" type="button" aria-label="Back">
+            <img src="../assets/Back.png" alt="Back icon">
+        </button>
+        <p class="datetime">--:-- -- ---- --, ----</p>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="profile-block">
+                <div class="avatar-circle">
+                    <img src="../assets/profile.png" alt="Profile">
+                </div>
+                <h3></h3>
+                <h3></h3>
+                <a href="#" class="profile-link" data-no-loading>Manage Profile</a>
+            </div>
+
+            <div class="sidebar-actions">
+                <button class="btn settings" type="button">Settings</button>
+                <button class="btn logout" type="button">Log Out</button>
+            </div>
+        </aside>
+
+        <main class="main-content-container">
+            <div class="main-header">
+                <h1 class="main-content-title">NOTIFICATIONS</h1>
+                <div class="header-actions">
+                    <button class="action-btn" id="markAllReadBtn" type="button">Mark All as Read</button>
+                    <button class="action-btn" id="clearNotificationsBtn" type="button">Clear All</button>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <section class="notif-section">
+
+
+                    <div class="notif-list" id="notifList"></div>
+
+                    <p class="notif-empty" id="notifEmpty" hidden>No notifications yet.</p>
+                </section>
+            </div>
+        </main>
+
+        <aside class="right-rail" aria-hidden="true"></aside>
+    </div>
+
+    <div class="modal-overlay" id="notifModalOverlay" aria-hidden="true">
+        <div class="notif-modal" role="dialog" aria-modal="true" aria-labelledby="notifModalTitle">
+            <div class="notif-modal-header">
+                <h2 id="notifModalTitle">Notification</h2>
+            </div>
+            <div class="notif-modal-body">
+                <p class="notif-modal-group"><strong>Group:</strong> <span id="notifModalGroup"></span></p>
+                <p class="notif-modal-date"><strong>Date:</strong> <span id="notifModalDate"></span></p>
+                <hr>
+                <p class="notif-modal-bodytext" id="notifModalBody"></p>
+            </div>
+            <div class="notif-modal-actions">
+                <button type="button" class="modal-btn discard-btn" id="closeNotifModalBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../lib/loading.js"></script>
+    <script src="../lib/datetime.js"></script>
+    <script src="../lib/supabaseClient.js"></script>
+    <script src="../lib/auth-guard.js"></script>
+    <script src="../lib/manage-profile.js"></script>
+    <script src="../lib/settings.js"></script>
+    <script src="../lib/notifications-data.js"></script>
+    <script src="../lib/confirmation-modal.js"></script>
+    <script src="t.notification.js"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+    </script>
+</body>
+</html>

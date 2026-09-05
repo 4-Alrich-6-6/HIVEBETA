@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en" style="visibility:hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Information</title>
+    <link rel="stylesheet" href="s.leadergrpviewing.css">
+    <link rel="stylesheet" href="../../lib/loading.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kodchasan:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../../lib/offline-banner.js" defer></script>
+    <link rel="manifest" href="../../manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="../../Logo.png">
+    <link rel="icon" href="../../Logo.png">
+</head>
+<body class="leader-group-page">
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <a class="brand-mark" href="../s.dashb.html" aria-label="HIVE dashboard"><img src="../../PrimeLogo.png" alt="HIVE"></a>
+            <nav class="side-nav" aria-label="Main navigation">
+                <a class="side-nav-link" href="../s.dashb.html" aria-label="Dashboard"><svg viewBox="0 0 100 100"><defs><mask id="leader-tiles"><rect width="100" height="100" fill="#fff"/><circle cx="25" cy="25" r="13.5" fill="#000"/><rect x="63" y="13" width="24" height="24" fill="#000"/><polygon points="25,62 12.5,85 37.5,85" fill="#000"/><polygon points="75,61 89,75 75,89 61,75" fill="#000"/></mask></defs><g fill="currentColor" mask="url(#leader-tiles)"><rect x="3" y="3" width="44" height="44" rx="10"/><rect x="53" y="3" width="44" height="44" rx="10"/><rect x="3" y="53" width="44" height="44" rx="10"/><rect x="53" y="53" width="44" height="44" rx="10"/></g></svg></a>
+                <a class="side-nav-link active" href="../s.team.html" aria-label="Teams"><svg viewBox="0 0 100 100"><path d="M48 13H75A12 12 0 0 1 87 25V38M13 62V75A12 12 0 0 0 25 87H48" fill="none" stroke="currentColor" stroke-width="8.5" stroke-linecap="round"/><g fill="currentColor"><circle cx="32" cy="20" r="9.5"/><path d="M14 54C14 41 21 38 32 38C43 38 50 41 50 54Z"/><circle cx="72" cy="50" r="11"/><path d="M58 88C58 77 64 74 72 74C80 74 86 77 86 88Z"/></g></svg></a>
+                <a class="side-nav-link" href="../s.tasklist.html" aria-label="Tasks"><svg viewBox="0 0 100 100"><g fill="currentColor"><rect x="5" y="5" width="25" height="25" rx="6"/><rect x="38" y="12.5" width="57" height="10" rx="5"/><rect x="5" y="37.5" width="25" height="25" rx="6"/><rect x="38" y="45" width="57" height="10" rx="5"/><rect x="38" y="77.5" width="57" height="10" rx="5"/><path fill-rule="evenodd" d="M11 70H24A6 6 0 0 1 30 76V89A6 6 0 0 1 24 95H11A6 6 0 0 1 5 89V76A6 6 0 0 1 11 70ZM12 77H23V88H12Z"/></g></svg></a>
+            </nav>
+            <nav class="side-nav side-nav-bottom" aria-label="Account navigation">
+                <a class="side-nav-link notification-link notif-btn" href="../s.notification.html" aria-label="Notifications"><svg viewBox="0 0 100 100"><g fill="currentColor"><circle cx="50" cy="16" r="7"/><path d="M50 18C33 18 24 33 24 50C24 58 20 64 20 64H80C80 64 76 58 76 50C76 33 67 18 50 18Z"/><rect x="13" y="70" width="74" height="6.5" rx="3.25"/><path d="M41.5 76.5A8.5 8.5 0 0 0 58.5 76.5Z"/></g></svg></a>
+                <button class="side-nav-link settings-link" type="button" aria-label="Settings"><svg viewBox="0 0 100 100"><defs><mask id="leader-gear"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="50" r="18" fill="#000"/></mask></defs><g fill="currentColor" mask="url(#leader-gear)"><circle cx="50" cy="50" r="32"/><rect x="43" y="10" width="14" height="12" rx="3.5"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(45 50 50)"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(90 50 50)"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(135 50 50)"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(180 50 50)"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(225 50 50)"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(270 50 50)"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(315 50 50)"/></g></svg></button>
+            </nav>
+        </aside>
+
+        <main class="main-content-container">
+            <div class="main-header">
+                <div class="profile-row"><button class="profile-trigger" type="button" aria-label="Open profile menu"><img src="../../assets/profile-placeholder.svg" alt=""><svg class="profile-chevron" viewBox="0 0 16 10" aria-hidden="true"><path d="M1 1.5 8 8.5 15 1.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+                <div class="back-row"><button class="back-link" id="TopBackBtn" type="button" aria-label="Back to Teams">‹ <span>Teams</span></button></div>
+                <div class="title-row"><div>
+                    <h1 class="main-content-title" id="groupTitle">Team</h1><p class="group-meta" id="groupMeta">Loading... | ? Members | ? Instructors</p></div>
+                </div>
+            </div>
+
+            <section class="main-content">
+                <nav class="group-tabs" role="tablist" aria-label="Team sections">
+                    <button class="group-tab active" id="projectsTab" type="button" role="tab" aria-selected="true" aria-controls="projectsPanel"><svg class="tab-icon" viewBox="0 0 100 100" aria-hidden="true"><g fill="currentColor"><circle cx="12" cy="20" r="7"></circle><circle cx="12" cy="20" r="2.5"></circle><line x1="32" y1="20" x2="88" y2="20" stroke="currentColor" stroke-width="14" stroke-linecap="round"></line><line x1="32" y1="20" x2="88" y2="20" stroke="currentColor" stroke-width="6" stroke-linecap="round"></line><circle cx="12" cy="50" r="7"></circle><circle cx="12" cy="50" r="2.5"></circle><line x1="32" y1="50" x2="88" y2="50" stroke="currentColor" stroke-width="14" stroke-linecap="round"></line><line x1="32" y1="50" x2="88" y2="50" stroke="currentColor" stroke-width="6" stroke-linecap="round"></line><circle cx="12" cy="80" r="7"></circle><circle cx="12" cy="80" r="2.5"></circle><line x1="32" y1="80" x2="88" y2="80" stroke="currentColor" stroke-width="14" stroke-linecap="round"></line><line x1="32" y1="80" x2="88" y2="80" stroke="currentColor" stroke-width="6" stroke-linecap="round"></line></g></svg>Projects</button>
+                    <button class="group-tab" id="membersTab" type="button" role="tab" aria-selected="false" aria-controls="membersPanel"><svg class="tab-icon" viewBox="0 0 100 100" aria-hidden="true"><defs><mask id="user-gap"><rect width="100" height="100" fill="#ffffff"></rect><path d="M 10 70 A 8 8 0 0 0 18 78 H 54 A 8 8 0 0 0 62 70 V 64 C 62 53 50 50 36 50 C 22 50 10 53 10 64 Z" fill="#000000" stroke="#000000" stroke-width="7" stroke-linejoin="round"></path></mask></defs><g fill="#000000"><circle cx="36" cy="27" r="11.5"></circle><path d="M 10 70 A 8 8 0 0 0 18 78 H 54 A 8 8 0 0 0 62 70 V 64 C 62 53 50 50 36 50 C 22 50 10 53 10 64 Z"></path><circle cx="65" cy="27" r="11.5"></circle><path d="M 39 70 A 8 8 0 0 0 47 78 H 83 A 8 8 0 0 0 91 70 V 64 C 91 53 79 50 65 50 C 51 50 39 53 39 64 Z" mask="url(#user-gap)"></path></g></svg>Members</button>
+                    <button class="group-tab" id="notesTab" type="button" role="tab" aria-selected="false" aria-controls="notesPanel"><svg class="tab-icon" viewBox="0 0 100 100" aria-hidden="true"><rect x="18" y="22" width="46" height="56" rx="12" fill="#ffffff" stroke="currentColor" stroke-width="7" stroke-linejoin="round" transform="rotate(-20 41 50)"></rect><g transform="rotate(16 58 44)"><rect x="35" y="16" width="46" height="56" rx="12" fill="#ffffff" stroke="currentColor" stroke-width="7" stroke-linejoin="round"></rect><line x1="47" y1="37" x2="68" y2="37" stroke="currentColor" stroke-width="5.5" stroke-linecap="round"></line><line x1="47" y1="47" x2="58" y2="47" stroke="currentColor" stroke-width="5.5" stroke-linecap="round"></line></g></svg>Notes</button>
+                    <button class="group-tab" id="aboutTab" type="button" role="tab" aria-selected="false" aria-controls="aboutPanel"><svg class="tab-icon" viewBox="0 0 100 100" aria-hidden="true"><g fill="currentColor"><circle cx="44" cy="26" r="16"></circle><path d="M 16 82 C 16 57 28 48 44 48 C 60 48 72 57 72 82 Z"></path></g><circle cx="64.5" cy="63" r="28" fill="#ffffff"></circle><circle cx="64.5" cy="63" r="23.5" fill="currentColor"></circle><path d="M 57 52 C 57 46.5 60.5 44 64.5 44 C 68.5 44 72 46.5 72 51 C 72 55.5 68.5 57.5 65.5 60 C 64.5 61.5 64.5 64.5 64.5 65.5" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"></path><circle cx="64.5" cy="72.5" r="3.2" fill="#ffffff"></circle></svg>About Swarm</button>
+                </nav>
+
+                <div class="tab-panels">
+                    <section class="tab-panel active" id="projectsPanel" role="tabpanel" aria-labelledby="projectsTab">
+                        <div class="section-heading-row"><h2>Projects</h2></div>
+                        <div class="project-collection">
+                            <div class="category-list" role="list">
+                                <div class="project-empty-state" role="status">
+                                    <img class="project-empty-state-illustration" src="../../assets/bee-flight.svg" alt="">
+                                    <strong>No Projects Yet</strong>
+                                    <p>Click the "+" button to post a project and start breaking down tasks.</p>
+                                </div>
+                            </div>
+                            <button class="section-add project-add-btn" type="button" id="openPostCategoryModalBtn" aria-label="Add project">+</button>
+                        </div>
+                    </section>
+
+                    <section class="tab-panel" id="membersPanel" role="tabpanel" aria-labelledby="membersTab" hidden>
+                        <div class="members-layout">
+                            <section class="contributors-column" id="groupInfoStack">
+                                <h2>Contributors</h2>
+                                <div id="memberCards"><p>Loading group information...</p></div>
+                            </section>
+                            <aside class="members-side-column">
+                                <form class="member-search" id="memberSearchForm" role="search">
+                                    <input id="memberSearchInput" type="search" placeholder="Search Contributors" aria-label="Search contributors">
+                                </form>
+                                <div class="invite-card">
+                                    <div><h3>Invite via Link</h3><p>Let’s make the colony beeeetter<br>with your members! Invite them</p></div>
+                                    <button type="button" class="invite-copy-btn" id="copyInviteLinkBtn" aria-label="Copy invite link">COPY</button>
+                                </div>
+                                <section class="people-subsection instructors-section" id="instructorsSection">
+                                    <div class="section-heading-row"><h2>Instructors</h2></div>
+                                    <div id="instructorCards"></div>
+                                </section>
+                            </aside>
+                        </div>
+                    </section>
+
+                    <section class="tab-panel" id="notesPanel" role="tabpanel" aria-labelledby="notesTab" hidden>
+                        <div class="section-heading-row"><h2>Swarm Notes</h2><button class="section-add" type="button" id="openAddNoteModalBtn">+ Add Notes</button></div>
+                        <div class="notes-list" id="notesList" role="list"></div>
+                    </section>
+
+                    <section class="tab-panel about-panel" id="aboutPanel" role="tabpanel" aria-labelledby="aboutTab" hidden>
+                        <div class="about-main">
+                            <section class="about-description">
+                                <h2>Description</h2>
+                                <p id="aboutDescription">Keep your team details and shared project context in one place.</p>
+
+                                <div class="group-ratings" aria-label="Group ratings">
+                                    <div><span>Total Projects</span><strong id="aboutProjectCount">0 Projects</strong></div>
+                                    <div><span>Swarm Status</span><strong class="status-badge" id="swarmStatusBadge">Active</strong></div>
+                                    <div><span>Swarm Motto</span><strong id="aboutMotto">Not set</strong></div>
+                                </div>
+
+                                <div class="about-actions">
+                                    <button class="about-action leave-action" id="leaveBtn" type="button">Leave Swarm</button>
+                                    <button class="about-action edit-action" id="editGroupBtn" type="button">Edit Swarm</button>
+                                    <button class="about-action delete-action" id="deleteGroupBtn" type="button">Delete Swarm</button>
+                                </div>
+                            </section>
+
+                            <aside class="about-details">
+                                <h2>Details</h2>
+                                <dl>
+                                    <div><dt>Date Created</dt><dd id="swarmCreatedDate">Not available</dd></div>
+                                    <div><dt>Meeting Schedule</dt><dd><button type="button" class="view-schedule-btn" id="viewSwarmScheduleBtn">View Calendar</button></dd></div>
+                                </dl>
+                                <h3>Links</h3>
+                                <div class="about-links">
+                                    <button type="button" disabled><svg class="discord-icon" viewBox="0 -28.5 256 256" aria-hidden="true"><path d="M216.856 16.597C200.285 8.843 182.566 3.208 164.042 0c-2.275 4.113-4.933 9.645-6.766 14.046-19.692-2.961-39.203-2.961-58.533 0C96.911 9.645 94.193 4.113 91.897 0 73.353 3.208 55.613 8.864 39.042 16.638 5.618 67.147-3.443 116.401 1.087 164.956c22.169 16.555 43.653 26.612 64.775 33.193 5.215-7.177 9.866-14.807 13.873-22.848-7.631-2.9-14.94-6.478-21.846-10.632 1.832-1.358 3.624-2.777 5.356-4.237 42.123 19.702 87.89 19.702 129.51 0 1.752 1.46 3.544 2.879 5.356 4.237-6.927 4.175-14.256 7.753-21.887 10.653 4.007 8.02 8.658 15.67 13.893 22.847 21.142-6.581 42.646-16.637 64.815-33.213 5.316-56.288-9.081-105.09-38.056-148.359ZM85.474 135.095c-12.645 0-23.015-11.805-23.015-26.18 0-14.375 10.148-26.2 23.015-26.2 12.867 0 23.236 11.804 23.015 26.2.02 14.375-10.148 26.18-23.015 26.18Zm85.051 0c-12.645 0-23.015-11.805-23.015-26.18 0-14.375 10.148-26.2 23.015-26.2 12.866 0 23.236 11.804 23.015 26.2 0 14.375-10.148 26.18-23.015 26.18Z" fill="currentColor"></path></svg>Discord <span>↗</span></button>
+                                    <button type="button" disabled><svg class="meet-icon" viewBox="0 0 48 48" aria-hidden="true"><path d="M41.05 12.6c1.63-1.3 2.85-.23 2.85 1.14v20.52c0 1.73-1.22 2.44-2.85 1.14L26.79 24ZM14 8v32M4.9 17.16h21.89v13.68H4.9m0-13.68L14 8h18.5a3.2 3.2 0 0 1 2.85 2.85v26.26A3.2 3.2 0 0 1 32.5 40H7.75a2.81 2.81 0 0 1-2.85-2.89Z" fill="none" stroke="currentColor" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>Google Meet <span>↗</span></button>
+                                    <button type="button" disabled><svg class="resources-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.4231 13.88785 15.33356 3.33792H8.66663l6.09 10.54993ZM8.08917 4.33835 2 14.88736l3.33356 5.77472 6.08911-10.54926Zm1.73273 10.549L6.48877 20.66208h12.17786L22 14.88736Z" fill="currentColor"></path></svg>Resources <span>↗</span></button>
+                                    <button type="button" disabled><svg class="repository-icon" viewBox="0 -0.5 25 25" aria-hidden="true"><path d="m12.301 0h.093c2.242 0 4.34.613 6.137 1.68l-.055-.031c1.871 1.094 3.386 2.609 4.449 4.422l.031.058c1.04 1.769 1.654 3.896 1.654 6.166 0 5.406-3.483 10-8.327 11.658l-.087.026c-.063.02-.135.031-.209.031-.162 0-.312-.054-.433-.144-.128-.115-.208-.281-.208-.466v-.014q0-.048.008-1.226t.008-2.154c.007-.075.011-.161.011-.249 0-.792-.323-1.508-.844-2.025.618-.061 1.176-.163 1.718-.305l-.076.017c.573-.16 1.073-.373 1.537-.642l-.031.017c.508-.28.938-.636 1.292-1.058l.006-.007c.372-.476.663-1.036.84-1.645l.009-.035c.209-.683.329-1.468.329-2.281v-.136c0-1.248-.482-2.383-1.269-3.23l.003.003c.168-.44.265-.948.265-1.479 0-.649-.145-1.263-.404-1.814l.011.026c-.115-.022-.246-.035-.381-.035-.334 0-.649.078-.929.216l.012-.005c-.568.21-1.054.448-1.512.726l.038-.022-.609.384c-.922-.264-1.981-.416-3.075-.416s-2.153.152-3.157.436l.081-.02q-.256-.176-.681-.433c-.373-.214-.814-.421-1.272-.595l-.066-.022c-.293-.154-.64-.244-1.009-.244-.124 0-.246.01-.364.03l.013-.002c-.248.524-.393 1.139-.393 1.788 0 .531.097 1.04.275 1.509l-.01-.029c-.785.844-1.266 1.979-1.266 3.227v.076c-.001.039-.001.084-.001.13 0 .809.12 1.591.344 2.327l-.015-.057c.189.643.476 1.202.85 1.693l-.009-.013c.354.435.782.793 1.267 1.062l.022.011c.432.252.933.465 1.46.614l.046.011c.466.125 1.024.227 1.595.284l.046.004c-.431.428-.718 1-.784 1.638l-.001.012c-.207.101-.448.183-.699.236l-.021.004c-.256.051-.549.08-.85.08h-.066c-.394-.008-.756-.136-1.055-.348l.006.004c-.371-.259-.671-.595-.881-.986l-.007-.015c-.198-.336-.459-.614-.768-.827l-.009-.006c-.225-.169-.49-.301-.776-.38l-.016-.004-.32-.048c-.023-.002-.05-.003-.077-.003-.14 0-.273.028-.394.077l.007-.003q-.128.072-.08.184c.039.086.087.16.145.225l-.001-.001c.061.072.13.135.205.19l.003.002.112.08c.283.148.516.354.693.603l.004.006c.191.237.359.505.494.792l.01.024.16.368c.135.402.38.738.7.981l.005.004c.3.234.662.402 1.057.478l.016.002c.33.064.714.104 1.106.112h.007c.045.002.097.002.15.002.261 0 .517-.021.767-.062l-.027.004.368-.064q0 .609.008 1.418t.008.873v.014c0 .185-.08.351-.208.466h-.001c-.119.089-.268.143-.431.143-.075 0-.147-.011-.214-.032l.005.001c-4.929-1.689-8.409-6.283-8.409-11.69 0-2.268.612-4.393 1.681-6.219l-.032.058c1.094-1.871 2.609-3.386 4.422-4.449l.058-.031c1.739-1.034 3.835-1.645 6.073-1.645h.098z" fill="currentColor"></path></svg>Repository <span>↗</span></button>
+                                </div>
+                            </aside>
+                        </div>
+                    </section>
+                </div>
+            </section>
+        </main>
+
+    </div>
+
+    <div class="modal-overlay" id="swarmScheduleModal" aria-hidden="true">
+        <div class="schedule-modal" role="dialog" aria-modal="true" aria-labelledby="swarmScheduleTitle">
+            <div class="schedule-modal-header"><h2 id="swarmScheduleTitle">Meeting Schedule</h2></div>
+            <div class="schedule-modal-body">
+                <div class="schedule-calendar" id="swarmScheduleCalendar"></div>
+            </div>
+            <div class="schedule-modal-actions"><button type="button" class="modal-btn post-btn" id="closeSwarmScheduleBtn">Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="addMembersModalOverlay" aria-hidden="true">
+        <div class="add-members-modal" role="dialog" aria-modal="true" aria-labelledby="addMembersModalTitle">
+            <div class="add-members-modal-header">
+                <h2 id="addMembersModalTitle">Invite Members</h2>
+            </div>
+
+            <div class="add-members-modal-body">
+                <div class="form-group">
+                    <label>Invitation Link:</label>
+                    <input id="groupLinkValue" type="text" readonly>
+                </div>
+
+                <div class="add-members-modal-actions">
+                    <button type="button" class="modal-btn discard-btn" id="discardAddMembersBtn">Discard</button>
+                    <button type="button" class="modal-btn post-btn" id="copyGroupLinkBtn">Copy Link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="removeMembersModalOverlay" aria-hidden="true">
+        <div class="remove-members-modal" role="dialog" aria-modal="true" aria-labelledby="removeMembersModalTitle">
+            <div class="remove-members-modal-header">
+                <h2 id="removeMembersModalTitle">Remove Members</h2>
+            </div>
+
+            <div class="remove-members-modal-body">
+                <div class="remove-members-list" id="removeMembersList"></div>
+
+                <div class="remove-members-modal-actions">
+                    <button type="button" class="modal-btn discard-btn" id="discardRemoveMembersBtn">Discard</button>
+                    <button type="button" class="modal-btn post-btn" id="removeMembersBtn">Remove</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="selectLeaderModalOverlay" aria-hidden="true">
+        <div class="select-leader-modal" role="dialog" aria-modal="true" aria-labelledby="selectLeaderModalTitle">
+            <div class="select-leader-modal-header">
+                <h2 id="selectLeaderModalTitle">Select next Leader</h2>
+            </div>
+
+            <div class="select-leader-modal-body">
+                <p class="select-leader-subtitle">Choose a member to become the new leader:</p>
+                <div class="select-leader-list" id="selectLeaderList"></div>
+
+                <div class="select-leader-modal-actions">
+                    <button type="button" class="modal-btn discard-btn" id="discardSelectLeaderBtn">Discard</button>
+                    <button type="button" class="modal-btn post-btn" id="leaveGroupBtn" disabled>Leave</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="confirmLeaveModalOverlay" aria-hidden="true">
+        <div class="confirm-leave-modal" role="dialog" aria-modal="true" aria-labelledby="confirmLeaveModalTitle">
+            <div class="confirm-leave-modal-header">
+                <h2 id="confirmLeaveModalTitle">Confirm Leave</h2>
+            </div>
+
+            <div class="confirm-leave-modal-body">
+                <p class="confirm-leave-message">Are you sure you want to leave this group? You will lose your leader privileges and become a regular member.</p>
+
+                <div class="confirm-leave-modal-actions">
+                    <button type="button" class="modal-btn discard-btn" id="cancelLeaveBtn">Cancel</button>
+                    <button type="button" class="modal-btn post-btn" id="confirmLeaveBtn">Confirm Leave</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Member Profile Modal -->
+    <div class="modal-overlay" id="memberProfileOverlay" aria-hidden="true">
+        <div class="confirmation-modal" role="dialog" aria-modal="true">
+            <div class="confirmation-modal-header">
+                <h2 id="memberProfileRole">Role</h2>
+            </div>
+            <div class="confirmation-modal-body" style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 18px;">
+                <div class="circle-avatar large" id="memberProfileAvatar" style="flex-shrink:0;"><img src="../../assets/profile-placeholder.svg" alt="Profile picture placeholder"></div>
+                <div style="text-align:center;">
+                    <p id="memberProfileName" style="margin:0 0 4px;font-weight:800;font-size:17px;"></p>
+                    <p id="memberProfileField" style="margin:0 0 4px;font-size:14px;"></p>
+                    <p id="memberProfileEmail" style="margin:0;font-size:13px;color:#555;word-break:break-all;"></p>
+                </div>
+            </div>
+            <div class="confirmation-modal-actions">
+                <button type="button" class="modal-btn discard-btn" id="closeMemberProfileBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="noteAddModalOverlay" aria-hidden="true">
+        <div class="invite-preview-modal" role="dialog" aria-modal="true" aria-labelledby="noteAddModalTitle">
+            <div class="invite-preview-header">
+                <h2 id="noteAddModalTitle">Add Swarm Note</h2>
+            </div>
+            <form id="noteAddForm" class="invite-preview-body">
+                <section class="invite-preview-main">
+                    <div class="note-form-field">
+                        <label for="noteTitleInput">Title <span class="note-title-counter" id="noteTitleCounter">0/49</span></label>
+                        <input id="noteTitleInput" name="noteTitle" type="text" maxlength="49" placeholder="Add a note title" required>
+                    </div>
+                    <div class="note-form-field">
+                        <label for="noteBodyInput">Note</label>
+                        <textarea id="noteBodyInput" name="noteBody" rows="5" placeholder="Write your note here..." required></textarea>
+                    </div>
+                    <div class="note-form-field">
+                        <label for="noteLabelSelect">Category</label>
+                        <select id="noteLabelSelect" name="noteLabel">
+                            <option value="Announcement / Update">Announcement / Update</option>
+                            <option value="Question / Help Needed">Question / Help Needed</option>
+                            <option value="Idea / Proposal">Idea / Proposal</option>
+                            <option value="Shoutout / Kudos">Shoutout / Kudos</option>
+                            <option value="Summary / Brief">Summary / Brief</option>
+                            <option value="Discussion / Request for Comments">Discussion / Request for Comments</option>
+                            <option value="Resource / Link">Resource / Link</option>
+                            <option value="Bug Log / Incident">Bug Log / Incident</option>
+                        </select>
+                    </div>
+                    <div class="invite-preview-actions">
+                        <button type="button" class="group-modal-btn group-discard-btn" id="discardNoteAddBtn">Discard</button>
+                        <button type="submit" class="group-modal-btn group-create-btn" id="saveNoteBtn">Post</button>
+                    </div>
+                </section>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="noteDetailOverlay" aria-hidden="true">
+        <div class="invite-preview-modal" role="dialog" aria-modal="true" aria-labelledby="noteDetailTitle">
+            <div class="invite-preview-header">
+                <h2 id="noteDetailTitle">Note Title</h2>
+            </div>
+            <div class="invite-preview-body note-detail-body">
+                <section class="invite-preview-main">
+                    <div class="note-detail-meta-row">
+                        <span id="noteDetailAuthor" class="note-detail-author"></span>
+                        <span id="noteDetailImportance" class="note-detail-label"></span>
+                    </div>
+                    <p id="noteDetailContent" class="invite-preview-description-text">Note body</p>
+                    <div class="note-detail-meta">
+                        <time id="noteDetailDate">10:30 PM, 11/11/2011</time>
+                    </div>
+                    <section class="note-comments" aria-labelledby="noteCommentsTitle">
+                        <h3 id="noteCommentsTitle">Comments</h3>
+                        <div class="note-comments-list" id="noteCommentsList" role="list"></div>
+                        <form class="note-comment-form" id="noteCommentForm">
+                            <textarea id="noteCommentInput" rows="2" maxlength="1000" placeholder="Write a comment..." required></textarea>
+                            <button type="submit" class="group-modal-btn group-create-btn">Post Comment</button>
+                        </form>
+                    </section>
+                    <div class="invite-preview-actions">
+                        <div class="note-detail-owner-actions">
+                            <button type="button" class="group-modal-btn note-edit-btn" id="editNoteBtn" hidden>Edit</button>
+                            <button type="button" class="group-modal-btn note-remove-btn" id="removeNoteBtn" hidden>Remove</button>
+                        </div>
+                        <button type="button" class="group-modal-btn group-discard-btn" id="closeNoteDetailBtn">Close</button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editCommentOverlay" aria-hidden="true">
+        <div class="invite-preview-modal edit-comment-modal" role="dialog" aria-modal="true" aria-labelledby="editCommentTitle">
+            <div class="invite-preview-header"><h2 id="editCommentTitle">Edit Comment</h2></div>
+            <form class="edit-comment-form" id="editCommentForm">
+                <label for="editCommentInput">Comment</label>
+                <textarea id="editCommentInput" rows="5" maxlength="1000" required></textarea>
+                <div class="invite-preview-actions">
+                    <button type="button" class="group-modal-btn group-discard-btn" id="cancelEditCommentBtn">Cancel</button>
+                    <button type="submit" class="group-modal-btn group-create-btn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="postCategoryModalOverlay" aria-hidden="true">
+        <div class="post-category-modal" role="dialog" aria-modal="true" aria-labelledby="postCategoryModalTitle">
+            <div class="post-category-modal-header">
+                <h2 id="postCategoryModalTitle">Post Project</h2>
+            </div>
+            <form id="postCategoryForm" class="post-category-form">
+                <div class="project-form-group">
+                    <label for="categoryNameInput">Project Name *</label>
+                    <input id="categoryNameInput" name="categoryName" type="text" placeholder="Enter project name" required>
+                </div>
+                <div class="project-form-group">
+                    <label for="categoryDescriptionInput">Description</label>
+                    <textarea id="categoryDescriptionInput" name="categoryDescription" rows="4" placeholder="Enter project description"></textarea>
+                </div>
+                <div class="project-form-group">
+                    <label for="categoryDueDateInput">Due Date *</label>
+                    <input id="categoryDueDateInput" name="categoryDueDate" type="date" required>
+                </div>
+                <div class="post-category-modal-actions">
+                    <button type="button" class="modal-btn discard-btn" id="discardPostCategoryBtn">Discard</button>
+                    <button type="submit" class="modal-btn post-btn">Post</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="projectOptionsModalOverlay" aria-hidden="true">
+        <div class="project-options-modal" role="dialog" aria-modal="true" aria-labelledby="projectOptionsTitle">
+            <div class="project-options-body">
+                <div class="project-options-actions">
+                    <button class="option-delete-btn" id="deleteProjectBtn" type="button">Delete Project</button>
+                    <button class="modal-btn discard-btn" id="closeProjectOptionsBtn" type="button">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editGroupModalOverlay" aria-hidden="true">
+        <div class="group-modal edit-group-modal" role="dialog" aria-modal="true" aria-labelledby="editGroupModalTitle">
+            <div class="group-modal-header"><h2 id="editGroupModalTitle">Edit Swarm</h2></div>
+            <form id="editGroupForm" class="group-modal-form">
+                <div class="group-form-field"><label for="editGroupNameInput">Swarm Name *</label><input id="editGroupNameInput" type="text" required></div>
+                <div class="group-form-field"><label for="editGroupSubjectInput">Subject</label><input id="editGroupSubjectInput" type="text"></div>
+                <div class="group-form-field"><label for="editGroupDescriptionInput">Description</label><textarea id="editGroupDescriptionInput" rows="3"></textarea></div>
+                <div class="group-form-field"><label for="editGroupMottoInput">Group Motto</label><input id="editGroupMottoInput" type="text"></div>
+                <div class="group-form-field"><label>Meeting Schedule <span>(optional)</span>:</label><div class="schedule-list" id="editGroupScheduleList"><div class="schedule-fields"><select name="editScheduleDay" aria-label="Meeting day"><option value="">Day</option><option>Sunday</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option></select><div class="schedule-time-group"><span>From</span><input name="editScheduleFrom" type="time" aria-label="Meeting start time"></div><span class="schedule-time-separator">To</span><input class="schedule-end-time" name="editScheduleTo" type="time" aria-label="Meeting end time"><button type="button" class="remove-schedule-btn" aria-label="Remove meeting schedule">×</button></div></div><button type="button" class="add-schedule-btn" id="addEditScheduleBtn">+ Add Meeting Schedule</button></div>
+                <div class="group-form-field"><label>Links <span>(optional)</span>:</label><div class="group-links-list" id="editGroupLinksList"></div><button type="button" class="add-group-link-btn" id="addEditLinkBtn">+ Add Links</button></div>
+                <div class="group-modal-actions"><button type="button" class="group-modal-btn group-discard-btn" id="discardEditGroupBtn">Cancel</button><button type="submit" class="group-modal-btn group-create-btn">Save</button></div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../lib/supabaseClient.js"></script>
+    <script src="../../lib/auth-guard.js"></script>
+    <script src="../../lib/profile-dropdown.js"></script>
+    <script src="../../lib/loading.js"></script>
+    <script src="../../lib/datetime.js"></script>
+    <script src="../../lib/confirmation-modal.js"></script>
+    <script src="../../lib/manage-profile.js"></script>
+    <script src="../../lib/settings.js"></script>
+    <script src="s.leadergrpviewing.js"></script>
+    <script src="s.leadercategory.js"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+    </script>
+</body>
+</html>

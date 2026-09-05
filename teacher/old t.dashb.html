@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" style="visibility:hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard</title>
+    <link rel="stylesheet" href="t.dashb.css">
+    <link rel="stylesheet" href="../lib/loading.css">
+    <script src="../lib/offline-banner.js" defer></script>
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="icon" href="../Logo.png">
+</head>
+<body>
+    <div class="topbar">
+        <button class="menu-btn" type="button" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+
+        <p class="datetime"></p>
+
+        <button class="notif-btn-mobile" type="button" aria-label="Notifications">
+            <img src="../assets/Notification.png" alt="Notification icon">
+            <span class="notif-badge" aria-hidden="true"></span>
+        </button>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="profile-block">
+                <div class="avatar-circle">
+                    <img src="../assets/profile.png" alt="Profile">
+                </div>
+                <h3></h3>
+                <h3></h3>
+                <a href="#" class="profile-link" data-no-loading>Manage Profile</a>
+            </div>
+
+            <div class="sidebar-actions">
+                <button class="btn settings" type="button">Settings</button>
+                <button class="btn logout" type="button">Log Out</button>
+            </div>
+        </aside>
+
+        <main class="main-content-container">
+            <div class="main-header">
+                <h1 class="main-content-title">TEACHER'S DASHBOARD</h1>
+
+                <div class="section-actions">
+                    <button type="button" id="openJoinGroupModal">
+                        <span><img src="../assets/JoinGroup.png" alt="Join Group icon"></span>
+                        Join Groups
+                    </button>
+                </div>
+            </div>
+
+            <div class="main-content">
+
+                <section class="group-section" id="groupsSection">
+                    <div class="section-title-wrap">
+                        <h2>Your Groups</h2>
+                    </div>
+
+                    <div id="groupsList">
+                        <!-- Empty State Placeholder -->
+                        <div class="empty-state">
+                            <img src="../assets/JoinGroup.png" class="empty-state-icon" alt="No groups">
+                            <h3>No Groups Found</h3>
+                            <p>You haven't joined or created any groups yet. Use "Join Groups" to get started!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="help-panel">
+                    <h2>Quick Tips</h2>
+                    <p>Use <strong>Join Groups</strong> if you already have an invite link to join a group as a teacher.</p>
+                </section>
+            </div>
+        </main>
+
+        <aside class="right-rail" aria-hidden="true">
+            <button class="notif-btn" type="button" aria-label="Notifications">
+                <img src="../assets/Notification.png" alt="Notification icon">
+                <span class="notif-badge" aria-hidden="true"></span>
+            </button>
+        </aside>
+    </div>
+
+    <div class="modal-overlay" id="joinGroupModal" aria-hidden="true">
+        <div class="group-modal" role="dialog" aria-modal="true" aria-labelledby="joinGroupTitle">
+            <div class="group-modal-header">
+                <h2 id="joinGroupTitle">Enter Group Link</h2>
+            </div>
+
+            <div class="group-modal-form">
+                <div class="group-form-field">
+                    <label for="groupLinkInput">Group Link:</label>
+                    <input id="groupLinkInput" type="text" placeholder="Paste group link">
+                </div>
+
+                <div class="group-modal-actions">
+                    <button type="button" class="group-modal-btn group-discard-btn" id="discardJoinGroup">Discard</button>
+                    <button type="button" class="group-modal-btn group-create-btn" id="joinGroupBtn">Join</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../lib/loading.js"></script>
+    <script src="../lib/datetime.js"></script>
+    <script src="../lib/supabaseClient.js"></script>
+    <script src="../lib/auth-guard.js"></script>
+    <script src="../lib/manage-profile.js"></script>
+    <script src="../lib/settings.js"></script>
+    <script src="../lib/confirmation-modal.js"></script>
+    <script src="t.dashb.js"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+    </script>
+</body>
+</html>

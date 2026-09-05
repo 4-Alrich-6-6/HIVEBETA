@@ -1,0 +1,285 @@
+/* Student yellow/black theme overrides */
+:root {
+    --student-yellow: #ffcc00;
+    --student-black: #000000;
+    --student-white: #ffffff;
+    --student-paper: #f8fff8;
+    --student-gray: #d3d3d3;
+    --student-border: #111111;
+}
+
+body {
+    background: var(--student-white);
+    color: var(--student-black);
+}
+
+.topbar,
+.popup-topbar {
+    background: var(--student-black);
+    color: var(--student-white);
+}
+
+.datetime {
+    color: var(--student-white);
+}
+
+.sidebar {
+    width: 240px;
+    background: var(--student-yellow);
+    border-right: 2px solid var(--student-yellow);
+}
+
+.profile-link {
+    color: var(--student-black);
+    text-decoration: underline;
+}
+
+.avatar-circle,
+.profile-image {
+    background: var(--student-white);
+    border-color: var(--student-white);
+}
+
+.settings {
+    background: var(--student-white);
+    color: var(--student-black);
+}
+
+.logout {
+    background: var(--student-black);
+    color: var(--student-white);
+}
+
+.main-content-container,
+.main-content,
+.right-rail,
+.notif-section {
+    background: var(--student-white);
+}
+
+.sidebar {
+    background-image:
+        linear-gradient(to top, rgba(255, 204, 0, 0.48), rgba(255, 204, 0, 0.94)),
+        url("../assets/honeycomb.png") !important;
+    background-repeat: no-repeat, repeat;
+    background-position: left top, left bottom;
+    background-size: auto, 300px auto;
+}
+
+.menu-btn,
+.action-btn,
+.icon-btn,
+.section-actions button {
+    background: var(--student-white);
+    color: var(--student-black);
+}
+
+.notif-btn,
+.notif-btn-mobile,
+.tab.active,
+.group-modal-header,
+.post-category-modal-header,
+.post-task-modal-header,
+.add-members-modal-header,
+.remove-members-modal-header,
+.select-leader-modal-header,
+.confirm-leave-modal-header,
+.confirmation-modal-header,
+.notif-modal-header,
+.popup-topbar {
+    background: var(--student-yellow);
+    color: var(--student-black);
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    background: var(--student-black);
+    color: var(--student-white);
+    border-radius: 10px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.15;
+    text-decoration: none;
+}
+
+.tab img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    flex: 0 0 auto;
+}
+
+.tab:not(.active) img {
+    filter: invert(1);
+}
+
+.tab.active img {
+    filter: none;
+}
+
+.tab span {
+    display: block;
+}
+
+.tab.active,
+.tab:focus-visible {
+    border: 2px solid var(--student-black, #000000);
+    outline: 2px solid var(--student-black, #000000);
+    outline-offset: 0;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.85);
+}
+
+.tab-group-info,
+.tab-project-breakdown {
+    background: var(--student-black);
+    border-radius: 10px;
+}
+
+.summary-card,
+.stat-card,
+.group-card,
+.category-card,
+.project-card,
+.task-card,
+.notif-card,
+.empty-state,
+.help-panel,
+.info-card {
+    background: var(--student-paper);
+    border: 3px solid var(--student-border);
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.75);
+}
+
+.leader-card,
+.member-card {
+    background: var(--student-paper);
+    border-color: var(--student-border);
+}
+
+.member-avatar,
+.leader-avatar,
+.task-avatar,
+.category-avatar {
+    background: var(--student-gray);
+    border-color: var(--student-gray);
+}
+
+.modal-btn.discard-btn,
+.group-discard-btn {
+    background: var(--student-black);
+    color: var(--student-white);
+}
+
+.modal-btn.post-btn,
+.group-create-btn,
+.save-button button {
+    background: var(--student-yellow);
+    color: var(--student-black);
+}
+
+/* Keep sidebar Settings and Log Out buttons square */
+.sidebar-actions .settings,
+.sidebar-actions .logout,
+.sidebar-actions .btn.settings,
+.sidebar-actions .btn.logout {
+    border-radius: 0;
+}
+
+.empty-notif-btn,
+.icon-btn.danger,
+.notif-delete-btn {
+    background: var(--student-yellow) !important;
+    color: var(--student-black) !important;
+}
+
+/* layout stability */
+html {
+    max-width: 100%;
+    overflow-x: clip;
+}
+
+body {
+    max-width: 100%;
+}
+
+.layout,
+.main-content-container,
+.main-content,
+.right-rail {
+    min-width: 0;
+}
+
+.sidebar {
+    flex: 0 0 240px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.right-rail {
+    box-sizing: border-box;
+}
+
+.tab.active {
+    left: 0 !important;
+    width: 100% !important;
+    transform: translateX(-8px);
+}
+
+/* ── Mobile bottom navigation ─────────────────────────────────────────── */
+.mobile-bottom-nav {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        height: 56px;
+        background: var(--student-white, #fff);
+        border-top: 2px solid var(--student-black, #000);
+    }
+
+    .mob-nav-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        border: none;
+        background: transparent;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--student-black, #000);
+        cursor: pointer;
+        padding: 4px 8px;
+    }
+
+    .mob-nav-btn img {
+        width: 22px;
+        height: 22px;
+        object-fit: contain;
+    }
+
+    .mob-nav-active {
+        background: var(--student-yellow, #ffcc00);
+    }
+
+    .mob-nav-btn:disabled {
+        cursor: default;
+        opacity: 1;
+    }
+
+    /* Push page content above the bottom nav */
+    .main-content-container {
+        padding-bottom: 70px !important;
+    }
+}

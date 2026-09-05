@@ -1,0 +1,93 @@
+.profile-row {
+    z-index: 4000 !important;
+    overflow: visible !important;
+}
+
+.profile-dropdown {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    z-index: 4001 !important;
+    min-width: 250px;
+    padding: 8px;
+    border: 1px solid #d0d0c8;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(17, 17, 17, 0.14);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-5px);
+    transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.profile-dropdown.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.profile-summary {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 8px 8px 12px;
+    border-bottom: 1px solid #e2e2da;
+}
+
+.profile-summary > img {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+    border: 1px solid #111;
+    border-radius: 50%;
+    background: #fff;
+    object-fit: cover;
+}
+
+.profile-summary-details {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.profile-summary-details strong,
+.profile-summary-details span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-summary-details strong {
+    color: #111;
+    font-family: 'Kodchasan', sans-serif;
+    font-size: 14px;
+}
+
+.profile-summary-details span {
+    color: #777;
+    font-family: 'Kodchasan', sans-serif;
+    font-size: 12px;
+}
+
+.profile-dropdown-item {
+    width: 100%;
+    min-height: 38px;
+    margin-top: 6px;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #111;
+    font-family: 'Kodchasan', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+
+.profile-dropdown-item:hover,
+.profile-dropdown-item:focus-visible {
+    outline: none;
+    background: #fff4a8;
+}

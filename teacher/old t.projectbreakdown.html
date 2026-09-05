@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" style="visibility:hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Breakdown</title>
+    <link rel="stylesheet" href="t.projectbreakdown.css">
+    <link rel="stylesheet" href="../lib/loading.css">
+    <script src="../lib/offline-banner.js" defer></script>
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="icon" href="../Logo.png">
+</head>
+<body>
+    <div class="topbar">
+        <p class="datetime"></p>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="profile-block">
+                <div class="avatar-circle">
+                    <img src="../assets/profile.png" alt="Profile">
+                </div>
+                <h3></h3>
+                <h3></h3>
+                <a href="#" class="profile-link" data-no-loading>Manage Profile</a>
+            </div>
+
+            <div class="sidebar-actions">
+                <button class="btn settings" type="button">Settings</button>
+                <button class="btn logout" type="button">Log Out</button>
+            </div>
+        </aside>
+
+        <main class="main-content-container">
+            <div class="main-header">
+                <h1 class="main-content-title">PROJECT BREAKDOWN</h1>
+
+                <div class="header-actions">
+                    <button class="icon-btn back" id="backToCategoriesBtn" type="button" aria-label="Back to categories">
+                        <img src="../assets/Back.png" alt="Back icon">
+                    </button>
+                    <a class="action-btn validation-link" href="../student/validation/contribution-validation.html?mode=teacher">
+                        <span>Contribution Validation</span>
+                    </a>
+                </div>
+            </div>
+
+            <section class="main-content">
+
+
+                <div class="project-name-display">
+                    <h2>Research</h2>
+                </div>
+
+                <section class="task-section">
+                    <div class="section-title-wrap">
+                        <h2>Tasks</h2>
+                    </div>
+                    <div id="tasksList">
+                        <!-- Empty State Placeholder -->
+                        <div class="empty-state">
+                            <img src="../assets/Plus.png" class="empty-state-icon" alt="No tasks">
+                            <h3>No Tasks Available</h3>
+                            <p>There are no tasks currently listed for this project.</p>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </main>
+
+        <aside class="right-rail">
+            <nav class="side-tabs" aria-label="Group sections">
+                <button class="tab tab-group-info" id="groupInfoTab" type="button"><img src="../assets/grpinfo.png" alt=""> <span>Group<br>Information</span></button>
+                <button class="tab tab-project-breakdown active" type="button"><img src="../assets/breakdown.png" alt=""> <span>Project<br>Breakdown</span></button>
+            </nav>
+        </aside>
+    </div>
+
+    <div class="modal-overlay" id="taskDetailsOverlay" aria-hidden="true">
+        <div class="project-options-modal" role="dialog" aria-modal="true" aria-labelledby="taskDetailsTitle">
+            <div class="project-options-body task-details-body">
+                <p class="task-settings-title" id="taskDetailsTitle">Task Information</p>
+                <p><strong>Task:</strong> <span id="detailTaskName"></span></p>
+                <p><strong>Description:</strong> <span id="detailTaskDescription"></span></p>
+                <p><strong>Assignee(s):</strong> <span id="detailTaskAssignees"></span></p>
+                <p><strong>Due Date:</strong> <span id="detailTaskDueDate"></span></p>
+                <p><strong>Due Time:</strong> <span id="detailTaskDueTime"></span></p>
+                <p><strong>Intensity:</strong> <span id="detailTaskIntensity"></span></p>
+                <p><strong>Prioritization:</strong> <span id="detailTaskPriority"></span></p>
+                <p><strong>Time Active:</strong> <span id="detailTaskTimeActive">0h 0m 0s</span></p>
+                <p id="detailProofRow" style="display:none;"><strong>Proof of Work:</strong> <a id="detailProofLink" href="#" target="_blank" rel="noopener">View</a></p>
+                <p id="detailLeaderNoteRow" style="display:none;"><strong>Leader Note:</strong> <span id="detailLeaderNote"></span></p>
+                <p id="detailTeacherNoteRow" style="display:none;"><strong>Teacher Remark:</strong> <span id="detailTeacherNote"></span></p>
+                <div class="task-details-status-wrap">
+                    <span>Current Status:</span>
+                    <button class="task-status inactive" id="detailTaskStatus" type="button" disabled>Not Active</button>
+                </div>
+                <div class="project-options-actions">
+                    <button class="modal-btn post-btn" id="openTeacherRemarkBtn" type="button" style="display:none;">Add Remark</button>
+                    <button class="modal-btn discard-btn" id="closeTaskDetailsBtn" type="button">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teacher Remark Modal -->
+    <div class="modal-overlay" id="teacherRemarkOverlay" aria-hidden="true">
+        <div class="project-options-modal" role="dialog" aria-modal="true">
+            <div class="project-options-body">
+                <p style="font-weight:800;font-size:14px;margin:0 0 6px;">Add Teacher Remark</p>
+                <textarea id="teacherRemarkInput" rows="3" placeholder="Enter your remark..." style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1.5px solid #000;font-size:13px;resize:vertical;margin-bottom:12px;"></textarea>
+                <div class="project-options-actions">
+                    <button class="modal-btn post-btn" id="saveTeacherRemarkBtn" type="button">Save</button>
+                    <button class="modal-btn discard-btn" id="cancelTeacherRemarkBtn" type="button">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../lib/loading.js"></script>
+    <script src="../lib/datetime.js"></script>
+    <script src="../lib/supabaseClient.js"></script>
+    <script src="../lib/auth-guard.js"></script>
+    <script src="../lib/manage-profile.js"></script>
+    <script src="../lib/settings.js"></script>
+    <script src="../lib/confirmation-modal.js"></script>
+    <script src="t.projectbreakdown.js"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+    </script>
+</body>
+</html>

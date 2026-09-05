@@ -1,0 +1,307 @@
+body {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #111;
+  overflow: auto;
+}
+
+.hex-wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.hex-left {
+  width: 0;
+  height: 0;
+  border-top: 450px solid transparent;
+  border-bottom: 450px solid transparent;
+  border-right: 260px solid #FFCC00;
+}
+
+.hex-mid {
+  width: 900px;
+  height: 900px;
+  background: #FFCC00;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.hex-right {
+  width: 0;
+  height: 0;
+  border-top: 450px solid transparent;
+  border-bottom: 450px solid transparent;
+  border-left: 260px solid #FFCC00;
+}
+
+.hex-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding-top: 40px;
+  flex: 1;
+}
+
+.title {
+  text-align: center;
+}
+
+.title h1 {
+  margin-bottom: -20px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 40px;
+  font-weight: 800;
+}
+
+.title img {
+  width: 500px;
+  margin-bottom: -20px;
+
+}
+
+.title h2 {
+  margin-top: -10px;
+  margin-bottom: 20px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.selection h1 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 48px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.options {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 380px;
+  margin-top: 20px;
+}
+
+.option-professor,
+.option-student {
+  flex: 1;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.option-professor {
+  margin-right: 150px;
+  clip-path: polygon(0% 0%, 100% 0%, 100% 90%, 50% 90%, -10% -20%);
+  transform: scale(1.2);
+}
+
+.option-student {
+  margin-left: 4px;
+  clip-path: polygon(0% 0%, 100% 0%, 110% -20%, 50% 90%, 0% 90%);
+  transform: scale(1.2);
+}
+
+.option-professor:hover { background: #222; }
+.option-student:hover { background: #222; }
+
+.option-professor h2 {
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  margin-top: 10px;
+  margin-left: 100px;
+}
+.option-student h2 {
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  margin-top: 10px;
+  margin-left: -100px;
+}
+
+@media (max-width: 1200px) {
+  .hex-left,
+  .hex-right {
+    display: none;
+  }
+
+  .hex-mid {
+    width: min(94vw, 860px);
+    height: auto;
+    min-height: 92vh;
+    border-radius: 24px;
+    padding-bottom: 28px;
+  }
+
+  .selection h1 {
+    font-size: 42px;
+    margin-bottom: 16px;
+  }
+
+  .options {
+    width: min(92%, 540px);
+    height: auto;
+    gap: 16px;
+  }
+
+  .option-professor,
+  .option-student {
+    min-height: 70px;
+  }
+
+  .option-professor h2,
+  .option-student h2 {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 760px) {
+  body {
+    min-height: 100vh;
+    height: auto;
+    overflow-y: auto;
+    padding: 16px;
+  }
+
+  .hex-mid {
+    width: 100%;
+    min-height: calc(100vh - 32px);
+    border-radius: 18px;
+  }
+
+  .hex-container {
+    padding: 26px 18px;
+  }
+
+  .title h1 {
+    font-size: 24px;
+    margin-bottom: -8px;
+  }
+
+  .title img {
+    width: min(220px, 86%);
+    margin-bottom: -8px;
+  }
+
+  .title h2 {
+    font-size: 18px;
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+
+  .selection h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(92%, 360px);
+    max-width: 100%;
+    box-sizing: border-box;
+    height: auto;
+    margin: 8px auto 0;
+    gap: 12px;
+    padding: 12px 10px;
+    border-radius: 14px;
+  }
+
+  .option-professor,
+  .option-student {
+    width: min(88vw, 320px);
+    min-height: 58px;
+    border-radius: 14px;
+    margin: 0 auto;
+    clip-path: none;
+    transform: none;
+  }
+
+  .option-professor h2,
+  .option-student h2 {
+    font-size: 20px;
+    margin: 0;
+  }
+}
+
+/* Styling for "I am a..." title */
+.selection-title {
+    margin-bottom: 15px; /* Adjusts space between title and disclaimer */
+}
+
+/* Flexbox container keeping Label and Text aligned side-by-side */
+.disclaimer-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+    max-width: 800px;
+    margin: 16px auto 0;
+}
+
+/* Styling for the bold "Disclaimer:" prefix */
+.disclaimer-label {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: #000000;
+    opacity: 0.7;
+    white-space: nowrap;
+}
+
+/* Styling for the wrapping sentence block */
+.disclaimer-text {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 1px;
+    color: #000000;
+    opacity: 0.7;
+    margin: 0;
+    text-align: left;
+}
+
+@media (max-width: 1200px) {
+    .disclaimer-label,
+    .disclaimer-text {
+        font-size: 15px;
+    }
+
+    .disclaimer-container {
+        max-width: 600px;
+        padding: 0 12px;
+    }
+}
+
+@media (max-width: 760px) {
+    .disclaimer-container {
+        max-width: 100%;
+        margin: 12px 0 0;
+        padding: 0 8px;
+        gap: 3px;
+        justify-content: flex-start;
+    }
+
+    .disclaimer-label,
+    .disclaimer-text {
+        font-size: 12px;
+        letter-spacing: 0;
+    }
+}
+

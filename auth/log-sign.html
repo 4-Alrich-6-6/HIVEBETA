@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HIVE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Montserrat:wght@100;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://googleapis.com">
+  <link rel="preconnect" href="https://gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kodchasan" rel="stylesheet">
+  <script src="/lib/offline-banner.js" defer></script>
+  <link href="https://fonts.googleapis.com" rel="stylesheet">
+  <link rel="stylesheet" href="log-sign.css">
+  <link rel="manifest" href="../manifest.json">
+  <meta name="theme-color" content="#000000">
+  <link rel="apple-touch-icon" href="../Logo.png">
+  <link rel="icon" href="../Logo.png">
+</head>
+
+<body>
+  <div class="bg-wrapper">
+    <div class="bg-left">
+    </div>
+    <div class="bg-right">
+    </div>
+  </div>
+
+  <!-- navbar -->
+  <nav class="navbar">
+      <a href="../../auth/landing-page.html"><img class="title-logo" src="../PrimeLogo.png" alt="HIVE Title Logo"></a>
+
+    <ul class="nav-links">
+
+    </ul>
+
+
+  </nav>
+  <div class="container">
+  <!-- login and signup section -->
+    <div class="right">
+        <section class="form" aria-label="Authentication form">
+            <div class="form-content">
+                <div class="form-header">
+                  <h1>
+                    Enter the Hive
+                  </h1>
+
+                </div>
+
+                <form class="lForm active" autocomplete="on">
+                    <p>
+                      Welcome Back! Sign in to continue.
+                    </p>
+                    <div class="inputs">
+                        <div class="form-group">
+                            <input id="login-user" type="email" placeholder="Enter Email" required>
+                        </div>
+                        <div class="form-group password-group">
+                            <div class="password-wrapper">
+                                <input id="login-pass" type="password" class="password-input" placeholder="Enter Password" minlength="6" required>
+                                <button class="toggle-password" type="button" aria-label="Toggle password visibility">
+                                    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+                                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="forget-password.html" class="forgot-pass">Forget password?</a>
+                    <button class="submit" type="submit">Log-In</button>
+                    <p class="togtext">
+                      Don't have an account? <a class="toggle-btn active" data-target="signup" role="tab" aria-selected="false" type="button">Sign Up now!</a>
+                    </p>
+                </form>
+
+                <form class="sForm" autocomplete="on">
+                    <p>
+                      Create your account and join the Hive!
+                    </p>
+                    <div class="inputs">
+                        <div class="form-group">
+                            <input id="sign-email" type="email" placeholder="Enter Email" required>
+                        </div>
+                        <div class="form-group password-group">
+                            <div class="password-wrapper">
+                                <input id="sign-pass" type="password" class="password-input" placeholder="Enter Password" minlength="6" required>
+                                <button class="toggle-password" type="button" aria-label="Toggle password visibility">
+                                    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+                                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group password-group">
+                            <div class="password-wrapper">
+                                <input id="confirm-pass" type="password" class="password-input" placeholder="Confirm your password" minlength="6" required>
+                                <button class="toggle-password" type="button" aria-label="Toggle password visibility">
+                                    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+                                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="terms-check">
+                    
+                      <input type="checkbox" id="agreeTerms" required>
+                    
+                      <label for="agreeTerms" class="terms-label">
+                        I agree to the
+                        <span id="openTermsModal">
+                          Terms & Conditions
+                        </span>
+                        of HIVE.
+                      </label>
+                    
+                    </div>
+                    
+                    <button class="submit" type="submit">Sign-Up</button>
+                    <p class="togtext">
+                      Already have an account? <a class="toggle-btn" data-target="login" role="tab" aria-selected="false" type="button">Log In now!</a>
+                    </p>
+                </form>
+            </div>
+        </section>
+  </div>
+  <section class="footer">
+    <div class="footer">
+      <p class="footer-text">
+          © 2025 HIVE. All rights reserved.
+      </p>
+    </div>
+  </section> 
+    <!--terms and conditions section -->
+
+    <div class="terms-modal" id="termsModal">
+    
+      <div class="terms-content">
+    
+        <span class="close-terms" id="closeTerms">&times;</span>
+    
+        <h2>HIVE TERMS & CONDITIONS</h2>
+    
+        <div class="terms-body">
+    
+          <h3>1. Acceptance of Terms</h3>
+          <p>
+            By using HIVE, users agree to comply with
+            the system rules and academic policies.
+          </p>
+    
+          <h3>2. User Accounts</h3>
+          <p>
+            Users must provide accurate account information
+            including email, profile picture, and credentials.
+          </p>
+    
+          <h3>3. Academic Purpose Only</h3>
+          <p>
+            HIVE is intended solely for group participation
+            tracking, task monitoring, and academic collaboration.
+          </p>
+    
+          <h3>4. Participation Records</h3>
+          <p>
+            Users must not falsify contribution records,
+            participation logs, or task activities.
+          </p>
+    
+          <h3>5. Instructor Validation</h3>
+          <p>
+            Instructors may validate participation and
+            review contribution reports to ensure fairness.
+          </p>
+    
+          <h3>6. Data Privacy</h3>
+          <p>
+            HIVE follows the principles of the
+            Philippine
+          <a href="https://www.privacy.gov.ph/data-privacy-act/" target="_blank">
+            Data Privacy Act of 2012
+            </a>
+          </p>
+          <p>
+            The system may collect:
+          </p>
+    
+          <ul>
+            <li>Email Address</li>
+            <li>Profile Picture</li>
+            <li>Participation Logs</li>
+            <li>Task Records</li>
+          </ul>
+    
+          <h3>7. User Responsibility</h3>
+          <p>
+            Users are responsible for maintaining
+            account security and ethical use of the system.
+          </p>
+    
+        </div>
+    
+      </div>
+    
+    </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../lib/supabaseClient.js"></script>
+  <script src="log-sign.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en" style="visibility:hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="s.dashb.css">
+    <script src="../lib/offline-banner.js" defer></script>
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="../Logo.png">
+    <link rel="icon" href="../Logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Kodchasan:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="dashboard-copy-page">
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <a class="brand-mark" href="s.dashb.html" aria-label="HIVE dashboard">
+                <img src="../PrimeLogo.png" alt="HIVE">
+            </a>
+            <nav class="side-nav" aria-label="Main navigation">
+                <a class="side-nav-link active" href="s.dashb.html" aria-label="Dashboard"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+                    <defs>
+                        <!-- Mask to create transparent geometric cutouts in each tile -->
+                        <mask id="tile-cutouts">
+                        <!-- White background keeps the tile shapes visible -->
+                        <rect width="100" height="100" fill="#ffffff" />
+                        
+                        <!-- Black shapes create true transparent holes -->
+                        <!-- Top-Left: Circle -->
+                        <circle cx="25" cy="25" r="13.5" fill="#000000" />
+                        
+                        <!-- Top-Right: Square -->
+                        <rect x="63" y="13" width="24" height="24" fill="#000000" />
+                        
+                        <!-- Bottom-Left: Triangle -->
+                        <polygon points="25,62 12.5,85 37.5,85" fill="#000000" />
+                        
+                        <!-- Bottom-Right: Diamond -->
+                        <polygon points="75,61 89,75 75,89 61,75" fill="#000000" />
+                        </mask>
+                    </defs>
+                    <!-- 2x2 Grid of Rounded Black Tiles -->
+                    <g fill="currentColor" mask="url(#tile-cutouts)">
+                        <rect x="3" y="3" width="44" height="44" rx="10" />
+                        <rect x="53" y="3" width="44" height="44" rx="10" />
+                        <rect x="3" y="53" width="44" height="44" rx="10" />
+                        <rect x="53" y="53" width="44" height="44" rx="10" />
+                    </g>
+                    </svg>
+                </a>
+                <a class="side-nav-link" href="s.team.html" aria-label="Teams">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+                    <!-- Top-Right L-Bracket -->
+                    <path 
+                        d="M 48 13 H 75 A 12 12 0 0 1 87 25 V 38" 
+                        fill="none" 
+                        stroke="currentColor"
+                        stroke-width="8.5" 
+                        stroke-linecap="round" 
+                        stroke-linejoin="round" 
+                    />
+
+                    <!-- Bottom-Left L-Bracket -->
+                    <path 
+                        d="M 13 62 V 75 A 12 12 0 0 0 25 87 H 48" 
+                        fill="none" 
+                        stroke="currentColor"
+                        stroke-width="8.5" 
+                        stroke-linecap="round" 
+                        stroke-linejoin="round" 
+                    />
+
+                    <!-- Top-Left User (Male Avatar) -->
+                    <g fill="currentColor">
+                        <!-- Head -->
+                        <circle cx="32" cy="20" r="9.5" />
+                        <!-- Shoulders -->
+                        <path d="M 14 54 C 14 41 21 38 32 38 C 43 38 50 41 50 54 Z" />
+                    </g>
+
+                    <!-- Bottom-Right User (Female Avatar) -->
+                    <g fill="currentColor">
+                        <!-- Head & Hair Silhouette -->
+                        <path d="M 61 70 C 61 63 61 52 61 49 C 61 42 66 40 72 40 C 78 40 83 42 83 49 C 83 52 83 63 83 70 C 79 72 76 72 72 72 C 68 72 65 72 61 70 Z" />
+                        <!-- Shoulders -->
+                        <path d="M 58 88 C 58 77 64 74 72 74 C 80 74 86 77 86 88 Z" />
+                    </g>
+                    </svg>
+                </a>
+                <a class="side-nav-link" href="s.tasklist.html" aria-label="Tasks">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+                    <g fill="currentColor">
+                        <!-- Top Row -->
+                        <rect x="5" y="5" width="25" height="25" rx="6" />
+                        <rect x="38" y="12.5" width="57" height="10" rx="5" />
+
+                        <!-- Middle Row -->
+                        <rect x="5" y="37.5" width="25" height="25" rx="6" />
+                        <rect x="38" y="45" width="57" height="10" rx="5" />
+
+                        <!-- Bottom Row: Bar -->
+                        <rect x="38" y="77.5" width="57" height="10" rx="5" />
+
+                        <!-- Bottom Row: Hollow Bullet (using evenodd fill for cutout) -->
+                        <path fill-rule="evenodd" d="
+                        M 11 70 
+                        H 24 
+                        A 6 6 0 0 1 30 76 
+                        V 89 
+                        A 6 6 0 0 1 24 95 
+                        H 11 
+                        A 6 6 0 0 1 5 89 
+                        V 76 
+                        A 6 6 0 0 1 11 70 
+                        Z 
+                        M 12 77 
+                        H 23 
+                        V 88 
+                        H 12 
+                        Z" />
+                    </g>
+                    </svg>
+                </a>
+            </nav>
+            <nav class="side-nav side-nav-bottom" aria-label="Account navigation">
+                <button class="side-nav-link notification-link notif-btn" type="button" aria-label="Notifications">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+                    <g fill="currentColor">
+                        <!-- Top Knob -->
+                        <circle cx="50" cy="16" r="7" />
+
+                        <!-- Bell Body -->
+                        <path d="M 50 18 
+                                C 33 18 24 33 24 50 
+                                C 24 58 20 64 20 64 
+                                H 80 
+                                C 80 64 76 58 76 50 
+                                C 76 33 67 18 50 18 Z" />
+
+                        <!-- Bottom Bar -->
+                        <rect x="13" y="70" width="74" height="6.5" rx="3.25" />
+
+                        <!-- Clapper -->
+                        <path d="M 41.5 76.5 A 8.5 8.5 0 0 0 58.5 76.5 Z" />
+                    </g>
+                    </svg>
+                    <span class="notif-badge" aria-hidden="true"></span></button>
+                <button class="side-nav-link settings-link settings" type="button" aria-label="Settings"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+                <defs>
+                    <!-- Mask to carve out the clean central circular hole -->
+                    <mask id="center-hole">
+                    <rect width="100" height="100" fill="#ffffff" />
+                    <circle cx="50" cy="50" r="18" fill="#000000" />
+                    </mask>
+                </defs>
+
+                <!-- Solid 8-Tooth Gear Icon -->
+                <g fill="currentColor" mask="url(#center-hole)">
+                    <!-- Central Ring Body -->
+                    <circle cx="50" cy="50" r="32" />
+
+                    <!-- 8 Rounded Teeth (45° spacing) -->
+                    <rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(0 50 50)" />
+                    <rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(45 50 50)" />
+                    <rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(90 50 50)" />
+                    <rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(135 50 50)" />
+                    <rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(180 50 50)" />
+                    <rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(225 50 50)" />
+                    <rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(270 50 50)" />
+                    <rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(315 50 50)" />
+                </g>
+                </svg>
+                </button>
+            </nav>
+        </aside>
+        <main class="main-content-container">
+            <div class="main-header">
+                <div class="profile-row">
+                    <button class="profile-trigger" id="profileTrigger" type="button" aria-label="Open profile menu" aria-expanded="false" aria-controls="profileDropdown"><img src="../assets/profile-placeholder.svg" alt=""><svg class="profile-chevron" viewBox="0 0 16 10" aria-hidden="true"><path d="M1 1.5 8 8.5 15 1.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <div class="profile-dropdown" id="profileDropdown" role="menu" aria-hidden="true">
+                        <div class="profile-summary">
+                            <img id="profileDropdownAvatar" src="../assets/profile-placeholder.svg" alt="">
+                            <div class="profile-summary-details">
+                                <strong id="profileDropdownName">Profile</strong>
+                                <span id="profileDropdownEmail">Email</span>
+                            </div>
+                        </div>
+                        <button class="profile-dropdown-item" id="profileLogoutBtn" type="button" role="menuitem">Log Out</button>
+                    </div>
+                </div>
+                <div class="title-row">
+                    <h1 class="main-content-title">Dashboard</h1>
+                </div>
+            </div>
+            <div class="main-content">
+                <section class="stats-row">
+                    <article class="stat-card stat-card-yellow">
+                        <p class="stat-label">Teams</p>
+                        <h3 data-stat="teams">05</h3>
+                    </article>
+                    <article class="stat-card stat-card-yellow">
+                        <p class="stat-label">Your Teams</p>
+                        <h3 data-stat="your-teams">03</h3>
+                    </article>
+                    <article class="stat-card stat-card-green">
+                        <p class="stat-label">Completed Tasks</p>
+                        <h3>11</h3>
+                    </article>
+                    <article class="stat-card stat-card-red">
+                        <p class="stat-label">Pending Tasks</p>
+                        <h3 data-stat="pending">01</h3>
+                    </article>
+                </section>
+                <section class="ratings-section">
+                    <h2>Your Ratings</h2>
+                    <div class="ratings-card"><div class="ratings-totals"><p>Total Tasks Recieved: <strong>00</strong></p><p>Total Tasks Completed: <strong>00</strong></p><p>Total Tasks Missed: <strong>00</strong></p></div><div class="average-score"><p>Average Score:</p><strong>A</strong></div></div>
+                </section>
+                <section class="group-section recent-section" id="joinedGroupsSection">
+                    <div class="section-title-wrap">
+                        <h2>Your Recently Visited Teams</h2>
+                    </div>
+                    <div id="joinedGroupsList"></div>
+                </section>
+            </div>
+        </main>
+        <aside class="right-rail" aria-hidden="true">
+            <button class="notif-btn" type="button" aria-label="Notifications">
+                <img src="../assets/Notification.png" alt="Notification icon">
+                <span class="notif-badge" aria-hidden="true"></span>
+            </button>
+        </aside>
+    </div>
+
+    <div class="modal-overlay" id="addGroupModal" aria-hidden="true">
+        <div class="group-modal" role="dialog" aria-modal="true" aria-labelledby="addGroupTitle">
+            <div class="group-modal-header">
+                <h2 id="addGroupTitle">Enter Group Information</h2>
+            </div>
+            <div class="group-modal-form">
+                <div class="group-form-field">
+                    <label for="groupNameInput">Group Name:</label>
+                    <input id="groupNameInput" type="text" placeholder="Enter group name">
+                </div>
+                <div class="group-form-field">
+                    <label for="groupSubjectInput">Subject:</label>
+                    <input id="groupSubjectInput" type="text" placeholder="Enter subject">
+                </div>
+                <div class="group-modal-actions">
+                    <button type="button" class="group-modal-btn group-discard-btn" id="discardAddGroup">Discard</button>
+                    <button type="button" class="group-modal-btn group-create-btn" id="createAddGroup">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="joinGroupModal" aria-hidden="true">
+        <div class="group-modal" role="dialog" aria-modal="true" aria-labelledby="joinGroupTitle">
+            <div class="group-modal-header">
+                <h2 id="joinGroupTitle">Enter Group Link</h2>
+            </div>
+            <div class="group-modal-form">
+                <div class="group-form-field">
+                    <label for="groupLinkInput">Group Link:</label>
+                    <input id="groupLinkInput" type="text" placeholder="Paste group link">
+                </div>
+                <div class="group-modal-actions">
+                    <button type="button" class="group-modal-btn group-discard-btn" id="discardJoinGroup">Discard</button>
+                    <button type="button" class="group-modal-btn group-create-btn" id="joinGroupBtn">Join</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editOwnedGroupModal" aria-hidden="true">
+        <div class="group-modal" role="dialog" aria-modal="true" aria-labelledby="editOwnedGroupTitle">
+            <div class="group-modal-header">
+                <h2 id="editOwnedGroupTitle">Edit Group</h2>
+            </div>
+            <div class="group-modal-form">
+                <div class="group-form-field">
+                    <label for="editOwnedGroupNameInput">Group Name:</label>
+                    <input id="editOwnedGroupNameInput" type="text" placeholder="Enter group name">
+                </div>
+                <div class="group-form-field">
+                    <label for="editOwnedGroupSubjectInput">Subject:</label>
+                    <input id="editOwnedGroupSubjectInput" type="text" placeholder="Enter subject">
+                </div>
+                <div class="group-form-field">
+                    <label for="editOwnedGroupMottoInput">Motto:</label>
+                    <input id="editOwnedGroupMottoInput" type="text" placeholder="Enter group motto">
+                </div>
+                <div class="group-modal-actions">
+                    <button type="button" class="group-modal-btn group-discard-btn" id="discardEditOwnedGroup">Discard</button>
+                    <button type="button" class="group-modal-btn group-create-btn" id="saveEditOwnedGroup">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="invitationPreviewModal" aria-hidden="true">
+        <div class="invite-preview-modal" role="dialog" aria-modal="true" aria-labelledby="invitePreviewTitle">
+            <div class="invite-preview-header">
+                <p class="invite-preview-intro" id="invitePreviewIntro">We are inviting you to our Colony</p>
+            </div>
+            <div class="invite-preview-body">
+                <section class="invite-preview-main">
+                    <div class="invite-preview-summary">
+                        <h3 id="invitePreviewTeamName">Swarm/Colony Name</h3>
+                        <p id="invitePreviewMeta">Subject | 0 members | 0 instructors</p>
+                    </div>
+
+                    <div class="invite-preview-leader-row">
+                        <span class="invite-preview-leader-label">Lead by:</span>
+                        <div class="invite-preview-leader">
+                            <img id="invitePreviewLeaderAvatar" src="../assets/profile.png" alt="Leader avatar" />
+                            <span id="invitePreviewLeader">Leader Name</span>
+                        </div>
+                    </div>
+
+                    <div class="invite-preview-description">
+                        <p id="invitePreviewDescription">Keep your team details and shared project context in one place.</p>
+                    </div>
+
+                    <div class="invite-preview-ratings" aria-label="Invitation preview ratings">
+                        <div>
+                            <span>Total Projects</span>
+                            <strong id="invitePreviewProjectCount">0 Projects</strong>
+                        </div>
+                        <div>
+                            <span>Group Status</span>
+                            <strong class="status-badge">Active</strong>
+                        </div>
+                        <div>
+                            <span>Group Motto</span>
+                            <strong id="invitePreviewMotto">We are all in this together.</strong>
+                        </div>
+                    </div>
+
+                    <div class="invite-preview-actions">
+                        <button type="button" class="group-modal-btn group-discard-btn" id="closeInvitationPreviewBtn">Close</button>
+                        <button type="button" class="group-modal-btn group-create-btn" id="acceptInvitationPreviewBtn">Accept</button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../lib/supabaseClient.js"></script>
+    <script src="../lib/auth-guard.js"></script>
+    <script src="../lib/profile-dropdown.js"></script>
+    <script src="../lib/datetime.js"></script>
+    <script src="../lib/manage-profile.js"></script>
+    <script src="../lib/settings.js"></script>
+    <script src="../lib/confirmation-modal.js"></script>
+    <script src="s.dashb.js"></script>
+    <script type="module" src="s.leaderpreviewing.js"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+    </script>
+</body>
+</html>

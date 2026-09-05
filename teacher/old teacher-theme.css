@@ -1,0 +1,87 @@
+.sidebar {
+    background-color: var(--student-yellow, #ffcc00) !important;
+    background-image:
+        linear-gradient(to top, rgba(255, 204, 0, 0.58), rgba(255, 204, 0, 0.96)),
+        url("../assets/honeycomb.png") !important;
+    background-repeat: no-repeat, repeat !important;
+    background-position: left top, left bottom !important;
+    background-size: auto, 300px auto !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+html {
+    max-width: 100%;
+    overflow-x: clip;
+}
+
+body {
+    max-width: 100%;
+}
+
+.layout,
+.main-content-container,
+.main-content,
+.right-rail {
+    min-width: 0;
+}
+
+.tab.active {
+    left: 0 !important;
+    width: 100% !important;
+    transform: translateX(-8px);
+}
+
+/* ── Mobile bottom navigation ─────────────────────────────────────────── */
+.mobile-bottom-nav {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        height: 56px;
+        background: var(--student-white, #fff);
+        border-top: 2px solid var(--student-black, #000);
+    }
+
+    .mob-nav-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        border: none;
+        background: transparent;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--student-black, #000);
+        cursor: pointer;
+        padding: 4px 8px;
+    }
+
+    .mob-nav-btn img {
+        width: 22px;
+        height: 22px;
+        object-fit: contain;
+    }
+
+    .mob-nav-active {
+        background: var(--student-yellow, #ffcc00);
+    }
+
+    .mob-nav-btn:disabled {
+        cursor: default;
+        opacity: 1;
+    }
+
+    .main-content-container {
+        padding-bottom: 70px !important;
+    }
+}

@@ -1,0 +1,164 @@
+@import url('../student/s.notification.css');
+@import url('../student/student-theme.css');
+
+/* Comfortable UI size pass */
+.action-btn {
+    min-height: 40px;
+    padding: 0 16px;
+    font-size: 14px;
+}
+
+.notif-section {
+    width: min(100%, 820px);
+}
+
+.notif-card {
+    padding: 18px 22px;
+}
+
+.notif-card.unread {
+    border-color: #FF2E2E !important;
+    box-shadow: 3px 3px 0 rgba(255, 46, 46, 0.5) !important;
+}
+
+.notif-title {
+    font-size: 18px;
+}
+
+.notif-body,
+.notif-modal-body p {
+    font-size: 15px;
+}
+
+.notif-modal-header h2 {
+    font-size: 28px;
+}
+
+/* Typography normalization */
+.main-content-title {
+    font-size: 32px;
+    line-height: 1.15;
+}
+
+.notif-modal-header h2 {
+    font-size: 24px;
+    line-height: 1.2;
+}
+
+.notif-title {
+    font-size: 18px;
+    line-height: 1.25;
+}
+
+.datetime,
+.profile-block h3,
+.profile-link,
+.sidebar-actions .btn,
+.notif-date,
+.notif-group,
+.notif-body,
+.notif-empty,
+.notif-modal-body p,
+.modal-btn {
+    font-size: 15px;
+}
+
+@media (max-width: 900px) {
+    .main-content-title {
+        font-size: 28px;
+    }
+
+    .notif-modal-header h2 {
+        font-size: 22px;
+    }
+}
+
+/* Keep sidebar Settings and Log Out buttons square */
+.sidebar-actions .settings,
+.sidebar-actions .logout,
+.sidebar-actions .btn.settings,
+.sidebar-actions .btn.logout {
+    border-radius: 0;
+}
+
+/* Unified page style consistency */
+.topbar {
+    height: 64px;
+    background: var(--student-black, #000000);
+    color: var(--student-white, #ffffff);
+}
+
+.datetime {
+    color: var(--student-white, #ffffff);
+    font-size: 15px;
+}
+
+.layout {
+    min-height: calc(100vh - 64px);
+    padding-top: 64px;
+    padding-left: 240px;
+}
+
+.sidebar {
+    top: 64px;
+    width: 240px;
+    background: var(--student-yellow, #ffcc00);
+    color: var(--student-black, #000000);
+    border-right: 2px solid var(--student-yellow, #ffcc00);
+}
+
+.settings {
+    background: var(--student-white, #ffffff);
+    color: var(--student-black, #000000);
+}
+
+.logout {
+    background: var(--student-black, #000000);
+    color: var(--student-white, #ffffff);
+}
+
+.main-content-container,
+.main-content,
+.notif-section {
+    background: var(--student-white, #ffffff);
+    color: var(--student-black, #000000);
+}
+
+@media (max-width: 900px) {
+    .layout {
+        padding-left: 0;
+    }
+
+    .sidebar {
+        width: 100%;
+    }
+}
+
+.sidebar {
+    background-color: var(--student-yellow, #ffcc00) !important;
+    background-image:
+        linear-gradient(to top, rgba(255, 204, 0, 0.58), rgba(255, 204, 0, 0.96)),
+        url("../assets/honeycomb.png") !important;
+    background-repeat: no-repeat, repeat !important;
+    background-position: left top, left bottom !important;
+    background-size: auto, 300px auto !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+/* layout stability */
+html {
+    max-width: 100%;
+    overflow-x: clip;
+}
+
+body {
+    max-width: 100%;
+}
+
+.layout,
+.main-content-container,
+.main-content,
+.notif-section {
+    min-width: 0;
+}

@@ -1,0 +1,901 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+    background: #fffff5;
+  color: #111;
+  overflow-x: hidden;
+}
+
+/* background wrapper */
+.bg-wrapper {
+  position: fixed;
+  top: 250px;
+  left: -300px;
+  width: 200vw;
+  height: 100vh;
+  display: flex;
+  z-index: -1;
+}
+
+.bg-left {
+  width: 70vw;
+  height: 100vh;
+  background-image: url('../assets/primesubmark.png');
+  background-size: cover;
+  background-position: center;
+  opacity: 25%;
+}
+
+.bg-right {
+  width: 40vw;
+  height: 60vh;
+  background-image: url('../assets/collab.png');
+  background-size: cover;
+  background-position: center;
+  opacity: 25%;
+}
+
+.navbar {
+  width: 100%;
+  min-height: 90px;
+  padding: 1px 8%;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 30px;
+  border-bottom: 1px solid #BFBCBC;
+}
+
+.title-logo {
+  width: 150px;
+  height: auto;
+  display: block;
+}
+
+.nav-links {
+  display: flex;
+  gap: 38px;
+  list-style: none;
+  justify-content: center;
+}
+
+.nav-links a {
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+  color: #111;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+
+.login-btn {
+  justify-self: end;
+  background: #FFCC00;
+  color: black;
+  border: none;
+  padding: 13px 28px;
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.login-btn:hover {
+  background: #000;
+  color: #FFF;
+}
+
+.container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  padding: 40px 8%;
+}
+
+.right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: center;
+    width: min(100%, 520px);
+    margin-top: 70px;
+    padding-top: 120px;
+    padding-bottom: 40px;
+    background: white;
+    border: 1px solid #BFBCBC;
+    border-radius: 20px;
+}
+
+.form {
+    width: 100%;
+    max-width: 520px;
+    padding: 50px 24px 30px;
+    margin-top: -100px;
+  }
+
+.form-content {
+    width: min(100%, 420px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-content .back-button {
+    width: auto;
+    display: flex;
+    justify-content: flex-start;
+    margin: 0;
+}
+
+.form-content .back-button a {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+}
+
+.form-content .back-button a:hover {
+    background: #FFCC00;
+    border: 1px solid black;
+    transition: all 0.3s ease-in-out;
+    transform: translateY(-5px);
+    box-shadow: 0px 5px 0px #aaa;
+}
+
+.form-content .back-icon {
+    width: 24px;
+    height: 24px;
+    display: block;
+    filter: invert(1);
+}
+
+.form-heading-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 44px 1fr 44px;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.form-heading-row .back-button {
+    justify-self: start;
+}
+
+.form-heading-row .form-title {
+    grid-column: 2 / 3;
+    text-align: center;
+    margin: 0;
+}
+
+.form-heading-row .form-title h2 {
+    margin: 0;
+}
+
+/* Forget Password specific: Compact only for Banner, Back Button, and Header */
+[aria-label="Forget password form"] {
+    margin-top: -140px !important;
+}
+
+[aria-label="Forget password form"] .form-content {
+    gap: 0px;
+}
+
+[aria-label="Forget password form"] .back-button {
+    margin-bottom: 10px !important;
+}
+
+[aria-label="Forget password form"] .form-header {
+    margin-top: 0 !important;
+}
+
+[aria-label="Forget password form"] .form-title {
+    margin-bottom: 10px;
+    line-height: 1.1;
+}
+
+[aria-label="Forget password form"] .form-description {
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+[aria-label="Forget password form"] .lForm,
+[aria-label="Forget password form"] .sForm {
+    margin-top: 2px;
+}
+
+[aria-label="Forget password form"] .submit {
+    margin-top: 30px !important;
+}
+
+.form-content .back-icon {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
+.form-header {
+    width: 100%;
+    text-align: center;
+
+}
+
+.form-header h1 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 5%;
+    color: #000;
+    margin-bottom: 20px;
+}
+
+.lForm.active p {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: center;
+    color: #000;
+    margin-bottom: 20px;
+}
+
+.sForm p {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: center;
+    color: #000;
+    margin-bottom: 20px;
+}
+
+.form-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 5%;
+    color: #000;
+    margin-bottom: 20px;
+}
+
+.form-title h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin: 0 0 8px;
+    color: #000;
+}
+
+.form-description {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: center;
+    color: #000;
+    margin-bottom: 20px;
+}
+
+.banner {
+    text-align: center;
+    margin: 0;
+}
+
+.title-image {
+    width: min(300px, 100%);
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.tagline {
+    margin: 1px 0 0;
+    font-family: Montserrat, sans-serif;
+    font-size: 29px;
+    font-weight: 800;
+    line-height: 1.15;
+    white-space: nowrap;
+}
+
+.togtext{
+    font-family: Montserrat, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #000;
+    text-align: center;
+}
+
+.toggle {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 38px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.toggle-btn {
+    appearance: none;
+    border: none;
+    background: transparent;
+    font-family: Montserrat, sans-serif;
+    font-size: 16   px;
+    text-decoration: underline;
+    font-weight: 700;
+    line-height: 1;
+    color: #000;
+    cursor: pointer;
+    padding: 0 2px 5px;
+    position: relative;
+}
+
+.toggle-btn:hover {
+    font-weight: 900;
+}
+
+.toggle-btn::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 5px;
+    border-radius: 10px;
+    background: transparent;
+}
+
+.footer {
+    width: 100%;
+    text-align: center;
+    margin-top: 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: #000;
+    position: fixed;
+    bottom: 25px;
+}
+
+.lForm,
+.sForm {
+    width: 100%;
+    display: none;
+    min-height: auto;
+    flex-direction: column;
+}
+
+.lForm.active,
+.sForm.active {
+    display: flex;
+}
+
+.inputs {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.forgot-pass {
+    display: inline-block;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-family: 'Montserrat', sans-serif;
+    color: #000;
+    font-size: 15px;
+    font-weight: 400;
+    text-decoration: underline;
+}
+
+.form-group {
+    width: 100%;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+input {
+    width: 100%;
+    height: 46px;
+    border-radius: 16px;
+    font-weight: 400;
+    border: 2px solid #BFBCBC;
+    background: #fff;
+    color: #000;
+    font-size: 16px;
+    padding: 0 14px;
+    font-family: Montserrat, sans-serif;
+}
+
+input::placeholder {
+    color: #c8c8c8;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    padding-right: 44px;
+}
+
+.email-wrapper {
+    position: relative;
+    display: flex;
+    gap: 8px;
+}
+
+.email-wrapper input {
+    flex: 1;
+}
+
+.send-btn {
+    appearance: none;
+    border: none;
+    border-radius: 16px;
+    background: #FFCC00;
+    color: #000;
+    font-family: "Kodchasan", sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0 16px;
+    white-space: nowrap;
+    min-width: 70px;
+}
+
+.send-btn:hover {
+    background: #000;
+    color: #FFCC00;
+    transform: translateY(-5px);
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 5px 0px #aaa;
+}
+
+.send-btn:disabled {
+    background: #666;
+    cursor: not-allowed;
+    color: #ccc;
+    pointer-events: none;
+}
+
+.toggle-password {
+    appearance: none;
+    border: none;
+    background: transparent;
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password svg {
+    fill: #5f5f5f;
+}
+
+.submit {
+    display: block;
+    margin: 10px 0;
+    border: none;
+    border-radius: 16px;
+    background: #FFCC00;
+    color: #000;
+    min-width: 190px;
+    height: 56px;
+    font-family: "Kodchasan", sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0 30px;
+}
+
+.lForm .submit,
+.sForm .submit {
+    margin-top: 14px;
+}
+
+.lForm .submit:hover, .sForm .submit:hover {
+    background: #000;
+    color: #FFF;
+    transform: translateY(-5px);
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0px 5px 0px #aaa;
+}
+
+.verify-form .form-content {
+    align-items: stretch;
+    gap: 10px;
+}
+
+.verify-form .form-title,
+.verify-form .form-description {
+    text-align: center;
+}
+
+.verify-form .form-title h2 {
+    margin: 0;
+}
+
+.verify-form .form-description p {
+    margin: 4px 0 0;
+}
+
+.verify-form .lForm {
+    min-height: 0;
+}
+
+.verify-form .lForm .submit {
+    margin-top: 14px;
+}
+
+/* TERMS CHECKBOX */
+
+.terms-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.terms-check input {
+    width: 18px;
+    height: 18px;
+    margin-top: 3px;
+    accent-color: black;
+}
+
+.terms-label {
+    font-size: 16px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.terms-label span {
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.terms-label span:hover {
+    font-weight: 900;
+}
+
+/* TERMS MODAL */
+
+.terms-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+}
+
+.terms-content {
+    background: #fff;
+    width: min(700px, 100%);
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 22px;
+    padding: 32px;
+    border: 3px solid #000;
+    position: relative;
+}
+
+.close-terms {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.terms-content h2 {
+    margin-bottom: 20px;
+    font-family: Montserrat, sans-serif;
+}
+
+.terms-body h3 {
+    margin-top: 20px;
+    font-family: Montserrat, sans-serif;
+    margin-bottom: 8px;
+}
+
+.terms-body p,
+.terms-body li {
+    line-height: 1.8;
+    font-size: 14px;
+    font-family: "Kodchasan", sans-serif;
+}
+
+/* AUTH NOTICE MODAL */
+
+.auth-notice {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.48);
+}
+
+.auth-notice.open {
+    display: flex;
+}
+
+.auth-notice-content {
+    width: min(430px, 100%);
+    border: 3px solid #000;
+    border-radius: 20px;
+    background: #fff;
+    color: #000;
+    padding: 26px 24px 22px;
+    box-shadow: 0 16px 0 rgba(0, 0, 0, 0.18);
+}
+
+.auth-notice-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.auth-notice-icon {
+    width: 42px;
+    height: 42px;
+    border: 3px solid #000;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    background: #ffcf24;
+    font-family: Montserrat, sans-serif;
+    font-size: 25px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.auth-notice-title {
+    margin: 0;
+    font-family: Montserrat, sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.auth-notice-message {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.auth-notice-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 22px;
+}
+
+.auth-notice-ok {
+    min-width: 108px;
+    height: 44px;
+    border: none;
+    border-radius: 14px;
+    background: #000;
+    color: #fff;
+    font-family: Montserrat, sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    padding: 0 22px;
+}
+
+.auth-notice-ok:focus-visible {
+    outline: 3px solid #ffcf24;
+    outline-offset: 3px;
+}
+
+@media (max-width: 1180px) {
+    .container {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .left {
+        min-height: 300px;
+        justify-content: center;
+    }
+
+    .logo-image {
+        width: min(420px, 100%);
+    }
+}
+
+@media (max-width: 760px) {
+    /* Reset aggressive desktop margins for mobile */
+    [aria-label="Forget password form"] {
+        margin-top: 0 !important;
+    }
+
+    [aria-label="Forget password form"] .back-button {
+        margin-bottom: 4px !important;
+    }
+
+    [aria-label="Forget password form"] .form-header {
+        margin-top: 0 !important;
+        margin-bottom: 8px !important;
+    }
+
+    [aria-label="Forget password form"] .form-title {
+        font-size: 24px;
+        margin-bottom: 0;
+        line-height: 1.2;
+    }
+
+    [aria-label="Forget password form"] .form-description {
+        font-size: 14px;
+        margin-bottom: 0;
+        line-height: 1.4;
+    }
+
+    [aria-label="Forget password form"] .lForm,
+    [aria-label="Forget password form"] .sForm {
+        margin-top: 10px;
+    }
+
+    body {
+        padding: 16px;
+        background-image: none;
+        position: relative;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    .container {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .left {
+        min-height: auto;
+        justify-content: center;
+    }
+
+    .logo-image {
+        width: 88px;
+    }
+
+    .right {
+        width: 100%;
+        transform: none;
+        padding-top: 0;
+    }
+
+    .right-header {
+        position: static;
+        top: auto;
+        left: auto;
+        transform: none;
+        width: 100%;
+        margin-bottom: 8px;
+    }
+
+    .form {
+        max-width: 370px;
+        padding: 26px 18px 26px;
+        margin-top: 0;
+    }
+
+    .title-image {
+        width: min(180px, 100%);
+    }
+
+    .tagline {
+        font-size: 13px;
+    }
+
+    .toggle-btn {
+        font-size: 24px;
+    }
+
+    label {
+        font-size: 14px;
+    }
+
+    input {
+        font-size: 14px;
+        height: 36px;
+    }
+
+    .lForm,
+    .sForm {
+        min-height: auto;
+    }
+
+    .form {
+        max-width: 370px;
+        padding: 20px 18px;
+        margin-top: 0;
+    }
+
+    .form-content {
+        gap: 10px;
+    }
+
+    .verify-form .form-content {
+        gap: 16px;
+    }
+
+    .verify-form .lForm .submit {
+        margin-top: 60px !important;
+    }
+
+    .inputs {
+        margin-bottom: 20px;
+    }
+
+    .form-title {
+        font-size: 24px;
+    }
+
+    .form-description {
+        font-size: 14px;
+    }
+
+    .submit {
+        font-size: 20px;
+        font-family: Montserrat, sans-serif;
+        height: 38px;
+        min-width: 150px;
+    }
+
+    .auth-notice-content {
+        padding: 22px 20px 20px;
+        border-radius: 18px;
+    }
+
+    .auth-notice-title {
+        font-size: 20px;
+    }
+
+    .auth-notice-message {
+        font-size: 14px;
+    }
+}
