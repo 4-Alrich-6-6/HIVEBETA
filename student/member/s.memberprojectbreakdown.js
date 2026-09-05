@@ -171,7 +171,7 @@ const loadProjectDueDate = async () => {
 const loadProjectDetails = async () => {
     const pid = getProjId();
     if (!pid) return null;
-    const { data } = await supa().from("PROJECT").select("projName, projDesc, projCreatedAt, projDueD").eq("projId", Number(pid)).maybeSingle();
+    const { data } = await supa().from("PROJECT").select("projName, projDesc, projCreatedAt, projDueD, projDueT").eq("projId", Number(pid)).maybeSingle();
     return data || null;
 };
 
@@ -437,79 +437,28 @@ const populateAssigneeCheckboxes = async (containerSelector, inputName, onChange
 let verifyChoiceCallback = null;
 let pauseFinishCallback  = null;
 
-// ── Leader Proof Submission (when leader finishes their own task) ──────────
-const leaderProofSubmitOverlay = document.querySelector("#leaderProofSubmitOverlay");
-const leaderProofLinkInput     = document.querySelector("#leaderProofLinkInput");
-const submitLeaderProofBtn      = document.querySelector("#submitLeaderProofBtn");
-const cancelLeaderProofBtn      = document.querySelector("#cancelLeaderProofBtn");
-let _leaderProofTaskId = null;
-
-const openLeaderProofSubmit = (taskId) => {
-    _leaderProofTaskId = taskId;
-    if (leaderProofLinkInput) leaderProofLinkInput.value = "";
-    leaderProofSubmitOverlay?.classList.add("open");
-    leaderProofSubmitOverlay?.setAttribute("aria-hidden", "false");
+const submitLeaderEvaluation = async (taskId) => {
+    if (!taskId || !currentUserId) return;
+    const { data: membership } = await supa().from("GROUPMEMBER")
+        .select("grpmemId")
+        .eq("userId", currentUserId)
+        .eq("grpId", Number(getGrpId()))
+        .maybeSingle();
+    if (!membership) return;
+    const { data: existing } = await supa().from("SUBMISSION")
+        .select("subId")
+        .eq("taskId", taskId)
+        .eq("grpmemId", membership.grpmemId)
+        .order("submittedAt", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+    const payload = { submittedAt: new Date().toISOString(), status: "approved" };
+    if (existing?.subId) {
+        await supa().from("SUBMISSION").update(payload).eq("subId", existing.subId);
+    } else {
+        await supa().from("SUBMISSION").insert({ taskId, grpmemId: membership.grpmemId, ...payload });
+    }
 };
-
-const closeLeaderProofSubmit = () => {
-    leaderProofSubmitOverlay?.classList.remove("open");
-    leaderProofSubmitOverlay?.setAttribute("aria-hidden", "true");
-    _leaderProofTaskId = null;
-};
-
-if (submitLeaderProofBtn) {
-    submitLeaderProofBtn.addEventListener("click", async () => {
-        const proofLink = leaderProofLinkInput?.value.trim();
-        if (!proofLink) {
-            showAlert("Please paste a proof link before submitting.", { title: "Missing Proof" });
-            return;
-        }
-        if (!_leaderProofTaskId || !currentUserId) return;
-
-        // Get the leader's grpmemId
-        const grpId = getGrpId();
-        const { data: membership } = await supa()
-            .from("GROUPMEMBER")
-            .select("grpmemId")
-            .eq("userId", currentUserId)
-            .eq("grpId", Number(grpId))
-            .maybeSingle();
-
-        if (!membership) {
-            showAlert("Could not find your group membership.", { title: "Error" });
-            return;
-        }
-
-        // Create or update submission with proof
-        const now = new Date().toISOString();
-        const { error: subErr } = await supa().from("SUBMISSION").insert({
-            taskId: _leaderProofTaskId,
-            grpmemId: membership.grpmemId,
-            proofLink: proofLink,
-            submittedAt: now,
-            status: "approved"
-        }).select().single();
-
-        if (subErr) {
-            console.error("Submission error:", subErr);
-            showAlert("Failed to submit proof: " + subErr.message, { title: "Error" });
-            return;
-        }
-
-        closeLeaderProofSubmit();
-        showAlert("Proof submitted successfully!", { title: "Success" });
-    });
-}
-
-if (cancelLeaderProofBtn) {
-    cancelLeaderProofBtn.addEventListener("click", closeLeaderProofSubmit);
-}
-
-if (leaderProofSubmitOverlay) {
-    leaderProofSubmitOverlay.addEventListener("click", e => {
-        if (e.target === leaderProofSubmitOverlay) closeLeaderProofSubmit();
-    });
-}
 
 // ── Participation rating state ──────────────────────────────────────────────
 const participationRatingOverlay = document.querySelector("#participationRatingOverlay");
@@ -708,6 +657,21 @@ if (leaderActiveCloseBtn)   leaderActiveCloseBtn.addEventListener("click",   clo
 if (leaderActiveChoiceOverlay) leaderActiveChoiceOverlay.addEventListener("click", e => { if(e.target===leaderActiveChoiceOverlay) closeLeaderActiveChoice(); });
 
 const attachLeaderStatusBtn = (btn, task, isOwnTask) => {
+    const isCurrentUserGroupLeader = async () => {
+        const grpId = getGrpId();
+        if (!grpId || !currentUserId) return false;
+        const { data: leaderRole } = await supa().from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle();
+        if (!leaderRole?.roleId) return false;
+        const { data: leaderMembership } = await supa()
+            .from("GROUPMEMBER")
+            .select("grpmemId")
+            .eq("grpId", Number(grpId))
+            .eq("userId", currentUserId)
+            .eq("roleId", leaderRole.roleId)
+            .maybeSingle();
+        return Boolean(leaderMembership);
+    };
+
     const setStatus = async (s) => {
         await updateTaskStatus(task.taskId, s, task);
         task.status = s;
@@ -741,10 +705,9 @@ const attachLeaderStatusBtn = (btn, task, isOwnTask) => {
 
         // After finishing: check if leader is assigned to this task
         if (s === "finished") {
-            // Check if current user is in the assignees
-            const isLeaderAssigned = task.assignees.some(a => a.userId === currentUserId);
+            const isLeaderAssigned = task.assignees.some(a => a.userId === currentUserId) && await isCurrentUserGroupLeader();
             if (isLeaderAssigned && task.assignees.length > 0) {
-                openLeaderProofSubmit(task.taskId);
+                await submitLeaderEvaluation(task.taskId);
             } else {
                 openParticipationRating(task.taskId, task.assignees);
             }
@@ -827,7 +790,7 @@ const renderTask = async (task, idx, isOwnTask, target) => {
         <div class="task-left">
             <h3>${isOwnTask ? `<svg class="assigned-task-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><path d="M 72.44 16.13 L 90.56 47.50 A 5 5 0 0 1 90.56 52.50 L 72.44 83.87 A 5 5 0 0 1 68.11 86.37 L 31.89 86.37 A 5 5 0 0 1 27.56 83.87 L 9.44 52.50 A 5 5 0 0 1 9.44 47.50 L 27.56 16.13 A 5 5 0 0 1 31.89 13.63 L 68.11 13.63 A 5 5 0 0 1 72.44 16.13 Z" fill="#FFCC00"></path></svg>` : ""}${task.name}</h3>
             <p>${assigneeCount} Assigned Contributor${assigneeCount === 1 ? "" : "s"}</p>
-            <p class="task-time-row">Active Timespan: ${timeHtml}</p>
+            <p class="task-time-row">Active Timespan: ${timeHtml}${status === "revising" ? ` <span class="task-revising-label">Revising</span>` : ""}</p>
         </div>
         <div class="task-due">
             <span>Due Date: ${task.dueDate || "--/--/----"}</span>
@@ -844,17 +807,19 @@ const renderTask = async (task, idx, isOwnTask, target) => {
 
 const renderAllTasks = async () => {
     const tasks=(await loadTasks()).filter(task => task.status !== "finished" && task.status !== "verifying");
-    const yl=document.querySelector("#yourTasksList"); const ol=document.querySelector("#otherTasksList");
+    const yl = document.querySelector("#yourTasksList");
+    const ol = document.querySelector("#otherTasksList");
+    if (yl) yl.hidden = false;
+    if (ol) ol.hidden = true;
     if(yl) yl.innerHTML=""; if(ol) ol.innerHTML="";
     let own=0,other=0,verify=0;
     for(let i=0;i<tasks.length;i++){
         const t=tasks[i]; const mine=t.assignees.some(a=>a.userId===currentUserId);
-        await renderTask(t,i,mine,yl);
+        await renderTask(t, i, mine, yl);
         if(mine) own++; else other++;
         if(t.status==="verifying") verify++;
     }
-    if(yl&&own===0) yl.innerHTML=`<div class="empty-state task-empty-placeholder"><img src="../../assets/bee-flight.svg" class="empty-state-icon" alt=""><h2>You Have No Pending Tasks Yet</h2><p>Check back later or explore your projects to find other's unfinished tasks and help them like a good team member.</p></div>`;
-    if(ol&&other===0) ol.innerHTML=`<div class="empty-state task-empty-placeholder"><img src="../../assets/bee-flight.svg" class="empty-state-icon" alt=""><h2>You Have No Pending Tasks Yet</h2><p>Check back later or explore your projects to find other's unfinished tasks and help them like a good team member.</p></div>`;
+    if (yl && own === 0 && other === 0) yl.innerHTML = `<div class="empty-state task-empty-placeholder"><img src="../../assets/bee-flight.svg" class="empty-state-icon" alt=""><h2>You Have No Pending Tasks Yet</h2><p>Check back later or explore your projects to find other's unfinished tasks and help them like a good team member.</p></div>`;
     const sc=document.querySelectorAll(".summary-card h3");
     if(sc[0]) sc[0].textContent=own; if(sc[1]) sc[1].textContent=other; if(sc[2]) sc[2].textContent=verify;
 };
@@ -1144,8 +1109,10 @@ if(logoutBtn) logoutBtn.addEventListener("click",()=>{showConfirmation("Are you 
     if (detailName) detailName.textContent = project?.projName || projectName || "Project";
     const startDate = document.querySelector("#projectStartDate");
     const dueDate = document.querySelector("#projectDueDate");
+    const dueTime = document.querySelector("#projectDueTime");
     if (startDate) startDate.textContent = formatProjectDate(project?.projCreatedAt);
     if (dueDate) dueDate.textContent = formatProjectDate(project?.projDueD);
+    if (dueTime) dueTime.textContent = project?.projDueT || "--:--";
     const description = document.querySelector("#projectDescription");
     if (description) description.textContent = project?.projDesc || "No project description provided.";
     const validationLink=document.querySelector(".validation-link");

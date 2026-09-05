@@ -7,12 +7,14 @@ const postCategoryForm         = document.querySelector("#postCategoryForm");
 const categoryNameInput        = document.querySelector("#categoryNameInput");
 const categoryDescriptionInput = document.querySelector("#categoryDescriptionInput");
 const categoryDueDateInput     = document.querySelector("#categoryDueDateInput");
+const categoryDueTimeInput     = document.querySelector("#categoryDueTimeInput");
 const postCategorySubmitBtn    = postCategoryForm ? postCategoryForm.querySelector("button[type='submit']") : null;
 const categoryList             = document.querySelector(".category-list");
 const projectOptionsOverlay    = document.querySelector("#projectOptionsModalOverlay");
 const editProjectNameInput     = document.querySelector("#editProjectNameInput");
 const editProjectDescriptionInput = document.querySelector("#editProjectDescriptionInput");
 const editProjectDueDateInput  = document.querySelector("#editProjectDueDateInput");
+const editProjectDueTimeInput  = document.querySelector("#editProjectDueTimeInput");
 const saveProjectNameBtn       = document.querySelector("#saveProjectNameBtn");
 const deleteProjectBtn         = document.querySelector("#deleteProjectBtn");
 const closeProjectOptionsBtn   = document.querySelector("#closeProjectOptionsBtn");
@@ -66,14 +68,14 @@ const loadProjects = async () => {
 
     let { data, error } = await supa()
         .from("PROJECT")
-        .select("projId, projName, projDesc, projCreatedAt, projDueD, projStatus")
+        .select("projId, projName, projDesc, projCreatedAt, projDueD, projDueT, projStatus")
         .eq("grpId", Number(grpId))
         .order("projCreatedAt", { ascending: false, nullsFirst: false })
         .order("projId", { ascending: false });
     if (error) {
         const fallback = await supa()
             .from("PROJECT")
-            .select("projId, projName, projDesc, projCreatedAt, projDueD")
+            .select("projId, projName, projDesc, projCreatedAt, projDueD, projDueT")
             .eq("grpId", Number(grpId))
             .order("projCreatedAt", { ascending: false, nullsFirst: false })
             .order("projId", { ascending: false });
@@ -104,6 +106,7 @@ const loadProjects = async () => {
                 projId: p.projId,
                 description: p.projDesc || "",
                 dueDate: p.projDueD || null,
+                dueTime: p.projDueT || null,
                 count: taskList.length,
                 completedCount,
                 status: p.projStatus || (isCompleted ? "Finished" : "Ongoing")
@@ -114,12 +117,13 @@ const loadProjects = async () => {
 };
 
 // ── Create category card ──────────────────────────────────────────────────
-const createCategoryItem = (name, key, count, completedCount, dueDate, status, description = "") => {
+const createCategoryItem = (name, key, count, completedCount, dueDate, dueTime, status, description = "") => {
     const categoryItem = document.createElement("div");
     categoryItem.className = "category-item";
     categoryItem.setAttribute("role", "listitem");
     categoryItem.setAttribute("data-category", key);
     if (dueDate) categoryItem.setAttribute("data-due-date", dueDate);
+    if (dueTime) categoryItem.setAttribute("data-due-time", dueTime);
     categoryItem.setAttribute("data-description", description);
     categoryItem.innerHTML = `
         <button class="category-main-btn" type="button" data-category="${key}">
@@ -177,7 +181,7 @@ const renderAllProjects = async () => {
     if (projectAddBtn) projectAddBtn.style.display = canCreateProjects ? "" : "none";
     
     projects.forEach(p => {
-        categoryList.appendChild(createCategoryItem(p.name, p.key, p.count, p.completedCount, p.dueDate, p.status, p.description));
+        categoryList.appendChild(createCategoryItem(p.name, p.key, p.count, p.completedCount, p.dueDate, p.dueTime, p.status, p.description));
     });
 };
 
@@ -191,6 +195,7 @@ const openProjectOptions = (categoryItem) => {
         editProjectDueDateInput.min   = todayISO();
         editProjectDueDateInput.value = categoryItem.dataset.dueDate || "";
     }
+    if (editProjectDueTimeInput) editProjectDueTimeInput.value = categoryItem.dataset.dueTime || "";
     projectOptionsOverlay?.classList.add("open");
     projectOptionsOverlay?.setAttribute("aria-hidden", "false");
 };
@@ -210,9 +215,10 @@ const saveProjectName = async () => {
     const newName = editProjectNameInput ? editProjectNameInput.value.trim() : "";
     const newDescription = editProjectDescriptionInput ? editProjectDescriptionInput.value.trim() : "";
     const newDue  = editProjectDueDateInput ? editProjectDueDateInput.value : "";
+    const newDueTime = editProjectDueTimeInput ? editProjectDueTimeInput.value : "";
     if (!newName) return;
     const projId = Number(activeProjectItem.dataset.category);
-    const { error } = await supa().from("PROJECT").update({ projName: newName, projDesc: newDescription || null, projDueD: newDue || null }).eq("projId", projId);
+    const { error } = await supa().from("PROJECT").update({ projName: newName, projDesc: newDescription || null, projDueD: newDue || null, projDueT: newDueTime || null }).eq("projId", projId);
     if (error) { showAlert("Failed to update project: " + error.message, { title: "Error" }); return; }
     await renderAllProjects();
     closeProjectOptions();
@@ -285,7 +291,8 @@ const updatePostCategorySubmitState = () => {
     if (!postCategorySubmitBtn) return;
     const hasName = categoryNameInput && categoryNameInput.value.trim().length > 0;
     const hasDate = categoryDueDateInput && categoryDueDateInput.value.length > 0;
-    postCategorySubmitBtn.disabled = !(hasName && hasDate);
+    const hasTime = categoryDueTimeInput && categoryDueTimeInput.value.length > 0;
+    postCategorySubmitBtn.disabled = !(hasName && hasDate && hasTime);
 };
 
 if (openPostCategoryModalBtn && postCategoryModalOverlay) {
@@ -308,6 +315,7 @@ if (discardPostCategoryBtn) {
 
 if (categoryNameInput)    categoryNameInput.addEventListener("input", updatePostCategorySubmitState);
 if (categoryDueDateInput) categoryDueDateInput.addEventListener("input", updatePostCategorySubmitState);
+if (categoryDueTimeInput) categoryDueTimeInput.addEventListener("input", updatePostCategorySubmitState);
 if (postCategoryModalOverlay) postCategoryModalOverlay.addEventListener("click", (e) => { if (e.target === postCategoryModalOverlay) closePostCategoryModal(); });
 
 if (postCategoryForm) {
@@ -315,11 +323,12 @@ if (postCategoryForm) {
         e.preventDefault();
         const name = categoryNameInput.value.trim();
         const due  = categoryDueDateInput.value;
-        if (!name || !due || due < todayISO()) return;
+        const dueTime = categoryDueTimeInput?.value || "";
+        if (!name || !due || !dueTime || due < todayISO()) return;
         showConfirmation(`Are you sure you want to post the project "${name}"?`, async () => {
             const { error } = await supa()
                 .from("PROJECT")
-                .insert({ projName: name, projDesc: categoryDescriptionInput?.value.trim() || null, projDueD: due, projCreatedAt: new Date().toISOString(), grpId: Number(getGrpId()) });
+                .insert({ projName: name, projDesc: categoryDescriptionInput?.value.trim() || null, projDueD: due, projDueT: dueTime, projCreatedAt: new Date().toISOString(), grpId: Number(getGrpId()) });
             if (error) { showAlert("Failed to create project: " + error.message, { title: "Error" }); return; }
             await renderAllProjects();
             postCategoryForm.reset();

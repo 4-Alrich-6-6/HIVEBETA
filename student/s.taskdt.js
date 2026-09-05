@@ -33,7 +33,6 @@ const taskSettingsOverlay = document.querySelector("#taskSettingsOverlay");
 const openEditTaskInfoBtn = document.querySelector("#openEditTaskInfoBtn");
 const openManualStatusBtn = document.querySelector("#openManualStatusBtn");
 const openRemoveTaskConfirmBtn = document.querySelector("#openRemoveTaskConfirmBtn");
-const discardTaskSettingsBtn = document.querySelector("#discardTaskSettingsBtn");
 const editTaskInfoOverlay = document.querySelector("#editTaskInfoOverlay");
 const editTaskInfoForm = document.querySelector("#editTaskInfoForm");
 const discardEditTaskInfoBtn = document.querySelector("#discardEditTaskInfoBtn");
@@ -370,7 +369,11 @@ const renderTaskDetailPage = async () => {
         .filter(Boolean)
         .sort()[0];
     if (pageTaskAssignedDate) pageTaskAssignedDate.textContent = formatAssignedDate(assignedAt);
-    if (pageTaskDueDate) pageTaskDueDate.textContent = task.dueDate || "--/--/----";
+    if (pageTaskDueDate) {
+        const dueDate = task.dueDate || "--/--/----";
+        const dueTime = task.dueTime ? formatTime12h(task.dueTime) : "--:--";
+        pageTaskDueDate.textContent = `${dueDate} ${dueTime}`;
+    }
     if (pageTaskAssigneeCount) pageTaskAssigneeCount.textContent = task.assignees.length;
     if (pageTaskAssigneeAvatars) {
         const visibleAssignees = task.assignees.length > 3 ? task.assignees.slice(0, 2) : task.assignees.slice(0, 3);
@@ -436,22 +439,29 @@ const renderTaskDetailPage = async () => {
         pageTaskSubmit.onclick = async () => {
             const submittingAssignee = task.assignees.find((assignee) => assignee.userId === currentUserId);
             if (submittingAssignee) {
-                await supa().from("SUBMISSION").insert({
+                const { error } = await supa().from("SUBMISSION").insert({
                     taskId: task.taskId,
                     grpmemId: submittingAssignee.grpmemId,
                     submittedAt: new Date().toISOString(),
                     status: "pending",
                     isRevised: false
                 });
+                if (error) {
+                    showAlert(`Failed to submit task: ${error.message}`, { title: "Submission Error" });
+                    return;
+                }
             }
             await updateTaskStatus(task.taskId, "verifying", task);
-            task.status = "verifying";
-            task.acmD = null;
-            pageTaskStatus.textContent = STATUS_TEXT.verifying;
-            pageTaskActiveTime.textContent = formatElapsedTime(getTotalElapsedMs(task));
-            pageTaskStart.disabled = true;
-            pageTaskSubmit.disabled = true;
-            loadSubmissions("evaluation");
+            const grpId = getGrpId();
+            const { data: leaderRole } = await supa().from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle();
+            const { data: leaderMembership } = await supa().from("GROUPMEMBER")
+                .select("grpmemId")
+                .eq("grpId", Number(grpId))
+                .eq("userId", currentUserId)
+                .eq("roleId", leaderRole?.roleId)
+                .maybeSingle();
+            const breakdownPath = leaderMembership ? "leader/s.leaderprojectbreakdown.html" : "member/s.memberprojectbreakdown.html";
+            window.location.href = `${breakdownPath}?grpId=${encodeURIComponent(grpId || "")}`;
         };
     }
 };
@@ -1099,8 +1109,27 @@ if (!window._globalTaskTicker) {
     }, 1000);
 }
 
-const closeTaskSettings=()=>{taskSettingsOverlay?.classList.remove("open");taskSettingsOverlay?.setAttribute("aria-hidden","true");};
-const openTaskSettings=(i)=>{activeTaskIndex=i;taskSettingsOverlay?.classList.add("open");taskSettingsOverlay?.setAttribute("aria-hidden","false");};
+const closeTaskSettings=()=>{
+    if (!taskSettingsOverlay) return;
+    taskSettingsOverlay.hidden = true;
+    taskSettingsOverlay.setAttribute("aria-hidden", "true");
+};
+const openTaskSettings=(i)=>{
+    if (!taskSettingsOverlay || !taskDetailMoreBtn) return;
+    activeTaskIndex = i;
+    const buttonRect = taskDetailMoreBtn.getBoundingClientRect();
+    const menuWidth = Math.min(300, window.innerWidth - 32);
+    const menuHeight = 3 * 58 + 2 * 8;
+    const belowTop = buttonRect.bottom + 8;
+    const aboveTop = buttonRect.top - menuHeight - 8;
+    const top = belowTop + menuHeight <= window.innerHeight - 16
+        ? belowTop
+        : Math.max(16, aboveTop);
+    taskSettingsOverlay.style.top = `${top}px`;
+    taskSettingsOverlay.style.left = `${Math.max(16, buttonRect.right - menuWidth)}px`;
+    taskSettingsOverlay.hidden = false;
+    taskSettingsOverlay.setAttribute("aria-hidden", "false");
+};
 const closeEditTaskInfo=()=>{editTaskInfoOverlay?.classList.remove("open");editTaskInfoOverlay?.setAttribute("aria-hidden","true");};
 const closeManualStatus=()=>{manualStatusOverlay?.classList.remove("open");manualStatusOverlay?.setAttribute("aria-hidden","true");};
 const openManualStatus=()=>{if(!manualStatusOverlay||activeTaskIndex===null)return;manualStatusOverlay.classList.add("open");manualStatusOverlay.setAttribute("aria-hidden","false");};
@@ -1165,8 +1194,6 @@ if(topBackBtn) topBackBtn.addEventListener("click",()=>{window.location.href="s.
 if(groupInfoTab) groupInfoTab.addEventListener("click",()=>{window.location.href="s.leadergrpviewing.html";});
 
 if(backToCategoriesBtn) backToCategoriesBtn.addEventListener("click",()=>{window.location.href="s.leadercategory.html";});
-if(discardTaskSettingsBtn) discardTaskSettingsBtn.addEventListener("click",closeTaskSettings);
-if(taskSettingsOverlay) taskSettingsOverlay.addEventListener("click",e=>{if(e.target===taskSettingsOverlay)closeTaskSettings();});
 if(openEditTaskInfoBtn) openEditTaskInfoBtn.addEventListener("click",()=>{closeTaskSettings();openEditTaskInfo();});
 if(discardEditTaskInfoBtn) discardEditTaskInfoBtn.addEventListener("click",closeEditTaskInfo);
 if(editTaskInfoOverlay) editTaskInfoOverlay.addEventListener("click",e=>{if(e.target===editTaskInfoOverlay)closeEditTaskInfo();});
@@ -1174,6 +1201,9 @@ if(openManualStatusBtn) openManualStatusBtn.addEventListener("click",()=>{closeT
 if(discardManualStatusBtn) discardManualStatusBtn.addEventListener("click",closeManualStatus);
 if(manualStatusOverlay) manualStatusOverlay.addEventListener("click",e=>{if(e.target===manualStatusOverlay)closeManualStatus();});
 if(openRemoveTaskConfirmBtn) openRemoveTaskConfirmBtn.addEventListener("click",()=>{closeTaskSettings();openRemoveTaskConfirm();});
+document.addEventListener("click", (event) => {
+    if (!taskSettingsOverlay?.hidden && !event.target.closest("#taskSettingsOverlay, #taskDetailMoreBtn")) closeTaskSettings();
+});
 if(discardRemoveTaskBtn) discardRemoveTaskBtn.addEventListener("click",closeRemoveTaskConfirm);
 if(removeTaskConfirmOverlay) removeTaskConfirmOverlay.addEventListener("click",e=>{if(e.target===removeTaskConfirmOverlay)closeRemoveTaskConfirm();});
 if(closeTaskDetailsBtn) closeTaskDetailsBtn.addEventListener("click",closeTaskDetails);

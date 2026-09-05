@@ -1177,7 +1177,8 @@ button {
 }
 
 .task-card {
-    padding: 18px 22px;
+    min-height: 90px;
+    padding: 22px;
 }
 
 .help-panel p,
@@ -2340,6 +2341,9 @@ body {
 }
 
 .leader-project-page .submissions-list {
+    max-height: min(520px, calc(100vh - 360px));
+    overflow-y: auto;
+    padding-right: 8px;
     display: grid;
     gap: 12px;
 }
@@ -2456,13 +2460,20 @@ body {
 }
 
 .leader-project-page #otherTasksList {
-    display: none;
+    width: 100%;
+    max-height: min(420px, calc(100vh - 390px));
+    overflow-y: auto;
+    padding-right: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
 }
 
 .leader-project-page .task-card {
     width: 100%;
-    min-height: 58px;
-    padding: 18px 22px;
+    min-height: 112px;
+    padding: 24px 22px;
     border: 1px solid #d0d0c8;
     border-radius: 7px;
     background: #fff !important;
@@ -2483,6 +2494,12 @@ body {
     line-height: 1.15;
 }
 
+.leader-project-page .task-revising-label {
+    color: #cc9900;
+    font-size: 12px;
+    font-weight: 800;
+}
+
 .leader-project-page .assigned-task-icon {
     display: block;
     width: 18px;
@@ -2492,10 +2509,10 @@ body {
 }
 
 .leader-project-page .task-left p {
-    margin-top: 2px;
+    margin-top: 6px;
     font-family: 'Kodchasan', sans-serif;
     color: #777;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 400;
 }
 
@@ -2504,9 +2521,9 @@ body {
 }
 
 .leader-project-page .task-left .task-time-active {
-    margin-top: 0;
+    margin-top: 2px;
     color: #555;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 400;
 }
 

@@ -56,6 +56,7 @@
                         <div class="project-meta">
                             <div><span>Date Posted:</span><strong id="projectStartDate">--/--/----</strong></div>
                             <div><span>Due Date:</span><strong id="projectDueDate">--/--/----</strong></div>
+                            <div><span>Due Time:</span><strong id="projectDueTime">--:--</strong></div>
                         </div>
                         <h3>Description</h3>
                         <p id="projectDescription">No project description provided.</p>
@@ -184,7 +185,7 @@
                     <textarea id="taskDescriptionInput" name="taskDescription" rows="4" placeholder="Enter task description"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="taskResourcesInput">Resources / Link</label>
+                    <label for="taskResourcesInput">Submission/Resource Link</label>
                     <input id="taskResourcesInput" name="taskResources" type="url" placeholder="Paste your link or resources here">
                 </div>
                 <div class="form-row">
@@ -343,7 +344,7 @@
                     <textarea id="editTaskDescriptionInput" name="editTaskDescription" rows="4" placeholder="Enter task description"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="editTaskResourcesInput">Resources / Link</label>
+                    <label for="editTaskResourcesInput">Submission/Resource Link</label>
                     <input id="editTaskResourcesInput" name="editTaskResources" type="url" placeholder="Paste a helpful link or resource">
                 </div>
                 <div class="form-group">
@@ -454,7 +455,7 @@
     <script src="../../lib/manage-profile.js"></script>
     <script src="../../lib/settings.js"></script>
     <script src="../../lib/confirmation-modal.js"></script>
-    <script src="s.leaderprojectbreakdown.js"></script>
+    <script src="t.projectbreakdown.js"></script>
     <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js');

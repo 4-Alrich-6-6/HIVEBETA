@@ -1,3 +1,5 @@
 {
-    "liveServer.settings.port": 5501
+    "liveServer.settings.port": 5501,
+    "github.copilot.chat.defaultModel": "gpt-5.6-luna",
+    "github.copilot.chat.executionSubagent.model": "gpt-5.6-luna"
 }

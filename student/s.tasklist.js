@@ -22,21 +22,21 @@ const loadTasks = async (userId) => {
 	if (membershipError) throw membershipError;
 	const membershipIds = (memberships || []).map(member => member.grpmemId);
 	if (!membershipIds.length) return [];
+	const groupIds = [...new Set((memberships || []).map(member => member.grpId))];
+
+	const { data: groups, error: groupError } = await supa()
+		.from("GROUP")
+		.select("grpId, grpName")
+		.in("grpId", groupIds);
+	if (groupError) throw groupError;
+	const groupNames = new Map((groups || []).map(group => [group.grpId, group.grpName]));
 
 	const { data: assignments, error: assignmentError } = await supa()
 		.from("TASKASSIGNMENT")
 		.select("taskId, grpmemId")
 		.in("grpmemId", membershipIds);
 	if (assignmentError) throw assignmentError;
-	const taskIds = [...new Set((assignments || []).map(assignment => assignment.taskId))];
-	if (!taskIds.length) return [];
 
-	const { data: groups, error: groupError } = await supa()
-		.from("GROUP")
-		.select("grpId, grpName")
-		.in("grpId", [...new Set((memberships || []).map(member => member.grpId))]);
-	if (groupError) throw groupError;
-	const groupNames = new Map((groups || []).map(group => [group.grpId, group.grpName]));
 	const membershipGroups = new Map((memberships || []).map(member => [member.grpmemId, groupNames.get(member.grpId) || "Team Name"]));
 	const membershipRoles = new Map((memberships || []).map(member => [member.grpmemId, member.ROLE?.roleName || ""]));
 	const taskGroups = new Map((assignments || []).map(assignment => [assignment.taskId, membershipGroups.get(assignment.grpmemId)]));
@@ -45,12 +45,12 @@ const loadTasks = async (userId) => {
 
 	const { data, error } = await supa()
 		.from("TASK")
-		.select("taskId, taskName, taskDueD, statId, PROJECT(projId, projName, grpId)")
-		.in("taskId", taskIds);
+		.select("taskId, taskName, taskDueD, statId, PROJECT!inner(projId, projName, grpId)")
+		.in("PROJECT.grpId", groupIds);
 	if (error) throw error;
 	return (data || []).filter(task => !HIDDEN_TASK_STATUSES.has(task.statId)).map(task => ({
 		...task,
-		sourceGroupName: taskGroups.get(task.taskId) || "Team Name",
+		sourceGroupName: taskGroups.get(task.taskId) || groupNames.get(task.PROJECT?.grpId) || "Team Name",
 		sourceGroupId: taskGroupIds.get(task.taskId) || task.PROJECT?.grpId,
 		isLeaderAssignment: taskIsLeader.get(task.taskId) || false
 	}));

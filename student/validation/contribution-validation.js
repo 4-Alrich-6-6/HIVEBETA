@@ -283,8 +283,8 @@ const renderLeaderValidation = () => {
 const renderTeacherReview = () => {
     if (!teacherList) return;
     if (mode !== "teacher") { teacherList.innerHTML = ""; return; }
-    // Only show submissions the teacher hasn't approved yet
-    const toReview = contributions.filter(i => i.status !== "APPROVED");
+    // Swarm validation requires leader confirmation before supervisor review.
+    const toReview = contributions.filter(i => i.status === "LEADER_CONFIRMED");
     teacherList.innerHTML = toReview.map(i => renderContributionCard(i, {
         controls: true, type: "teacher", label: "Teacher remarks",
         placeholder: "Add teacher review notes", value: i.teacherRemarks,
@@ -331,20 +331,13 @@ document.addEventListener("click", async (event) => {
             status: "approved",
             leaderNote: item.leaderRemarks || null
         }).eq("subId", item._subId);
-        // Mark task as finished — leave taskSpan and taskAcmD untouched
-        if (item._taskId) {
-            await supabase.from("TASK").update({
-                statId: 5,
-                taskAcmD: null
-            }).eq("taskId", item._taskId);
-        }
-        // Notify assigned member
+        // The task remains in validation until the supervisor approves it.
         if (item._grpmemId) {
             const { data: member } = await supabase.from("GROUPMEMBER").select("userId").eq("grpmemId", item._grpmemId).maybeSingle();
             if (member?.userId) {
                 await supabase.from("NOTIFICATION").insert({
-                    notiTitle: "Contribution Approved",
-                    notiBody: `Your task "${item.taskTitle}" has been confirmed and marked as finished.`,
+                    notiTitle: "Leader Validation Complete",
+                    notiBody: `Your task "${item.taskTitle}" was validated by the Swarm Leader and is awaiting Supervisor review.`,
                     "notiDate&Time": new Date().toISOString(),
                     notiIsRead: false,
                     userId: member.userId,

@@ -64,7 +64,7 @@
                     </div>
                     <div class="task-detail-meta">
                         <div><span>Date Assigned:</span><strong id="pageTaskAssignedDate">--/--/----</strong></div>
-                        <div><span>Due Date:</span><strong id="pageTaskDueDate">--/--/----</strong></div>
+                        <div><span>Due Date &amp; Time:</span><strong id="pageTaskDueDate">--/--/----</strong></div>
                         <div class="task-detail-assignee-meta">
                             <span><strong id="pageTaskAssigneeCount">0</strong> Assignee(s):</span>
                             <div class="task-detail-assignee-visuals">
@@ -89,7 +89,7 @@
                     </div>
                     <h3>Description</h3>
                     <p class="task-detail-description" id="pageTaskDescription">No description provided.</p>
-                    <h3>Submission Links</h3>
+                    <h3>Submission/Resource Link</h3>
                     <div class="task-detail-resource-row">
                         <div class="task-detail-links" id="pageTaskResources">None</div>
                         <button class="task-detail-copy-btn" id="copyTaskResourceBtn" type="button" aria-label="Copy submission link" disabled>Copy Link</button>
@@ -224,7 +224,7 @@
                     <textarea id="taskDescriptionInput" name="taskDescription" rows="4" placeholder="Enter task description"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="taskResourcesInput">Resources / Link</label>
+                    <label for="taskResourcesInput">Submission/Resource Link</label>
                     <input id="taskResourcesInput" name="taskResources" type="url" placeholder="Paste your link or resources here">
                 </div>
                 <div class="form-row">
@@ -352,18 +352,12 @@
         </div>
     </div>
 
-    <!-- Task Settings Modal -->
-    <div class="modal-overlay" id="taskSettingsOverlay" aria-hidden="true">
-        <div class="project-options-modal" role="dialog" aria-modal="true" aria-labelledby="taskSettingsTitle">
-            <div class="project-options-body">
-                <p class="task-settings-title" id="taskSettingsTitle">Task Settings</p>
-                <div class="task-settings-actions">
-                    <button class="modal-btn post-btn" id="openEditTaskInfoBtn" type="button">Edit Info</button>
-                    <button class="modal-btn post-btn" id="openManualStatusBtn" type="button">Manually Change Status</button>
-                    <button class="option-delete-btn" id="openRemoveTaskConfirmBtn" type="button">Remove Task</button>
-                    <button class="modal-btn discard-btn" id="discardTaskSettingsBtn" type="button">Discard</button>
-                </div>
-            </div>
+    <!-- Task Settings Dropdown -->
+    <div id="taskSettingsOverlay" aria-hidden="true" hidden>
+        <div class="task-settings-dropdown" role="menu" aria-labelledby="taskDetailMoreBtn">
+            <button class="task-settings-dropdown-finish" id="openEditTaskInfoBtn" type="button" role="menuitem">Edit Info</button>
+            <button class="task-settings-dropdown-edit" id="openManualStatusBtn" type="button" role="menuitem">Manually Change Status</button>
+            <button class="task-settings-dropdown-delete" id="openRemoveTaskConfirmBtn" type="button" role="menuitem">Remove Task</button>
         </div>
     </div>
 
@@ -383,7 +377,7 @@
                     <textarea id="editTaskDescriptionInput" name="editTaskDescription" rows="4" placeholder="Enter task description"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="editTaskResourcesInput">Resources / Link</label>
+                    <label for="editTaskResourcesInput">Submission/Resource Link</label>
                     <input id="editTaskResourcesInput" name="editTaskResources" type="url" placeholder="Paste a helpful link or resource">
                 </div>
                 <div class="form-group">

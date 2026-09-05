@@ -852,6 +852,53 @@ button {
     width: 100%;
 }
 
+#taskSettingsOverlay {
+    position: fixed;
+    z-index: 1000;
+}
+
+#taskSettingsOverlay[hidden] {
+    display: none;
+}
+
+.task-settings-dropdown {
+    display: flex;
+    width: min(300px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+}
+
+.task-settings-dropdown button {
+    width: 100%;
+    min-height: 58px;
+    border: 2px solid #111;
+    border-radius: 10px;
+    background: #fffef4;
+    padding: 10px 16px;
+    color: #111;
+    font: 700 22px/1.1 'Inter', sans-serif;
+    text-align: center;
+    cursor: pointer;
+}
+
+.task-settings-dropdown-finish {
+    border-color: #ffc400 !important;
+    color: #ffc400 !important;
+}
+
+.task-settings-dropdown-delete {
+    border-color: #ff6767 !important;
+    color: #ff6767 !important;
+    box-shadow: 3px 3px 0 #111;
+}
+
+.task-settings-dropdown button:hover,
+.task-settings-dropdown button:focus-visible {
+    background: #fff9d8;
+}
+
 .task-card-clickable {
     cursor: pointer;
 }

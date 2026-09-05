@@ -56,6 +56,7 @@
                         <div class="project-meta">
                             <div><span>Date Posted:</span><strong id="projectStartDate">--/--/----</strong></div>
                             <div><span>Due Date:</span><strong id="projectDueDate">--/--/----</strong></div>
+                            <div><span>Due Time:</span><strong id="projectDueTime">--:--</strong></div>
                         </div>
                         <h3>Description</h3>
                         <p id="projectDescription">No project description provided.</p>
@@ -126,6 +127,20 @@
                         </svg>
                         <span>Submissions</span>
                     </button>
+                    <button class="project-tab" id="p2pEvaluationTab" type="button" role="tab" aria-selected="false" aria-controls="p2pEvaluationPanel">
+                        <svg class="p2p-evaluation-tab-icon" viewBox="0 0 100 100" aria-hidden="true">
+                            <path d="M10 4 20 10v12L10 28 0 22V10Z"></path>
+                            <rect x="30" y="10" width="28" height="3" rx="1.5"></rect>
+                            <rect x="30" y="18" width="46" height="3" rx="1.5"></rect>
+                            <path fill-rule="evenodd" d="M10 36 20 42v12L10 60 0 54V42Z M3 44v8l7 4 7-4v-8l-7-4Z"></path>
+                            <rect x="30" y="42" width="28" height="3" rx="1.5"></rect>
+                            <rect x="30" y="50" width="46" height="3" rx="1.5"></rect>
+                            <path fill-rule="evenodd" d="M10 68 20 74v12L10 92 0 86V74Z M3 76v8l7 4 7-4v-8l-7-4Z"></path>
+                            <rect x="30" y="74" width="28" height="3" rx="1.5"></rect>
+                            <rect x="30" y="82" width="46" height="3" rx="1.5"></rect>
+                        </svg>
+                        <span>P2P Evaluation</span>
+                    </button>
                 </nav>
 
                 <div class="project-tab-panels">
@@ -136,7 +151,7 @@
                                 <button class="action-btn inline-post-task-btn" id="inlinePostTaskBtn" type="button"><span>+ Add Task</span></button>
                             </div>
                             <div id="yourTasksList"></div>
-                            <div id="otherTasksList" hidden></div>
+                            <div id="otherTasksList"></div>
                         </section>
                     </section>
 
@@ -153,6 +168,14 @@
                                 <h3>No Submissions Yet</h3>
                                 <p>Task submissions will appear here when contributors submit their work.</p>
                             </div>
+                        </div>
+                    </section>
+
+                    <section class="project-tab-panel p2p-evaluation-panel" id="p2pEvaluationPanel" role="tabpanel" aria-labelledby="p2pEvaluationTab" hidden>
+                        <div class="p2p-evaluation-content">
+                            <h2>Peer-to-Peer Evaluations</h2>
+                            <p class="p2p-evaluation-help">Rate each swarm mate from 1 to 10 based on criteria like contribution, activeness, participation, and performance.</p>
+                            <div class="p2p-evaluation-list" id="p2pEvaluationList" aria-live="polite"></div>
                         </div>
                     </section>
                 </div>
@@ -184,7 +207,7 @@
                     <textarea id="taskDescriptionInput" name="taskDescription" rows="4" placeholder="Enter task description"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="taskResourcesInput">Resources / Link</label>
+                    <label for="taskResourcesInput">Submission/Resource Link</label>
                     <input id="taskResourcesInput" name="taskResources" type="url" placeholder="Paste your link or resources here">
                 </div>
                 <div class="form-row">
@@ -343,7 +366,7 @@
                     <textarea id="editTaskDescriptionInput" name="editTaskDescription" rows="4" placeholder="Enter task description"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="editTaskResourcesInput">Resources / Link</label>
+                    <label for="editTaskResourcesInput">Submission/Resource Link</label>
                     <input id="editTaskResourcesInput" name="editTaskResources" type="url" placeholder="Paste a helpful link or resource">
                 </div>
                 <div class="form-group">

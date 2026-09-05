@@ -171,7 +171,7 @@ const loadProjectDueDate = async () => {
 const loadProjectDetails = async () => {
     const pid = getProjId();
     if (!pid) return null;
-    const { data } = await supa().from("PROJECT").select("projName, projDesc, projCreatedAt, projDueD").eq("projId", Number(pid)).maybeSingle();
+    const { data } = await supa().from("PROJECT").select("projName, projDesc, projCreatedAt, projDueD, projDueT").eq("projId", Number(pid)).maybeSingle();
     return data || null;
 };
 
@@ -220,13 +220,21 @@ const loadSubmissions = async (filter = "evaluation") => {
         return filter === "finished" ? isFinished : isForEvaluation;
     });
 
-    if (!submissions.length) {
+    const submissionsByTask = new Map();
+    submissions.forEach((submission) => {
+        if (!submissionsByTask.has(submission.taskId)) {
+            submissionsByTask.set(submission.taskId, submission);
+        }
+    });
+    const uniqueSubmissions = [...submissionsByTask.values()];
+
+    if (!uniqueSubmissions.length) {
         submissionsList.innerHTML = `<div class="submissions-empty empty-state"><img class="empty-state-icon" src="../../assets/bee-flight.svg" alt=""><h3>No ${filter === "finished" ? "Finished" : "Submissions For Evaluation"}</h3><p>There are no submissions in this list.</p></div>`;
         return;
     }
 
     submissionsList.innerHTML = "";
-    submissions.forEach((submission) => {
+    uniqueSubmissions.forEach((submission) => {
         const card = document.createElement("article");
         card.className = "submission-card";
         const submittedAt = submission.submittedAt ? new Date(submission.submittedAt).toLocaleString() : "Date unavailable";
@@ -1155,8 +1163,10 @@ if(logoutBtn) logoutBtn.addEventListener("click",()=>{showConfirmation("Are you 
     if (detailName) detailName.textContent = project?.projName || projectName || "Project";
     const startDate = document.querySelector("#projectStartDate");
     const dueDate = document.querySelector("#projectDueDate");
+    const dueTime = document.querySelector("#projectDueTime");
     if (startDate) startDate.textContent = formatProjectDate(project?.projCreatedAt);
     if (dueDate) dueDate.textContent = formatProjectDate(project?.projDueD);
+    if (dueTime) dueTime.textContent = project?.projDueT || "--:--";
     const description = document.querySelector("#projectDescription");
     if (description) description.textContent = project?.projDesc || "No project description provided.";
     const validationLink=document.querySelector(".validation-link");

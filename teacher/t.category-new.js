@@ -191,7 +191,7 @@ const createCategoryItem = (project) => {
     btn.addEventListener("click", () => {
       sessionStorage.setItem("hive_selected_project", project.projId);
       sessionStorage.setItem("hive_selected_project_name", project.projName);
-      window.location.href = "s.leaderprojectbreakdown.html";
+      window.location.href = "t.projectbreakdown.html";
     });
   }
 
