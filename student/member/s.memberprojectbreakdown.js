@@ -114,7 +114,7 @@ const calculateTaskPerformance = (tasks, assignments, submissions, memberId) => 
         if (Number(task.statId) !== STAT_ID.finished) { pending += 1; return; }
         const submission = (submissions || [])
             .filter((item) => String(item.taskId) === String(task.taskId) && String(item.grpmemId) === String(memberId))
-            .sort((first, second) => new Date(second.submittedAt) - new Date(first.submittedAt))[0];
+            .sort((first, second) => new Date(first.submittedAt) - new Date(second.submittedAt))[0];
         const dueAt = task.taskDueD ? new Date(task.taskDueD).getTime() : null;
         const submittedAt = submission?.submittedAt ? new Date(submission.submittedAt).getTime() : null;
         if (dueAt && submittedAt && submittedAt > dueAt) late += 1;
@@ -584,7 +584,7 @@ const submitLeaderEvaluation = async (taskId) => {
         .order("submittedAt", { ascending: false })
         .limit(1)
         .maybeSingle();
-    const payload = { submittedAt: new Date().toISOString(), status: "approved" };
+    const payload = { status: "approved" };
     if (existing?.subId) {
         await supa().from("SUBMISSION").update(payload).eq("subId", existing.subId);
     } else {

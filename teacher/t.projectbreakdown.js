@@ -116,7 +116,7 @@ const calculateTaskPerformance = (tasks, assignments, submissions, memberId) => 
     memberTasks.forEach((task) => {
         if (Number(task.statId) === STAT_ID.missing) { missed += 1; return; }
         if (Number(task.statId) !== STAT_ID.finished) { pending += 1; return; }
-        const submission = (submissions || []).filter((item) => String(item.taskId) === String(task.taskId) && String(item.grpmemId) === String(memberId)).sort((first, second) => new Date(second.submittedAt) - new Date(first.submittedAt))[0];
+        const submission = (submissions || []).filter((item) => String(item.taskId) === String(task.taskId) && String(item.grpmemId) === String(memberId)).sort((first, second) => new Date(first.submittedAt) - new Date(second.submittedAt))[0];
         const dueAt = task.taskDueD ? new Date(task.taskDueD).getTime() : null;
         const submittedAt = submission?.submittedAt ? new Date(submission.submittedAt).getTime() : null;
         if (dueAt && submittedAt && submittedAt > dueAt) late += 1; else onTime += 1;
