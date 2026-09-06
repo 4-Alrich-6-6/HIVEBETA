@@ -1263,6 +1263,7 @@ body {
 .stat-label {
     margin-bottom: 4px;
     color: #111;
+    font-family: 'Kodchasan', sans-serif;
     font-size: 16px;
     font-weight: 400;
 }
@@ -1320,9 +1321,30 @@ body {
     min-width: 345px;
     align-self: stretch;
     padding-left: 0;
+    text-align: center;
 }
 
 .average-score strong {
+    display: block;
+    margin-top: -5px;
+    font-family: Arial, sans-serif;
+    font-size: 96px;
+    line-height: .9;
+}
+
+.average-score p,
+.average-reputation p {
+    transform: translateX(-100px);
+    text-align: left;
+}
+
+.average-reputation {
+    min-width: 345px;
+    align-self: stretch;
+    text-align: center;
+}
+
+.average-reputation strong {
     display: block;
     margin-top: -5px;
     font-family: Arial, sans-serif;
@@ -1633,7 +1655,7 @@ body {
     .topbar .menu-btn { display: inline-flex; }
     .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-left: 0; gap: 12px; }
     .ratings-section, .recent-section { margin-left: 0; }
-    .average-score { min-width: 130px; }
+    .average-score, .average-reputation { min-width: 130px; }
     .main-content-title { font-size: 30px; }
     .profile-row { left: 0; }
     .invite-preview-body { grid-template-columns: 1fr; }

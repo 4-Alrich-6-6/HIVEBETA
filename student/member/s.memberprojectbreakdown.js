@@ -87,23 +87,65 @@ const setP2PEvaluationLocked = (locked) => {
 };
 
 const reputationLabel = (score) => {
-    if (score >= 90) return "Very High Contributor";
-    if (score >= 70) return "High Contributor";
-    if (score >= 40) return "Moderate Contributor";
-    return "Low Contributor";
+    if (score === null) return "N/A";
+    if (score >= 80) return "High Contributor";
+    if (score >= 60) return "Moderate Contributor";
+    if (score >= 40) return "Low Contributor";
+    return "Needs Improvement";
+};
+
+const LATE_WEIGHT = 0.75;
+const MISSED_WEIGHT = 0;
+
+const calculateTaskPerformance = (tasks, assignments, submissions, memberId) => {
+    const memberTaskIds = new Set((assignments || [])
+        .filter((assignment) => String(assignment.grpmemId) === String(memberId))
+        .map((assignment) => String(assignment.taskId)));
+    const memberTasks = (tasks || []).filter((task) => memberTaskIds.has(String(task.taskId)));
+    let onTime = 0;
+    let late = 0;
+    let missed = 0;
+    let pending = 0;
+    memberTasks.forEach((task) => {
+        if (Number(task.statId) === STAT_ID.missing) {
+            missed += 1;
+            return;
+        }
+        if (Number(task.statId) !== STAT_ID.finished) { pending += 1; return; }
+        const submission = (submissions || [])
+            .filter((item) => String(item.taskId) === String(task.taskId) && String(item.grpmemId) === String(memberId))
+            .sort((first, second) => new Date(second.submittedAt) - new Date(first.submittedAt))[0];
+        const dueAt = task.taskDueD ? new Date(task.taskDueD).getTime() : null;
+        const submittedAt = submission?.submittedAt ? new Date(submission.submittedAt).getTime() : null;
+        if (dueAt && submittedAt && submittedAt > dueAt) late += 1;
+        else onTime += 1;
+    });
+    const total = onTime + late + missed + pending;
+    if (!total) return { onTime, late, missed, pending, total, score: null };
+    return {
+        onTime,
+        late,
+        missed,
+        pending,
+        total,
+        score: Math.round(((onTime + (late * LATE_WEIGHT) + (missed * MISSED_WEIGHT)) / total) * 100)
+    };
 };
 
 const renderContributorRows = (list, contributors, useReputation) => {
     if (!list) return;
+    const rankedContributors = useReputation
+        ? [...contributors].sort((first, second) => second.score - first.score)
+        : contributors;
     list.innerHTML = contributors.length
-        ? contributors.map((contributor) => `
-            <div class="contributor-summary-row">
+        ? rankedContributors.map((contributor, index) => `
+            <div class="contributor-summary-row${useReputation ? " reputation-leaderboard-row" : ""}">
                 <span class="contributor-summary-person">
                     <img class="contributor-summary-avatar" src="${contributor.avatarUrl}" alt="">
                     <span class="contributor-summary-name">${contributor.name.replace(/</g, "&lt;")}</span>
                 </span>
-                <span class="contributor-summary-score">${contributor.score}%</span>
-                <span class="contributor-summary-reputation">${useReputation ? reputationLabel(contributor.score) : reputationLabel(contributor.score)}</span>
+                <span class="contributor-summary-score">${contributor.score === null ? "N/A" : (useReputation ? `${Math.round(contributor.score / 10)}/10` : `${contributor.score}%`)}</span>
+                <span class="contributor-summary-reputation">${reputationLabel(contributor.score)}</span>
             </div>
         `).join("")
         : '<p class="contributor-summary-empty">No contributors found.</p>';
@@ -121,21 +163,15 @@ const loadContributorSummary = async () => {
         .eq("grpId", Number(groupId));
     const { data: tasks } = await supa()
         .from("TASK")
-        .select("taskId")
+        .select("taskId, taskDueD, statId, TASKASSIGNMENT(grpmemId)")
         .eq("projId", Number(projectId));
     const taskIds = (tasks || []).map((task) => task.taskId);
-    const { data: participation } = taskIds.length
-        ? await supa().from("PARTICIPATION").select("grpmemId, partScore").in("taskId", taskIds)
+    const assignments = (tasks || []).flatMap((task) => (task.TASKASSIGNMENT || []).map((assignment) => ({ ...assignment, taskId: task.taskId })));
+    const { data: submissions } = taskIds.length
+        ? await supa().from("SUBMISSION").select("taskId, grpmemId, submittedAt, status").in("taskId", taskIds).eq("status", "approved")
         : { data: [] };
-    const scoresByMember = new Map();
-    (participation || []).forEach((entry) => {
-        const scores = scoresByMember.get(entry.grpmemId) || [];
-        if (Number.isFinite(Number(entry.partScore))) scores.push(Number(entry.partScore));
-        scoresByMember.set(entry.grpmemId, scores);
-    });
     const contributors = (members || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() !== "teacher").map((member) => {
-        const scores = scoresByMember.get(member.grpmemId) || [];
-        const average = scores.length ? scores.reduce((sum, score) => sum + score, 0) / scores.length : 0;
+        const performance = calculateTaskPerformance(tasks, assignments, submissions, member.grpmemId);
         return {
             name: member.USER?.userDisplayName || "Member",
             avatarUrl: member.USER?.avatarPath?.startsWith("http")
@@ -143,7 +179,7 @@ const loadContributorSummary = async () => {
                 : (member.USER?.avatarPath
                     ? supa().storage.from("profilePicture").getPublicUrl(member.USER.avatarPath).data?.publicUrl
                     : "../../assets/profile-placeholder.svg"),
-            score: Math.round(average * 10)
+            ...performance
         };
     });
     renderContributorRows(participationSummaryList, contributors, false);

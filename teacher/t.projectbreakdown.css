@@ -2175,6 +2175,22 @@ body {
     text-align: right;
 }
 
+.leader-project-page .reputation-leaderboard-row {
+    grid-template-columns: minmax(0, 1fr) 58px minmax(132px, auto);
+    min-height: 34px;
+    padding: 4px 12px;
+    font-weight: 400;
+}
+
+.leader-project-page .reputation-leaderboard-row .contributor-summary-name,
+.leader-project-page .reputation-leaderboard-row .contributor-summary-reputation {
+    font-weight: 700;
+}
+
+.leader-project-page .reputation-leaderboard-row .contributor-summary-score {
+    font-weight: 400;
+}
+
 .leader-project-page .contributor-summary-empty {
     margin: 0;
     padding: 14px 12px;

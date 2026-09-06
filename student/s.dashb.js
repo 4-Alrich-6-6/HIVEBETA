@@ -19,7 +19,7 @@ if (menuBtn && sidebar) {
 }
 
 // ─── DB: load groups from Supabase ───────────────────────────────────────────
-let dashbData = { ownedGroups: [], joinedGroups: [], stats: { owned: 0, joined: 0, pending: 0 } };
+let dashbData = { ownedGroups: [], joinedGroups: [], stats: { owned: 0, joined: 0, totalTeams: 0, createdTeams: 0, pending: 0 } };
 let recentVisitsKey = "hive_recent_team_visits";
 
 const getRecentVisits = () => {
@@ -37,46 +37,51 @@ const recordTeamVisit = (grpId) => {
     localStorage.setItem(recentVisitsKey, JSON.stringify(visits));
 };
 
-// ─── Helper: Get pending task count for current user ───────────────────────
-const getUserPendingTaskCount = async (userId) => {
+// ─── Helper: Get task counts for current user ──────────────────────────────
+const getUserTaskStats = async (userId) => {
     const supabase = window.hiveSupabase;
-    if (!supabase) return 0;
+    if (!supabase) return { received: 0, completed: 0, missed: 0, pending: 0 };
 
     try {
-        // Get all group memberships for this user
-        const { data: memberships } = await supabase
-            .from("GROUPMEMBER")
-            .select("grpmemId")
+        const { data: history, error: historyError } = await supabase
+            .from("TASKHISTORY")
+            .select("taskId, statId")
             .eq("userId", userId);
 
-        if (!memberships?.length) return 0;
+        let tasks = history;
+        if (historyError) {
+            // Keep older deployments working until the TASKHISTORY migration is applied.
+            const { data: memberships } = await supabase
+                .from("GROUPMEMBER")
+                .select("grpmemId")
+                .eq("userId", userId);
+            if (!memberships?.length) return { received: 0, completed: 0, missed: 0, pending: 0 };
 
-        const grpmemIds = memberships.map(m => m.grpmemId);
+            const grpmemIds = memberships.map(m => m.grpmemId);
+            const { data: assignments } = await supabase
+                .from("TASKASSIGNMENT")
+                .select("taskId")
+                .in("grpmemId", grpmemIds);
+            if (!assignments?.length) return { received: 0, completed: 0, missed: 0, pending: 0 };
 
-        // Get all task assignments
-        const { data: assignments } = await supabase
-            .from("TASKASSIGNMENT")
-            .select("taskId")
-            .in("grpmemId", grpmemIds);
+            const taskIds = [...new Set(assignments.map(a => a.taskId))];
+            const { data: currentTasks } = await supabase
+                .from("TASK")
+                .select("statId")
+                .in("taskId", taskIds);
+            tasks = currentTasks;
+        }
 
-        if (!assignments?.length) return 0;
+        if (!tasks) return { received: 0, completed: 0, missed: 0, pending: 0 };
 
-        const taskIds = [...new Set(assignments.map(a => a.taskId))];
-
-        // Get all tasks and filter by status
-        const { data: tasks } = await supabase
-            .from("TASK")
-            .select("statId")
-            .in("taskId", taskIds);
-
-        if (!tasks) return 0;
-
-        // Count pending tasks (statId !== 5 for finished, !== 6 for missed)
+        const receivedCount = tasks.length;
+        const completedCount = tasks.filter(t => t.statId === 5).length;
+        const missedCount = tasks.filter(t => t.statId === 6).length;
         const pendingCount = tasks.filter(t => t.statId !== 5 && t.statId !== 6).length;
-        return pendingCount;
+        return { received: receivedCount, completed: completedCount, missed: missedCount, pending: pendingCount };
     } catch (err) {
-        console.error("Error fetching pending task count:", err);
-        return 0;
+        console.error("Error fetching task stats:", err);
+        return { received: 0, completed: 0, missed: 0, pending: 0 };
     }
 };
 
@@ -170,13 +175,33 @@ const loadDashbData = async () => {
         }
     }
 
+    const taskStats = await getUserTaskStats(user.id);
+    const allTeams = [
+        ...ownedGroups,
+        ...ownedSwarms,
+        ...joinedColonies,
+        ...joinedGroups
+    ];
+    const totalTeams = new Set(allTeams.map((group) => String(group.grpId))).size;
+    const createdTeams = new Set(
+        [...ownedGroups, ...ownedSwarms].map((group) => String(group.grpId))
+    ).size;
     dashbData = {
         ownedGroups,
         ownedColonies,
         joinedColonies,
         ownedSwarms,
         joinedGroups,
-        stats: { owned: ownedGroups.length, joined: joinedGroups.length, pending: await getUserPendingTaskCount(user.id) }
+        stats: {
+            owned: ownedGroups.length,
+            joined: joinedGroups.length,
+            totalTeams,
+            createdTeams,
+            received: taskStats.received,
+            completed: taskStats.completed,
+            missed: taskStats.missed,
+            pending: taskStats.pending
+        }
     };
 
     applyDashbData(dashbData);
@@ -401,10 +426,16 @@ const applyDashbData = (data) => {
 
     const teamsStat = document.querySelector('[data-stat="teams"]');
     const yourTeamsStat = document.querySelector('[data-stat="your-teams"]');
+    const completedStat = document.querySelector('[data-stat="completed"]');
     const pendingStat = document.querySelector('[data-stat="pending"]');
-    if (teamsStat) teamsStat.textContent = String((data.ownedGroups || []).length + (data.joinedGroups || []).length).padStart(2, "0");
-    if (yourTeamsStat) yourTeamsStat.textContent = String((data.joinedGroups || []).length).padStart(2, "0");
+    const ratingsTotals = document.querySelectorAll(".ratings-totals strong");
+    if (teamsStat) teamsStat.textContent = String(data.stats.totalTeams || 0).padStart(2, "0");
+    if (yourTeamsStat) yourTeamsStat.textContent = String(data.stats.createdTeams || 0).padStart(2, "0");
+    if (completedStat) completedStat.textContent = String(data.stats.completed || 0).padStart(2, "0");
     if (pendingStat) pendingStat.textContent = String(data.stats.pending || 0).padStart(2, "0");
+    if (ratingsTotals[0]) ratingsTotals[0].textContent = String(data.stats.received || 0).padStart(2, "0");
+    if (ratingsTotals[1]) ratingsTotals[1].textContent = String(data.stats.completed || 0).padStart(2, "0");
+    if (ratingsTotals[2]) ratingsTotals[2].textContent = String(data.stats.missed || 0).padStart(2, "0");
 };
 
 // Load on page start

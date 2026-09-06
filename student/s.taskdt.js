@@ -415,7 +415,8 @@ const renderTaskDetailPage = async () => {
     if (pageTaskStatus) pageTaskStatus.textContent = `${STATUS_TEXT[task.status] || "Not Active"}${task.wasRevising ? " - Revising" : ""}`;
     if (pageTaskActiveTime) pageTaskActiveTime.textContent = formatElapsedTime(getTotalElapsedMs(task));
     window._pageTaskRef = task;
-    const isLocked = isTerminal(task.status) || task.status === "verifying";
+    const isStartLocked = isTerminal(task.status) || task.status === "verifying";
+    const isSubmitLocked = task.status === "finished" || task.status === "verifying";
     const isAssignedToCurrentUser = task.assignees.some((assignee) => assignee.userId === currentUserId);
     if (!isAssignedToCurrentUser) {
         configureUnassignedTaskActions(task);
@@ -423,7 +424,7 @@ const renderTaskDetailPage = async () => {
     }
     if (pageTaskStart) {
         pageTaskStart.textContent = task.status === "active" ? "Take a Break" : "Start Task";
-        pageTaskStart.disabled = isLocked;
+        pageTaskStart.disabled = isStartLocked;
         pageTaskStart.onclick = async () => {
             const nextStatus = task.status === "active" ? "pause" : "active";
             if (!await updateTaskStatus(task.taskId, nextStatus, task)) return;
@@ -436,7 +437,7 @@ const renderTaskDetailPage = async () => {
         };
     }
     if (pageTaskSubmit) {
-        pageTaskSubmit.disabled = isLocked;
+        pageTaskSubmit.disabled = isSubmitLocked;
         pageTaskSubmit.onclick = async () => {
             const submittingAssignee = task.assignees.find((assignee) => assignee.userId === currentUserId);
             if (submittingAssignee) {

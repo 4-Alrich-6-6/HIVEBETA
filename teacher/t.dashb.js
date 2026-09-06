@@ -19,7 +19,7 @@ if (menuBtn && sidebar) {
 }
 
 // ─── DB: load groups from Supabase ───────────────────────────────────────────
-let dashbData = { ownedGroups: [], joinedGroups: [], ongoingProjects: [], stats: { owned: 0, joined: 0, pending: 0 } };
+let dashbData = { ownedGroups: [], joinedGroups: [], ongoingProjects: [], stats: { owned: 0, joined: 0, totalTeams: 0, createdTeams: 0, pending: 0 } };
 let recentVisitsKey = "hive_recent_team_visits";
 
 const getRecentVisits = () => {
@@ -285,6 +285,16 @@ const loadDashbData = async () => {
         });
     }
     const validationProjects = await getValidationProjects(teacherGroupIds, groupNames, groupLeaders);
+    const allTeams = [
+        ...ownedGroups,
+        ...ownedSwarms,
+        ...joinedColonies,
+        ...joinedGroups
+    ];
+    const totalTeams = new Set(allTeams.map((group) => String(group.grpId))).size;
+    const createdTeams = new Set(
+        [...ownedGroups, ...ownedSwarms].map((group) => String(group.grpId))
+    ).size;
 
     dashbData = {
         ownedGroups,
@@ -297,6 +307,8 @@ const loadDashbData = async () => {
         stats: {
             owned: ownedGroups.length,
             joined: joinedGroups.length,
+            totalTeams,
+            createdTeams,
             pending: await getUserPendingTaskCount(user.id),
             validation: validationProjects.reduce((total, project) => total + project.validationCount, 0),
             activeProjects: (activeProjects || []).filter((project) => String(project.projStatus || "Ongoing").toLowerCase() !== "finished").length
@@ -595,8 +607,8 @@ const applyDashbData = (data) => {
     const validationsStat = document.querySelector('[data-stat="validations"]');
     const activeProjectsStat = document.querySelector('[data-stat="active-projects"]');
     const validationSummary = document.querySelector("#validationList .validation-summary strong");
-    if (teamsStat) teamsStat.textContent = String((data.ownedGroups || []).length + (data.joinedGroups || []).length).padStart(2, "0");
-    if (yourTeamsStat) yourTeamsStat.textContent = String((data.joinedGroups || []).length).padStart(2, "0");
+    if (teamsStat) teamsStat.textContent = String(data.stats.totalTeams || 0).padStart(2, "0");
+    if (yourTeamsStat) yourTeamsStat.textContent = String(data.stats.createdTeams || 0).padStart(2, "0");
     if (validationsStat) validationsStat.textContent = String(data.stats.validation || 0).padStart(2, "0");
     if (activeProjectsStat) activeProjectsStat.textContent = String(data.stats.activeProjects || 0).padStart(2, "0");
     if (validationSummary) validationSummary.textContent = `${data.stats.validation || 0} new tasks to be validated`;
