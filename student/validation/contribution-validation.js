@@ -331,13 +331,18 @@ document.addEventListener("click", async (event) => {
             status: "approved",
             leaderNote: item.leaderRemarks || null
         }).eq("subId", item._subId);
-        // The task remains in validation until the supervisor approves it.
+        if (item._taskId) {
+            await supabase.from("TASK").update({
+                statId: 5,
+                taskAcmD: null
+            }).eq("taskId", item._taskId);
+        }
         if (item._grpmemId) {
             const { data: member } = await supabase.from("GROUPMEMBER").select("userId").eq("grpmemId", item._grpmemId).maybeSingle();
             if (member?.userId) {
                 await supabase.from("NOTIFICATION").insert({
                     notiTitle: "Leader Validation Complete",
-                    notiBody: `Your task "${item.taskTitle}" was validated by the Swarm Leader and is awaiting Supervisor review.`,
+                    notiBody: `Your task "${item.taskTitle}" was verified by the Swarm Leader and marked finished.`,
                     "notiDate&Time": new Date().toISOString(),
                     notiIsRead: false,
                     userId: member.userId,
@@ -486,16 +491,6 @@ if (confirmRevisionBtn) {
         closeRejectOptions();
         const supabase = supa();
 
-        // Get revising statId from DB
-        const { data: revisingStatus, error: statusErr } = await supabase
-            .from("STATUS").select("statId").eq("statName", "Revising").maybeSingle();
-
-        if (!revisingStatus) {
-            showAlert('The "Revising" status is missing from the STATUS table. Run: INSERT INTO "STATUS" ("statName") VALUES (\'Revising\');', { title: "Setup Required" });
-            return;
-        }
-        const revisingStatId = revisingStatus.statId;
-
         const _rvNoteField = mode === "teacher" ? "teacherNote" : "leaderNote";
         const _rvNoteValue = mode === "teacher" ? (item.teacherRemarks || null) : (item.leaderRemarks || null);
         await supabase.from("SUBMISSION").update({
@@ -503,12 +498,12 @@ if (confirmRevisionBtn) {
             [_rvNoteField]: _rvNoteValue
         }).eq("subId", item._subId);
 
-        // Update task: set to Revising + new due date + start timer + mark wasRevising
+        // Return the task to pending work and preserve the revision label separately.
         if (item._taskId) {
             const { error: taskErr } = await supabase.from("TASK").update({
-                statId: revisingStatId,
+            statId: 1,
                 taskDueD: `${newDueDate}T${newDueTime}:00`,
-                taskAcmD: new Date().toISOString(),
+            taskAcmD: null,
                 wasRevising: true
             }).eq("taskId", item._taskId);
             if (taskErr) {

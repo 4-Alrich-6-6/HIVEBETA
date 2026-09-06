@@ -6,7 +6,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Group Information</title>
-    <link rel="stylesheet" href="s.leadergrpviewing.css">
+    <link rel="stylesheet" href="t.grpviewing.css">
     <link rel="stylesheet" href="../../lib/loading.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,9 +58,10 @@
                                     <img class="project-empty-state-illustration" src="../../assets/bee-flight.svg" alt="">
                                     <strong>No Projects Yet</strong>
                                     <p>Click the "+" button to post a project and start breaking down tasks.</p>
+                                    <button type="button" class="empty-state-create-link" id="emptyCreateProjectBtn">Create Project</button>
                                 </div>
                             </div>
-                            <button class="section-add project-add-btn" type="button" id="openPostCategoryModalBtn" aria-label="Add project">+</button>
+                            <button class="section-add project-add-btn" type="button" id="openPostCategoryModalBtn" aria-label="Add project" hidden>+</button>
                         </div>
                     </section>
 
@@ -384,8 +385,7 @@
     <script src="../../lib/confirmation-modal.js"></script>
     <script src="../../lib/manage-profile.js"></script>
     <script src="../../lib/settings.js"></script>
-    <script src="s.leadergrpviewing.js"></script>
-    <script src="s.leadercategory.js"></script>
+    <script src="t.grpviewing.js"></script>
     <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js');

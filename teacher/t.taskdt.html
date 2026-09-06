@@ -5,9 +5,9 @@
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Breakdown</title>
+    <title>Task Details - HIVE</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kodchasan:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="t.projectbreakdown.css">
+    <link rel="stylesheet" href="t.taskdt.css">
     <link rel="stylesheet" href="../../lib/loading.css">
     <link rel="stylesheet" href="../student-theme.css">
     <script src="../../lib/offline-banner.js" defer></script>
@@ -22,14 +22,14 @@
     </div>
     <div class="layout">
         <aside class="sidebar" id="sidebar">
-            <a class="brand-mark" href="../s.dashb.html" aria-label="HIVE dashboard"><img src="../../PrimeLogo.png" alt="HIVE"></a>
+            <a class="brand-mark" href="s.dashb.html" aria-label="HIVE dashboard"><img src="../PrimeLogo.png" alt="HIVE"></a>
             <nav class="side-nav" aria-label="Main navigation">
-                <a class="side-nav-link" href="../s.dashb.html" aria-label="Dashboard"><svg viewBox="0 0 100 100"><defs><mask id="project-tiles"><rect width="100" height="100" fill="#fff"/><circle cx="25" cy="25" r="13.5" fill="#000"/><rect x="63" y="13" width="24" height="24" fill="#000"/><polygon points="25,62 12.5,85 37.5,85" fill="#000"/><polygon points="75,61 89,75 75,89 61,75" fill="#000"/></mask></defs><g fill="currentColor" mask="url(#project-tiles)"><rect x="3" y="3" width="44" height="44" rx="10"/><rect x="53" y="3" width="44" height="44" rx="10"/><rect x="3" y="53" width="44" height="44" rx="10"/><rect x="53" y="53" width="44" height="44" rx="10"/></g></svg></a>
-                <a class="side-nav-link active" href="../s.team.html" aria-label="Teams"><svg viewBox="0 0 100 100"><path d="M48 13H75A12 12 0 0 1 87 25V38M13 62V75A12 12 0 0 0 25 87H48" fill="none" stroke="currentColor" stroke-width="8.5" stroke-linecap="round"/><g fill="currentColor"><circle cx="32" cy="20" r="9.5"/><path d="M14 54C14 41 21 38 32 38C43 38 50 41 50 54Z"/><circle cx="72" cy="50" r="11"/><path d="M58 88C58 77 64 74 72 74C80 74 86 77 86 88Z"/></g></svg></a>
-                <a class="side-nav-link" href="../s.tasklist.html" aria-label="Tasks"><svg viewBox="0 0 100 100"><g fill="currentColor"><rect x="5" y="5" width="25" height="25" rx="6"/><rect x="38" y="12.5" width="57" height="10" rx="5"/><rect x="5" y="37.5" width="25" height="25" rx="6"/><rect x="38" y="45" width="57" height="10" rx="5"/><rect x="38" y="77.5" width="57" height="10" rx="5"/><path fill-rule="evenodd" d="M11 70H24A6 6 0 0 1 30 76V89A6 6 0 0 1 24 95H11A6 6 0 0 1 5 89V76A6 6 0 0 1 11 70ZM12 77H23V88H12Z"/></g></svg></a>
+                <a class="side-nav-link" href="s.dashb.html" aria-label="Dashboard"><svg viewBox="0 0 100 100"><defs><mask id="project-tiles"><rect width="100" height="100" fill="#fff"/><circle cx="25" cy="25" r="13.5" fill="#000"/><rect x="63" y="13" width="24" height="24" fill="#000"/><polygon points="25,62 12.5,85 37.5,85" fill="#000"/><polygon points="75,61 89,75 75,89 61,75" fill="#000"/></mask></defs><g fill="currentColor" mask="url(#project-tiles)"><rect x="3" y="3" width="44" height="44" rx="10"/><rect x="53" y="3" width="44" height="44" rx="10"/><rect x="3" y="53" width="44" height="44" rx="10"/><rect x="53" y="53" width="44" height="44" rx="10"/></g></svg></a>
+                <a class="side-nav-link active" href="s.team.html" aria-label="Teams"><svg viewBox="0 0 100 100"><path d="M48 13H75A12 12 0 0 1 87 25V38M13 62V75A12 12 0 0 0 25 87H48" fill="none" stroke="currentColor" stroke-width="8.5" stroke-linecap="round"/><g fill="currentColor"><circle cx="32" cy="20" r="9.5"/><path d="M14 54C14 41 21 38 32 38C43 38 50 41 50 54Z"/><circle cx="72" cy="50" r="11"/><path d="M58 88C58 77 64 74 72 74C80 74 86 77 86 88Z"/></g></svg></a>
+                <a class="side-nav-link" href="s.tasklist.html" aria-label="Tasks"><svg viewBox="0 0 100 100"><g fill="currentColor"><rect x="5" y="5" width="25" height="25" rx="6"/><rect x="38" y="12.5" width="57" height="10" rx="5"/><rect x="5" y="37.5" width="25" height="25" rx="6"/><rect x="38" y="45" width="57" height="10" rx="5"/><rect x="38" y="77.5" width="57" height="10" rx="5"/><path fill-rule="evenodd" d="M11 70H24A6 6 0 0 1 30 76V89A6 6 0 0 1 24 95H11A6 6 0 0 1 5 89V76A6 6 0 0 1 11 70ZM12 77H23V88H12Z"/></g></svg></a>
             </nav>
             <nav class="side-nav side-nav-bottom" aria-label="Account navigation">
-                <a class="side-nav-link notification-link notif-btn" href="../s.notification.html" aria-label="Notifications"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%"><g fill="currentColor"><circle cx="50" cy="16" r="7"></circle><path d="M 50 18 C 33 18 24 33 24 50 C 24 58 20 64 20 64 H 80 C 80 64 76 58 76 50 C 76 33 67 18 50 18 Z"></path><rect x="13" y="70" width="74" height="6.5" rx="3.25"></rect><path d="M 41.5 76.5 A 8.5 8.5 0 0 0 58.5 76.5 Z"></path></g></svg><span class="notif-badge" aria-hidden="true"></span></a>
+                <a class="side-nav-link notification-link notif-btn" href="s.notification.html" aria-label="Notifications"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%"><g fill="currentColor"><circle cx="50" cy="16" r="7"></circle><path d="M 50 18 C 33 18 24 33 24 50 C 24 58 20 64 20 64 H 80 C 80 64 76 58 76 50 C 76 33 67 18 50 18 Z"></path><rect x="13" y="70" width="74" height="6.5" rx="3.25"></rect><path d="M 41.5 76.5 A 8.5 8.5 0 0 0 58.5 76.5 Z"></path></g></svg><span class="notif-badge" aria-hidden="true"></span></a>
                 <button class="side-nav-link settings-link" type="button" aria-label="Settings"><svg viewBox="0 0 100 100"><defs><mask id="project-gear"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="50" r="18" fill="#000"/></mask></defs><g fill="currentColor" mask="url(#project-gear)"><circle cx="50" cy="50" r="32"/><rect x="43" y="10" width="14" height="12" rx="3.5"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(45 50 50)"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(90 50 50)"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(135 50 50)"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(180 50 50)"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(225 50 50)"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(270 50 50)"/><rect x="43" y="10" width="14" height="12" rx="3.5" transform="rotate(315 50 50)"/></g></svg></button>
             </nav>
         </aside>
@@ -47,34 +47,73 @@
             </div>
 
             <section class="main-content">
-                <div class="project-overview">
-                    <section class="project-details" aria-label="Project details">
-                        <div class="project-heading-row">
-                            <button class="project-back-link" id="projectBackLink" type="button" aria-label="Back to group view">‹ <span>Projects</span></button>
-                            <h2 class="project-detail-name"></h2>
+                <section class="task-detail-screen" aria-label="Task details">
+                    <div class="task-detail-back-row">
+                        <button class="task-detail-back" id="taskDetailBack" type="button" aria-label="Back to tasks">‹ <span>Tasks</span></button>
+                        <button class="task-detail-more-btn" id="taskDetailMoreBtn" type="button" aria-label="More task options" hidden>
+                            <svg viewBox="0 0 488 488" aria-hidden="true" focusable="false">
+                                <circle cx="51.2" cy="244" r="51.2"></circle>
+                                <circle cx="244" cy="244" r="51.2"></circle>
+                                <circle cx="436.8" cy="244" r="51.2"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="task-detail-heading">
+                        <h2 id="pageTaskName">Task</h2>
+                        <div class="task-detail-assigned">Assigned by <strong id="pageTaskAssigner">--</strong></div>
+                    </div>
+                    <div class="task-detail-meta">
+                        <div><span>Date Assigned:</span><strong id="pageTaskAssignedDate">--/--/----</strong></div>
+                        <div><span>Due Date &amp; Time:</span><strong id="pageTaskDueDate">--/--/----</strong></div>
+                        <div class="task-detail-assignee-meta">
+                            <span><strong id="pageTaskAssigneeCount">0</strong> Assignee(s):</span>
+                            <div class="task-detail-assignee-visuals">
+                                <div class="task-detail-assignee-avatars" id="pageTaskAssigneeAvatars" aria-hidden="true"></div>
+                                <div class="task-detail-assignee-info-wrap">
+                                    <button class="task-detail-assignee-info" id="pageTaskAssigneeInfo" type="button" aria-label="Show assignee list" aria-describedby="pageTaskAssigneePopover">
+                                        <img src="../../assets/info-icon-capa.svg" alt="">
+                                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M11 6.55556H11.0022M9.88889 9.88889H11V16.5556H11.5556M21 11C21 12.3132 20.7413 13.6136 20.2388 14.8268C19.7363 16.0401 18.9997 17.1425 18.0711 18.0711C17.1425 18.9997 16.0401 19.7363 14.8268 20.2388C13.6136 20.7413 12.3132 21 11 21C9.68678 21 8.38642 20.7413 7.17317 20.2388C5.95991 19.7363 4.85752 18.9997 3.92893 18.0711C3.00035 16.0401 2.26375 14.8268 1.7612 14.8268C1.25866 14.8268 1 12.3132 1 11C1 8.34784 2.05357 5.8043 3.92893 3.92893C5.8043 2.05357 8.34784 1 11 1C13.6522 1 16.1957 2.05357 18.0711 3.92893C19.9464 5.8043 21 8.34784 21 11Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            <path d="M11 6.55556H11.0022M9.88889 9.88889H11V16.5556H11.5556M21 11C21 12.3132 20.7413 13.6136 20.2388 14.8268C19.7363 16.0401 18.9997 17.1425 18.0711 18.0711C17.1425 18.9997 16.0401 19.7363 14.8268 20.2388C13.6136 20.7413 12.3132 21 11 21C9.68678 21 8.38678 20.7413 7.17317 20.2388C5.95991 19.7363 4.85752 18.9997 3.92893 18.0711C3.00035 17.1425 2.26375 16.0401 1.7612 14.8268C1.25866 13.6136 1 12.3132 1 11C1 8.34784 2.05357 5.8043 3.92893 3.92893C5.8043 2.05357 8.34784 1 11 1C13.6522 1 16.1957 2.05357 18.0711 3.92893C19.9464 3.92893 21 8.34784 21 11Z" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                    <div class="task-detail-assignee-popover" id="pageTaskAssigneePopover" role="tooltip">
+                                        <strong>Assignees</strong>
+                                        <ul id="pageTaskAssigneeList"></ul>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="project-meta">
-                            <div><span>Date Posted:</span><strong id="projectStartDate">--/--/----</strong></div>
-                            <div><span>Due Date:</span><strong id="projectDueDate">--/--/----</strong></div>
-                            <div><span>Due Time:</span><strong id="projectDueTime">--:--</strong></div>
+                        <div><span>Intensity:</span><strong id="pageTaskIntensity">--</strong></div>
+                        <div><span>Prioritization:</span><strong id="pageTaskPriority">--</strong></div>
+                    </div>
+                    <h3>Description</h3>
+                    <p class="task-detail-description" id="pageTaskDescription">No description provided.</p>
+                    <h3>Submission/Resource Link</h3>
+                    <div class="task-detail-resource-row">
+                        <div class="task-detail-links" id="pageTaskResources">None</div>
+                        <button class="task-detail-copy-btn" id="copyTaskResourceBtn" type="button" aria-label="Copy submission link" disabled>Copy Link</button>
+                    </div>
+                    <div class="task-detail-footer">
+                        <div class="task-detail-footer-info">
+                            <div class="task-detail-active-time"><strong>Active Time:</strong><span id="pageTaskActiveTime">0h 0m 0s</span></div>
+                            <div class="task-detail-status"><strong>Status:</strong><span id="pageTaskStatus">Not Active</span></div>
                         </div>
-                        <h3>Description</h3>
-                        <p id="projectDescription">No project description provided.</p>
-                    </section>
-
-                    <aside class="contributor-summary" aria-label="Contributor summary">
-                        <div class="contributor-summary-tabs" role="tablist" aria-label="Contributor summary views">
-                            <button class="contributor-summary-tab active" id="participationSummaryTab" type="button" role="tab" aria-selected="true" aria-controls="participationSummaryPanel">Participation</button>
-                            <button class="contributor-summary-tab" id="reputationSummaryTab" type="button" role="tab" aria-selected="false" aria-controls="reputationSummaryPanel">Reputation</button>
-                        </div>
-                        <div class="contributor-summary-panel" id="participationSummaryPanel" role="tabpanel" aria-labelledby="participationSummaryTab">
-                            <div class="contributor-summary-list" id="participationSummaryList"><p class="contributor-summary-empty">Loading contributors...</p></div>
-                        </div>
-                        <div class="contributor-summary-panel" id="reputationSummaryPanel" role="tabpanel" aria-labelledby="reputationSummaryTab" hidden>
-                            <div class="contributor-summary-list" id="reputationSummaryList"></div>
-                        </div>
-                    </aside>
-                </div>
+                        <div class="task-detail-actions"><button type="button" id="pageTaskStart">Notify Assignee(s)</button></div>
+                    </div>
+                </section>
+                <section class="project-details" aria-label="Project details">
+                    <div class="project-heading-row">
+                        <button class="project-back-link" id="projectBackLink" type="button" aria-label="Back to group view">‹ <span>Projects</span></button>
+                        <h2 class="project-detail-name"></h2>
+                    </div>
+                    <div class="project-meta">
+                        <div><span>Date Started:</span><strong id="projectStartDate">--/--/----</strong></div>
+                        <div><span>Due Date:</span><strong id="projectDueDate">--/--/----</strong></div>
+                    </div>
+                    <h3>Description</h3>
+                    <p id="projectDescription">No project description provided.</p>
+                </section>
 
                 <section class="summary-row">
                     <article class="summary-card">
@@ -151,7 +190,7 @@
                         </div>
                         <div class="submissions-list" id="submissionsList" aria-live="polite">
                             <div class="submissions-empty empty-state">
-                                <img class="empty-state-icon" src="../../assets/bee-flight.svg" alt="">
+                                <img class="empty-state-icon" src="../assets/bee-flight.svg" alt="">
                                 <h3>No Submissions Yet</h3>
                                 <p>Task submissions will appear here when contributors submit their work.</p>
                             </div>
@@ -233,23 +272,20 @@
 
     <!-- Verify Choice Modal -->
     <div class="modal-overlay" id="verifyChoiceOverlay" aria-hidden="true">
-        <div class="verify-modal" role="dialog" aria-modal="true" aria-labelledby="verifyTaskName">
-            <div class="verify-modal-header">Task Verification</div>
-            <div class="verify-modal-body">
-                <h2 id="verifyTaskName"></h2>
-                <div class="verify-assignee-label"><span id="verifyAssigneeCount">0</span> Assignee(s):</div>
-                <div class="verify-assignees-row"><div id="verifyAssignees" class="verify-assignees" aria-hidden="true"></div><button id="verifyAssigneeInfo" class="verify-info-btn" type="button" aria-label="Show assignees">i</button></div>
-                <div class="verify-active-time-label">Active Time:</div>
-                <strong id="verifyActiveTime" class="verify-active-time-value">0h 0m 0s</strong>
-                <div class="verify-link-label">Submission / Resource Link:</div>
-                <div class="verify-link-row"><input id="verifyResourceLink" type="text" readonly placeholder="No submission/resource link"><button id="verifyCopyResourceBtn" type="button">Copy</button></div>
-                <div class="verify-submitted-label">Submitted:</div>
-                <strong id="verifySubmittedAt" class="verify-submitted-value">--/--/---- --:-- --</strong>
-            </div>
-            <div class="verify-modal-footer">
-                <button class="modal-btn discard-btn" id="verifyCloseBtn" type="button">Cancel</button>
-                <button class="option-delete-btn" id="verifyReviseBtn" type="button">Revise</button>
-                <button class="modal-btn post-btn" id="verifyFinishBtn" type="button">Mark as Verified</button>
+        <div class="project-options-modal" role="dialog" aria-modal="true">
+            <div class="project-options-body">
+                <p style="font-weight:800;font-size:14px;margin:0 0 6px;">Task Verification</p>
+                <p style="font-size:12px;font-weight:700;margin:0 0 2px;">Submission / Resource Link:</p>
+                <p id="verifyResourceLink" style="font-size:12px;margin:0 0 10px;word-break:break-all;color:#555;">No submission/resource link</p>
+                <div style="width:100%;margin-bottom:12px;">
+                    <label style="font-size:12px;font-weight:700;display:block;margin-bottom:4px;">Leader Note (optional)</label>
+                    <textarea id="leaderNoteInput" rows="2" placeholder="Add a note for the member..." style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1.5px solid #000;font-size:13px;resize:vertical;"></textarea>
+                </div>
+                <div class="project-options-actions">
+                    <button class="modal-btn post-btn" id="verifyFinishBtn" type="button">Finished</button>
+                    <button class="option-delete-btn" id="verifyReviseBtn" type="button">Revise</button>
+                    <button class="modal-btn discard-btn" id="verifyCloseBtn" type="button">Cancel</button>
+                </div>
             </div>
         </div>
     </div>
@@ -317,18 +353,12 @@
         </div>
     </div>
 
-    <!-- Task Settings Modal -->
-    <div class="modal-overlay" id="taskSettingsOverlay" aria-hidden="true">
-        <div class="project-options-modal" role="dialog" aria-modal="true" aria-labelledby="taskSettingsTitle">
-            <div class="project-options-body">
-                <p class="task-settings-title" id="taskSettingsTitle">Task Settings</p>
-                <div class="task-settings-actions">
-                    <button class="modal-btn post-btn" id="openEditTaskInfoBtn" type="button">Edit Info</button>
-                    <button class="modal-btn post-btn" id="openManualStatusBtn" type="button">Manually Change Status</button>
-                    <button class="option-delete-btn" id="openRemoveTaskConfirmBtn" type="button">Remove Task</button>
-                    <button class="modal-btn discard-btn" id="discardTaskSettingsBtn" type="button">Discard</button>
-                </div>
-            </div>
+    <!-- Task Settings Dropdown -->
+    <div id="taskSettingsOverlay" aria-hidden="true" hidden>
+        <div class="task-settings-dropdown" role="menu" aria-labelledby="taskDetailMoreBtn">
+            <button class="task-settings-dropdown-finish" id="openEditTaskInfoBtn" type="button" role="menuitem">Edit Info</button>
+            <button class="task-settings-dropdown-edit" id="openManualStatusBtn" type="button" role="menuitem">Manually Change Status</button>
+            <button class="task-settings-dropdown-delete" id="openRemoveTaskConfirmBtn" type="button" role="menuitem">Remove Task</button>
         </div>
     </div>
 
@@ -451,15 +481,15 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../../lib/supabaseClient.js"></script>
-    <script src="../../lib/auth-guard.js"></script>
-    <script src="../../lib/profile-dropdown.js"></script>
-    <script src="../../lib/loading.js"></script>
-    <script src="../../lib/datetime.js"></script>
-    <script src="../../lib/manage-profile.js"></script>
-    <script src="../../lib/settings.js"></script>
-    <script src="../../lib/confirmation-modal.js"></script>
-    <script src="t.projectbreakdown.js"></script>
+    <script src="../lib/supabaseClient.js"></script>
+    <script src="../lib/auth-guard.js"></script>
+    <script src="../lib/profile-dropdown.js"></script>
+    <script src="../lib/loading.js"></script>
+    <script src="../lib/datetime.js"></script>
+    <script src="../lib/manage-profile.js"></script>
+    <script src="../lib/settings.js"></script>
+    <script src="../lib/confirmation-modal.js"></script>
+    <script src="t.taskdt.js"></script>
     <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js');

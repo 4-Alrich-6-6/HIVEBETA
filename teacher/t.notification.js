@@ -12,6 +12,7 @@ const notifModalBody = document.querySelector("#notifModalBody");
 const closeNotifModalBtn = document.querySelector("#closeNotifModalBtn");
 
 const supa = () => window.hiveSupabase;
+document.querySelectorAll('.sidebar a[href="t.category.html"]').forEach((link) => { link.href = "t.team.html"; });
 
 const loadTopbarAvatar = async () => {
     const profileImage = document.querySelector(".profile-trigger img");
@@ -158,7 +159,7 @@ if (markAllReadBtn) {
     });
 }
 
-if (topBackBtn) topBackBtn.addEventListener("click", () => { window.location.href = "s.dashb.html"; });
+if (topBackBtn) topBackBtn.addEventListener("click", () => { window.location.href = "t.dashb.html"; });
 if (closeNotifModalBtn) closeNotifModalBtn.addEventListener("click", closeNotifModal);
 if (notifModalOverlay) notifModalOverlay.addEventListener("click", (e) => { if (e.target === notifModalOverlay) closeNotifModal(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeNotifModal(); });

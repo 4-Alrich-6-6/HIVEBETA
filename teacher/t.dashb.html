@@ -5,23 +5,23 @@
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard</title>
-    <link rel="stylesheet" href="s.dashb.css">
+    <title>Teacher Dashboard</title>
+    <link rel="stylesheet" href="t.dashb.css">
     <script src="../lib/offline-banner.js" defer></script>
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#000000">
     <link rel="apple-touch-icon" href="../Logo.png">
     <link rel="icon" href="../Logo.png">
-    <link href="https://fonts.googleapis.com/css2?family=Kodchasan:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Kodchasan:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body class="dashboard-copy-page">
     <div class="layout">
         <aside class="sidebar" id="sidebar">
-            <a class="brand-mark" href="s.dashb.html" aria-label="HIVE dashboard">
+            <a class="brand-mark" href="t.dashb.html" aria-label="HIVE dashboard">
                 <img src="../PrimeLogo.png" alt="HIVE">
             </a>
             <nav class="side-nav" aria-label="Main navigation">
-                <a class="side-nav-link active" href="s.dashb.html" aria-label="Dashboard"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+                <a class="side-nav-link active" href="t.dashb.html" aria-label="Dashboard"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
                     <defs>
                         <!-- Mask to create transparent geometric cutouts in each tile -->
                         <mask id="tile-cutouts">
@@ -51,7 +51,7 @@
                     </g>
                     </svg>
                 </a>
-                <a class="side-nav-link" href="s.team.html" aria-label="Teams">
+                <a class="side-nav-link" href="t.team.html" aria-label="Teams">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
                     <!-- Top-Right L-Bracket -->
                     <path 
@@ -90,7 +90,7 @@
                     </g>
                     </svg>
                 </a>
-                <a class="side-nav-link" href="s.tasklist.html" aria-label="Tasks">
+                <a class="side-nav-link" href="t.tasklist.html" aria-label="Tasks">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
                     <g fill="currentColor">
                         <!-- Top Row -->
@@ -198,29 +198,35 @@
             <div class="main-content">
                 <section class="stats-row">
                     <article class="stat-card stat-card-yellow">
-                        <p class="stat-label">Teams</p>
+                        <p class="stat-label">Total Teams</p>
                         <h3 data-stat="teams">05</h3>
                     </article>
                     <article class="stat-card stat-card-yellow">
-                        <p class="stat-label">Your Teams</p>
+                        <p class="stat-label">Created Teams</p>
                         <h3 data-stat="your-teams">03</h3>
                     </article>
                     <article class="stat-card stat-card-green">
-                        <p class="stat-label">Completed Tasks</p>
-                        <h3>11</h3>
+                        <p class="stat-label">Pending Validations</p>
+                        <h3 data-stat="validations">11</h3>
                     </article>
                     <article class="stat-card stat-card-red">
-                        <p class="stat-label">Pending Tasks</p>
-                        <h3 data-stat="pending">01</h3>
+                        <p class="stat-label">Active Projects</p>
+                        <h3 data-stat="active-projects">01</h3>
                     </article>
                 </section>
-                <section class="ratings-section">
-                    <h2>Your Ratings</h2>
-                    <div class="ratings-card"><div class="ratings-totals"><p>Total Tasks Recieved: <strong>00</strong></p><p>Total Tasks Completed: <strong>00</strong></p><p>Total Tasks Missed: <strong>00</strong></p></div><div class="average-score"><p>Average Score:</p><strong>A</strong></div></div>
+                <section class="validation-section">
+                    <h2>Tasks to be Validated</h2>
+                    <div class="validation-list" id="validationList">
+                        <div class="validation-item">
+                            <div class="validation-project"><strong>Project Name</strong><span>Swarm Name</span></div>
+                            <div class="validation-summary"><strong>0 new tasks to be validated</strong><span>Verified by (pfp) Leader Name</span></div>
+                            <div class="validation-due"><span>Due:</span><strong>--/--/----</strong><span aria-hidden="true">›</span></div>
+                        </div>
+                    </div>
                 </section>
                 <section class="group-section recent-section" id="joinedGroupsSection">
                     <div class="section-title-wrap">
-                        <h2>Your Recently Visited Teams</h2>
+                        <h2>Ongoing Team Projects</h2>
                     </div>
                     <div id="joinedGroupsList"></div>
                 </section>
@@ -330,18 +336,19 @@
                             <strong id="invitePreviewProjectCount">0 Projects</strong>
                         </div>
                         <div>
-                            <span>Group Status</span>
-                            <strong class="status-badge">Active</strong>
+                            <span id="invitePreviewStatusLabel">Group Status</span>
+                            <strong class="status-badge" id="invitePreviewStatus">Active</strong>
                         </div>
                         <div>
-                            <span>Group Motto</span>
+                            <span id="invitePreviewMottoLabel">Group Motto</span>
                             <strong id="invitePreviewMotto">We are all in this together.</strong>
                         </div>
                     </div>
 
                     <div class="invite-preview-actions">
                         <button type="button" class="group-modal-btn group-discard-btn" id="closeInvitationPreviewBtn">Close</button>
-                        <button type="button" class="group-modal-btn group-create-btn" id="acceptInvitationPreviewBtn">Accept</button>
+                        <button type="button" class="group-modal-btn group-create-btn" id="joinAsContributorBtn">Join as a Contributor</button>
+                        <button type="button" class="group-modal-btn group-create-btn" id="joinAsInstructorBtn">Join as an Instructor</button>
                     </div>
                 </section>
             </div>
@@ -356,7 +363,7 @@
     <script src="../lib/manage-profile.js"></script>
     <script src="../lib/settings.js"></script>
     <script src="../lib/confirmation-modal.js"></script>
-    <script src="s.dashb.js"></script>
+    <script src="t.dashb.js"></script>
     <script type="module" src="s.leaderpreviewing.js"></script>
     <script>
     if ('serviceWorker' in navigator) {

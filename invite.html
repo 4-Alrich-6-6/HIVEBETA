@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIVE Invitation</title>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="lib/supabaseClient.js"></script>
+    <script>
+        (async () => {
+            let role = String(localStorage.getItem("hive_role") || "").trim().toLowerCase();
+            const supabase = window.hiveSupabase;
+
+            if (supabase) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    const { data: profile } = await supabase
+                        .from("USER")
+                        .select("posId")
+                        .eq("userId", user.id)
+                        .maybeSingle();
+                    const { data: position } = profile?.posId
+                        ? await supabase.from("POSITION").select("posName").eq("posId", profile.posId).maybeSingle()
+                        : { data: null };
+                    role = String(position?.posName || role).trim().toLowerCase();
+                    if (role) localStorage.setItem("hive_role", role);
+                }
+            }
+
+            const destination = role === "teacher" || role === "professor"
+                ? "teacher/t.dashb.html"
+                : "student/s.dashb.html";
+            window.location.replace(`${destination}${window.location.search}`);
+        })();
+    </script>
+</body>
+</html>

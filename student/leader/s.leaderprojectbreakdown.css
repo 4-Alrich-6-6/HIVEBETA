@@ -2231,7 +2231,7 @@ body {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(360px, 0.72fr);
     gap: 42px;
-    align-items: start;
+    align-items: stretch;
     margin-bottom: 22px;
 }
 
@@ -2243,6 +2243,9 @@ body {
 .leader-project-page .contributor-summary {
     min-width: 0;
     margin-top: 38px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 .leader-project-page .contributor-summary-tabs {
@@ -2276,12 +2279,15 @@ body {
     border-radius: 7px;
     background: #fff;
     overflow: hidden;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .leader-project-page .contributor-summary-list {
     display: flex;
     flex-direction: column;
-    max-height: 360px;
+    max-height: none;
+    height: 100%;
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
@@ -2711,21 +2717,6 @@ body {
     flex-shrink: 0;
 }
 
-.leader-project-page .submission-evaluations {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.leader-project-page .submission-evaluation {
-    color: #999;
-    font-family: 'Kodchasan', sans-serif;
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.leader-project-page .submission-evaluation.evaluated { color: #cc9900; }
-
 .leader-project-page .submission-verify {
     min-width: 88px;
     padding: 8px 13px;
@@ -2744,6 +2735,20 @@ body {
     background: #eee;
     color: #777;
     cursor: default;
+}
+
+.leader-project-page .submission-verify.instructor-status {
+    min-width: 170px;
+    border-color: #aaa;
+    background: #eee;
+    color: #777;
+    cursor: default;
+}
+
+.leader-project-page .submission-verify.instructor-status.instructor-verified {
+    border-color: #111;
+    background: #ffcc00;
+    color: #111;
 }
 
 .leader-project-page .submission-status {
@@ -2798,6 +2803,61 @@ body {
     background: #ffcc00;
 }
 
+.leader-project-page .p2p-evaluation-stage {
+    position: relative;
+}
+
+.leader-project-page .p2p-evaluation-list:has(+ .p2p-evaluation-lock:not([hidden])) {
+    filter: blur(5px);
+    box-shadow: 0 8px 24px rgba(17, 17, 17, 0.2);
+}
+
+.leader-project-page .p2p-evaluation-lock {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.leader-project-page .p2p-evaluation-lock[hidden] {
+    display: none;
+}
+
+.leader-project-page .p2p-evaluation-lock-card {
+    max-width: 380px;
+    padding: 24px 28px;
+    border: 1px solid #111;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 12px 28px rgba(17, 17, 17, 0.22);
+    text-align: center;
+}
+
+.leader-project-page .p2p-evaluation-lock-bee {
+    display: block;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 10px;
+    object-fit: contain;
+}
+
+.leader-project-page .p2p-evaluation-lock-card h3 {
+    margin: 0 0 8px;
+    color: #111;
+    font-size: 20px;
+}
+
+.leader-project-page .p2p-evaluation-lock-card p {
+    margin: 0;
+    color: #555;
+    font-family: 'Kodchasan', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
 .leader-project-page .p2p-evaluation-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -2816,6 +2876,7 @@ body {
     align-items: center;
     gap: 12px;
     min-width: 180px;
+    transform: translateY(4px);
 }
 
 .leader-project-page .p2p-member-info img {
@@ -2830,6 +2891,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
+    transform: translateY(4px);
 }
 
 .leader-project-page .p2p-rating-controls {
@@ -2909,7 +2971,6 @@ body {
 
 @media (max-width: 600px) {
     .leader-project-page .submission-card { grid-template-columns: 1fr auto; align-items: start; }
-    .leader-project-page .submission-evaluations { grid-column: 1 / -1; }
     .leader-project-page .submission-card-side { align-items: flex-start; }
 }
 
@@ -3085,5 +3146,27 @@ body {
 
     .leader-project-page #yourTasksList {
         max-height: 45vh;
+    }
+}
+
+@media (max-width: 600px) {
+    #postTaskModalOverlay,
+    #editTaskInfoOverlay {
+        align-items: flex-end;
+        padding: 10px;
+    }
+
+    #postTaskModalOverlay .post-task-modal,
+    #editTaskInfoOverlay .post-task-modal {
+        width: 100%;
+        max-height: 90dvh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #postTaskModalOverlay .post-task-form,
+    #editTaskInfoOverlay .post-task-form {
+        min-height: 0;
+        overflow-y: auto;
     }
 }

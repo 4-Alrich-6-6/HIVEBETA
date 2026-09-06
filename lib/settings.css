@@ -368,6 +368,13 @@
     color: #666;
 }
 
+#settingsNameCounter {
+    float: right;
+    color: #999;
+    font-size: 12px;
+    font-weight: 500;
+}
+
 .settings-form-group input {
     height: 44px;
     border-radius: 10px;

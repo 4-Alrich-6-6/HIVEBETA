@@ -21,6 +21,8 @@ const verifyReviseBtn = document.querySelector("#verifyReviseBtn");
 const verifyCloseBtn = document.querySelector("#verifyCloseBtn");
 const submissionFilterButtons = Array.from(document.querySelectorAll("[data-submission-filter]"));
 const submissionsList = document.querySelector("#submissionsList");
+const leaderVerificationNotice = document.querySelector("#leaderVerificationNotice");
+const leaderVerificationTasks = document.querySelector("#leaderVerificationTasks");
 const pauseFinishChoiceOverlay = document.querySelector("#pauseFinishChoiceOverlay");
 const pauseFinishPauseBtn = document.querySelector("#pauseFinishPauseBtn");
 const pauseFinishFinishBtn = document.querySelector("#pauseFinishFinishBtn");
@@ -92,6 +94,10 @@ const isPastDue  = (t) => !(!t.dueDate || !t.dueTime) && Date.now() > new Date(`
 const supa       = () => window.hiveSupabase;
 const getProjId  = () => sessionStorage.getItem("hive_selected_project");
 const getGrpId   = () => sessionStorage.getItem("hive_grpId");
+const teacherSidebarRoutes = { "s.dashb.html": "t.dashb.html", "s.team.html": "t.category.html", "s.tasklist.html": "t.tasklist.html", "s.notification.html": "t.notification.html" };
+document.querySelectorAll(".sidebar a[href]").forEach((link) => { const route = teacherSidebarRoutes[link.getAttribute("href")]; if (route) link.setAttribute("href", route); });
+document.querySelectorAll('a[href$="s.team.html"], a[href$="../s.team.html"]').forEach((link) => { link.href = "t.category.html"; });
+document.querySelectorAll('a[href$="s.notification.html"], a[href$="../s.notification.html"]').forEach((link) => { link.href = "t.notification.html"; });
 const getTaskId  = () => new URLSearchParams(window.location.search).get("taskId");
 const resolveAvatarUrl = (avatarPath) => {
     if (!avatarPath) return "../../assets/profile-placeholder.svg";
@@ -156,21 +162,36 @@ const loadSubmissions = async (filter = "evaluation") => {
         return;
     }
 
+    const leaderVerifiedTaskIds = new Set((data || [])
+        .filter((submission) => String(submission.status || "").toLowerCase() === "approved")
+        .map((submission) => submission.taskId));
+    const leaderVerificationTaskIds = new Set((data || [])
+        .filter((submission) => Number(submission.TASK?.statId) === STAT_ID.verifying && !leaderVerifiedTaskIds.has(submission.taskId))
+        .map((submission) => submission.taskId));
+    if (leaderVerificationNotice) leaderVerificationNotice.textContent = `There are ${leaderVerificationTaskIds.size} tasks currently being verified by the Leader`;
+    if (leaderVerificationTasks) {
+        const taskNames = [...new Map((data || [])
+            .filter((submission) => leaderVerificationTaskIds.has(submission.taskId))
+            .map((submission) => [submission.taskId, submission.TASK?.taskName || "Unnamed task"])).values()];
+        leaderVerificationTasks.textContent = taskNames.length ? `Tasks:\n${taskNames.map((name) => `- ${name}`).join("\n")}` : "No tasks are currently being verified.";
+    }
     const submissions = (data || []).filter((submission) => {
         const status = String(submission.status || "").toLowerCase();
         const taskStatus = Number(submission.TASK?.statId);
         const isFinished = taskStatus === STAT_ID.finished;
-        const isForEvaluation = taskStatus === STAT_ID.verifying;
+        const isLeaderVerified = (data || []).some((item) => item.taskId === submission.taskId && String(item.status || "").toLowerCase() === "approved");
+        const isForEvaluation = isLeaderVerified && status === "approved" && !submission.TASK?.teacherApproved;
         return filter === "finished" ? isFinished : isForEvaluation;
     });
+    const uniqueSubmissions = [...new Map(submissions.map((submission) => [submission.taskId, submission])).values()];
 
-    if (!submissions.length) {
+    if (!uniqueSubmissions.length) {
         submissionsList.innerHTML = `<div class="submissions-empty empty-state"><img class="empty-state-icon" src="../assets/bee-flight.svg" alt=""><h3>No ${filter === "finished" ? "Finished" : "Submissions For Evaluation"}</h3><p>There are no submissions in this list.</p></div>`;
         return;
     }
 
     submissionsList.innerHTML = "";
-    submissions.forEach((submission) => {
+    uniqueSubmissions.forEach((submission) => {
         const card = document.createElement("article");
         card.className = "submission-card";
         const submittedAt = submission.submittedAt ? new Date(submission.submittedAt).toLocaleString() : "Date unavailable";
@@ -192,7 +213,7 @@ const loadSubmissions = async (filter = "evaluation") => {
         const fallbackName = submission.GROUPMEMBER?.USER?.userDisplayName || "Unknown contributor";
         card.querySelector(".submission-contributor").textContent = `Assigned to: ${assignedNames.join(", ") || fallbackName}`;
         card.querySelector(".submission-date").textContent = submittedAt;
-        card.querySelector(".submission-status").textContent = status;
+        card.querySelector(".submission-status").textContent = submission.TASK?.teacherApproved ? "Finished" : status;
         const proof = card.querySelector(".submission-proof");
         if (submission.proofLink) {
             proof.href = submission.proofLink;
@@ -279,6 +300,23 @@ const loadTaskAssigner = async (task) => {
     return teacher?.userDisplayName || "Project Leader";
 };
 
+const canManageTask = async (task) => {
+    if (!task?.projectGroupId || !currentUserId) return false;
+    const { data: group } = await supa()
+        .from("GROUP")
+        .select("teacherId")
+        .eq("grpId", Number(task.projectGroupId))
+        .maybeSingle();
+    if (String(group?.teacherId || "") === String(currentUserId)) return true;
+    const { data: membership } = await supa()
+        .from("GROUPMEMBER")
+        .select("ROLE(roleName)")
+        .eq("grpId", Number(task.projectGroupId))
+        .eq("userId", currentUserId)
+        .maybeSingle();
+    return String(membership?.ROLE?.roleName || "").trim().toLowerCase() === "teacher";
+};
+
 const formatAssignedDate = (assignedAt) => {
     if (!assignedAt) return "--/--/----";
     const date = new Date(assignedAt);
@@ -303,11 +341,9 @@ const updateNotifyCooldownLabel = (button, taskId) => {
 };
 
 const configureUnassignedTaskActions = (task) => {
-    if (!pageTaskStart || !pageTaskSubmit) return;
+    if (!pageTaskStart) return;
     pageTaskStart.textContent = "Notify Assignee(s)";
-    pageTaskSubmit.textContent = "Volunteer";
     pageTaskStart.disabled = task.assignees.length === 0 || updateNotifyCooldownLabel(pageTaskStart, task.taskId);
-    pageTaskSubmit.disabled = isTerminal(task.status) || task.status === "verifying";
     pageTaskStart.onclick = async () => {
         if (updateNotifyCooldownLabel(pageTaskStart, task.taskId)) return;
         const now = new Date().toISOString();
@@ -331,30 +367,6 @@ const configureUnassignedTaskActions = (task) => {
         localStorage.setItem(notifyCooldownKey(task.taskId), String(Date.now() + 60 * 60 * 1000));
         updateNotifyCooldownLabel(pageTaskStart, task.taskId);
     };
-    pageTaskSubmit.onclick = () => {
-        showConfirmation(`Volunteer for the task "${task.name}"?`, async () => {
-            const { data: membership } = await supa()
-                .from("GROUPMEMBER")
-                .select("grpmemId")
-                .eq("grpId", task.projectGroupId)
-                .eq("userId", currentUserId)
-                .maybeSingle();
-            if (!membership?.grpmemId) {
-                showAlert("You must be a member of this group to volunteer.", { title: "Unable to Volunteer" });
-                return;
-            }
-            const { error } = await supa().from("TASKASSIGNMENT").insert({
-                taskId: task.taskId,
-                grpmemId: membership.grpmemId,
-                assignedAt: new Date().toISOString()
-            });
-            if (error) {
-                showAlert(`Failed to volunteer: ${error.message}`, { title: "Error" });
-                return;
-            }
-            await renderTaskDetailPage();
-        }, { title: "Volunteer for Task", confirmText: "Volunteer", cancelText: "Cancel" });
-    };
 };
 
 const renderTaskDetailPage = async () => {
@@ -362,6 +374,7 @@ const renderTaskDetailPage = async () => {
     const tasks = await loadTasks();
     const task = tasks.find((item) => item.taskId === taskId);
     if (!task) return;
+    if (taskDetailMoreBtn) taskDetailMoreBtn.hidden = !(await canManageTask(task));
     activeTaskIndex = tasks.findIndex((item) => item.taskId === taskId);
     if (pageTaskName) pageTaskName.textContent = task.name || "Task";
     if (pageTaskAssigner) pageTaskAssigner.textContent = await loadTaskAssigner(task);
@@ -417,7 +430,7 @@ const renderTaskDetailPage = async () => {
     window._pageTaskRef = task;
     const isLocked = isTerminal(task.status) || task.status === "verifying";
     const isAssignedToCurrentUser = task.assignees.some((assignee) => assignee.userId === currentUserId);
-    if (!isAssignedToCurrentUser) {
+    if (document.body.classList.contains("leader-project-page") || !isAssignedToCurrentUser) {
         configureUnassignedTaskActions(task);
         return;
     }
@@ -826,22 +839,23 @@ const openVerifyChoice = async (taskId, onFinish, onRevise) => {
     // Load latest submission for this task
     const { data: sub } = await supa()
         .from("SUBMISSION")
-        .select("subId, proofLink")
+        .select("subId, proofLink, status, submittedAt, TASK(taskResource)")
         .eq("taskId", taskId)
         .order("submittedAt", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(20);
 
-    _verifySubmissionId = sub?.subId || null;
-    const proofEl = document.querySelector("#verifyProofLink");
-    const noteEl  = document.querySelector("#leaderNoteInput");
-    if (proofEl) {
-        if (sub?.proofLink) {
-            proofEl.innerHTML = `<a href="${sub.proofLink}" target="_blank" rel="noopener">${sub.proofLink}</a>`;
-        } else {
-            proofEl.textContent = "No proof submitted";
-        }
+    const approvedSubmissions = (sub || []).filter((submission) => String(submission.status || "").toLowerCase() === "approved");
+    const selectedSubmission = approvedSubmissions[0] || sub?.[0] || null;
+    _verifySubmissionId = selectedSubmission?.subId || null;
+    const resourceEl = document.querySelector("#verifyResourceLink");
+    if (resourceEl) {
+        const resourceLink = selectedSubmission?.TASK?.taskResource;
+        resourceEl.textContent = resourceLink || "No submission/resource link";
+        resourceEl.innerHTML = resourceLink
+            ? `<a href="${resourceLink}" target="_blank" rel="noopener">${resourceLink}</a>`
+            : "No submission/resource link";
     }
+    const noteEl  = document.querySelector("#leaderNoteInput");
     if (noteEl) noteEl.value = "";
 
     verifyChoiceCallback = { onFinish, onRevise };
@@ -861,6 +875,10 @@ if (verifyFinishBtn) {
         if (_verifySubmissionId) {
             await supa().from("SUBMISSION").update({ status: "approved", leaderNote: note }).eq("subId", _verifySubmissionId);
         }
+        const taskId = verifyChoiceCallback?.taskId;
+        if (taskId) {
+            await supa().from("TASK").update({ statId: STAT_ID.finished, teacherApproved: true, taskAcmD: null }).eq("taskId", taskId);
+        }
         verifyChoiceCallback?.onFinish?.();
         closeVerifyChoice();
     });
@@ -871,6 +889,10 @@ if (verifyReviseBtn) {
         const note = document.querySelector("#leaderNoteInput")?.value.trim() || null;
         if (_verifySubmissionId) {
             await supa().from("SUBMISSION").update({ status: "rejected", leaderNote: note }).eq("subId", _verifySubmissionId);
+        }
+        const taskId = verifyChoiceCallback?.taskId;
+        if (taskId) {
+            await supa().from("TASK").update({ statId: STAT_ID.inactive, wasRevising: true, teacherApproved: false, taskAcmD: null }).eq("taskId", taskId);
         }
         verifyChoiceCallback?.onRevise?.();
         closeVerifyChoice();
@@ -955,7 +977,7 @@ const attachLeaderStatusBtn = (btn, task, isOwnTask) => {
                 () => setStatus("finished")
             );
             else if (cur==="pause") await setStatus("active");
-            else if (cur==="verifying") openVerifyChoice(task.taskId, ()=>setStatus("finished"), ()=>setStatus("active"));
+            else if (cur==="verifying") openVerifyChoice(task.taskId, ()=>setStatus("finished"), ()=>setStatus("inactive"));
         }
     });
 };
@@ -1044,8 +1066,8 @@ const renderAllTasks = async () => {
         if(mine) own++; else other++;
         if(t.status==="verifying") verify++;
     }
-    if(yl&&own===0) yl.innerHTML=`<div class="empty-state task-empty-placeholder"><img src="../../assets/bee-flight.svg" class="empty-state-icon" alt=""><h2>You Have No Pending Tasks Yet</h2><p>Check back later or explore your projects to find other's unfinished tasks and help them like a good team member.</p></div>`;
-    if(ol&&other===0) ol.innerHTML=`<div class="empty-state task-empty-placeholder"><img src="../../assets/bee-flight.svg" class="empty-state-icon" alt=""><h2>You Have No Pending Tasks Yet</h2><p>Check back later or explore your projects to find other's unfinished tasks and help them like a good team member.</p></div>`;
+    if(yl&&own===0) yl.innerHTML=`<div class="empty-state task-empty-placeholder"><img src="../../assets/bee-flight.svg" class="empty-state-icon" alt=""><h2>You Have No Pending Tasks Yet</h2><p>No pending tasks require your attention right now. Check your projects to review student progress.</p></div>`;
+    if(ol&&other===0) ol.innerHTML=`<div class="empty-state task-empty-placeholder"><img src="../../assets/bee-flight.svg" class="empty-state-icon" alt=""><h2>You Have No Pending Tasks Yet</h2><p>No pending tasks require your attention right now. Check your projects to review student progress.</p></div>`;
     const sc=document.querySelectorAll(".summary-card h3");
     if(sc[0]) sc[0].textContent=own; if(sc[1]) sc[1].textContent=other; if(sc[2]) sc[2].textContent=verify;
 };
@@ -1093,7 +1115,7 @@ const openPostTaskModal = async () => {
 };
 
 if (inlinePostTaskBtn) inlinePostTaskBtn.addEventListener("click", openPostTaskModal);
-if (projectBackLink) projectBackLink.addEventListener("click", () => { window.location.href = "s.leadergrpviewing.html"; });
+if (projectBackLink) projectBackLink.addEventListener("click", () => { window.location.href = "t.grpviewing.html"; });
 
 // Global ticker — updates all active task cards + the open details modal every second
 // Stored on window so it is never started more than once
@@ -1199,10 +1221,10 @@ const openTaskDetails=async(idx)=>{
     taskDetailsOverlay.classList.add("open");taskDetailsOverlay.setAttribute("aria-hidden","false");
 };
 
-if(topBackBtn) topBackBtn.addEventListener("click",()=>{window.location.href="s.dashb.html";});
-if(groupInfoTab) groupInfoTab.addEventListener("click",()=>{window.location.href="s.leadergrpviewing.html";});
+if(topBackBtn) topBackBtn.addEventListener("click",()=>{window.location.href="t.dashb.html";});
+if(groupInfoTab) groupInfoTab.addEventListener("click",()=>{window.location.href="t.grpviewing.html";});
 
-if(backToCategoriesBtn) backToCategoriesBtn.addEventListener("click",()=>{window.location.href="s.leadercategory.html";});
+if(backToCategoriesBtn) backToCategoriesBtn.addEventListener("click",()=>{window.location.href="t.category.html";});
 if(openEditTaskInfoBtn) openEditTaskInfoBtn.addEventListener("click",()=>{closeTaskSettings();openEditTaskInfo();});
 if(discardEditTaskInfoBtn) discardEditTaskInfoBtn.addEventListener("click",closeEditTaskInfo);
 if(editTaskInfoOverlay) editTaskInfoOverlay.addEventListener("click",e=>{if(e.target===editTaskInfoOverlay)closeEditTaskInfo();});

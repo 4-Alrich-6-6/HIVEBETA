@@ -1,3 +1,8 @@
+const inviteId = new URLSearchParams(window.location.search).get("invite");
+const storedInviteRole = String(localStorage.getItem("hive_role") || "").trim().toLowerCase();
+if (inviteId && storedInviteRole === "student") {
+    window.location.replace(`../student/s.dashb.html?invite=${encodeURIComponent(inviteId)}`);
+}
 const menuBtn = document.querySelector(".menu-btn");
 const sidebar = document.querySelector("#sidebar");
 const profileTrigger = document.querySelector("#profileTrigger");
@@ -14,7 +19,7 @@ if (menuBtn && sidebar) {
 }
 
 // ─── DB: load groups from Supabase ───────────────────────────────────────────
-let dashbData = { ownedGroups: [], joinedGroups: [], stats: { owned: 0, joined: 0, pending: 0 } };
+let dashbData = { ownedGroups: [], joinedGroups: [], ongoingProjects: [], stats: { owned: 0, joined: 0, pending: 0 } };
 let recentVisitsKey = "hive_recent_team_visits";
 
 const getRecentVisits = () => {
@@ -30,6 +35,12 @@ const recordTeamVisit = (grpId) => {
     const visits = getRecentVisits();
     visits[String(grpId)] = Date.now();
     localStorage.setItem(recentVisitsKey, JSON.stringify(visits));
+};
+
+const formatProjectDueDate = (value) => {
+    if (!value) return "Due: --/--/----";
+    const [year, month, day] = String(value).split("-");
+    return year && month && day ? `Due: ${month}/${day}/${year}` : "Due: --/--/----";
 };
 
 // ─── Helper: Get pending task count for current user ───────────────────────
@@ -75,6 +86,49 @@ const getUserPendingTaskCount = async (userId) => {
     }
 };
 
+const getValidationProjects = async (groupIds, groupNames, groupLeaders) => {
+    const supabase = window.hiveSupabase;
+    if (!supabase || !groupIds.length) return [];
+
+    const { data: projects, error: projectsError } = await supabase
+        .from("PROJECT")
+        .select("projId, grpId, projName, projDueD")
+        .in("grpId", groupIds);
+
+    if (projectsError) {
+        console.error("Error fetching projects for validation:", projectsError);
+        return [];
+    }
+
+    const projectIds = (projects || []).map((project) => project.projId);
+    if (!projectIds.length) return [];
+
+    const { data: tasks, error } = await supabase
+        .from("TASK")
+        .select("taskId, projId")
+        .in("projId", projectIds)
+        .eq("statId", 4);
+
+    if (error) {
+        console.error("Error fetching tasks to validate:", error);
+        return [];
+    }
+
+    const counts = (tasks || []).reduce((result, task) => {
+        result[task.projId] = (result[task.projId] || 0) + 1;
+        return result;
+    }, {});
+
+    return (projects || [])
+        .filter((project) => counts[project.projId])
+        .map((project) => ({
+            ...project,
+            validationCount: counts[project.projId],
+            groupName: groupNames[String(project.grpId)] || "Unnamed Swarm",
+            leader: groupLeaders[String(project.grpId)] || { name: "Leader unavailable", avatarUrl: "../assets/profile.png" }
+        }));
+};
+
 const loadDashbData = async () => {
     const supabase = window.hiveSupabase;
     if (!supabase) return;
@@ -86,7 +140,7 @@ const loadDashbData = async () => {
     // Fetch all group memberships for this user, joining GROUP and ROLE
     let { data: memberships, error } = await supabase
         .from("GROUPMEMBER")
-        .select("grpId, roleId, ROLE(roleName), GROUP(grpId, grpName, grpSubject, grpMotto, grpDescription, parentGrpId, grpType)")
+        .select("grpId, roleId, ROLE(roleName), GROUP(grpId, grpName, grpSubject, grpMotto, grpDescription, parentGrpId, grpType, teacherId)")
         .eq("userId", user.id);
 
     if (error && String(error.message || "").toLowerCase().includes("grptype")) {
@@ -109,6 +163,7 @@ const loadDashbData = async () => {
     const ownedSwarms = [];
     const joinedColonies = [];
     const joinedGroups = [];
+    const groupLeaders = {};
     for (const m of memberships || []) {
         const grp = Array.isArray(m.GROUP) ? m.GROUP[0] : m.GROUP;
         if (!grp) continue;
@@ -124,14 +179,26 @@ const loadDashbData = async () => {
             console.error(`Error counting members for group ${grpId}:`, countErr);
         }
 
-        const isLeader = String(m.ROLE?.roleName || "").trim().toLowerCase() === "leader";
+        const roleName = String(m.ROLE?.roleName || "").trim().toLowerCase();
+        const isLeader = roleName === "leader";
+        const isTeacher = roleName === "teacher";
         const { data: groupMembers } = await supabase
             .from("GROUPMEMBER")
-            .select("ROLE(roleName), USER(userDisplayName)")
+            .select("ROLE(roleName), USER(userDisplayName, avatarPath)")
             .eq("grpId", grpId);
         const leader = (groupMembers || []).find(member =>
             String(member.ROLE?.roleName || "").trim().toLowerCase() === "leader"
         );
+        const leaderAvatarPath = leader?.USER?.avatarPath || "";
+        const leaderAvatarUrl = leaderAvatarPath
+            ? (leaderAvatarPath.startsWith("http")
+                ? leaderAvatarPath
+                : supabase.storage.from("profilePicture").getPublicUrl(leaderAvatarPath).data?.publicUrl)
+            : "../assets/profile.png";
+        groupLeaders[String(grpId)] = {
+            name: leader?.USER?.userDisplayName || "Leader unavailable",
+            avatarUrl: leaderAvatarUrl || "../assets/profile.png"
+        };
 
         console.log(`Group ${grpId}:`, grp.grpName, "Role:", m.ROLE?.roleName, "RoleId:", m.roleId, "Members:", memberCount);
 
@@ -150,7 +217,8 @@ const loadDashbData = async () => {
             grpType: normalizedType,
             leaderName: leader?.USER?.userDisplayName || "Leader unavailable",
             members: (memberCount !== null && memberCount !== undefined) ? memberCount : 0,
-            isLeader
+            isLeader,
+            isTeacher
         };
 
         if (isLeader && isColony) {
@@ -165,13 +233,74 @@ const loadDashbData = async () => {
         }
     }
 
+    const groupIds = [...new Set((memberships || []).map((membership) => Number(membership.grpId)).filter(Boolean))];
+    const { data: activeProjects } = groupIds.length
+        ? await supabase.from("PROJECT").select("projId, projStatus").in("grpId", groupIds)
+        : { data: [] };
+    const teacherGroupIds = [...new Set((memberships || [])
+        .filter((membership) => (
+            String(membership.ROLE?.roleName || "").trim().toLowerCase() === "teacher" ||
+            String(membership.GROUP?.teacherId || "") === String(user.id)
+        ))
+        .map((membership) => Number(membership.grpId))
+        .filter(Boolean))];
+    const groupNames = (memberships || []).reduce((result, membership) => {
+        const group = Array.isArray(membership.GROUP) ? membership.GROUP[0] : membership.GROUP;
+        if (group?.grpId) result[String(group.grpId)] = group.grpName || "Unnamed Swarm";
+        return result;
+    }, {});
+    const teacherGroupNames = new Map((memberships || []).map((membership) => {
+        const group = Array.isArray(membership.GROUP) ? membership.GROUP[0] : membership.GROUP;
+        return [Number(membership.grpId), group?.grpName || "Unnamed Swarm"];
+    }));
+    const { data: teacherProjects } = teacherGroupIds.length
+        ? await supabase
+            .from("PROJECT")
+            .select("projId, grpId, projName, projDesc, projCreatedAt, projDueD, projStatus")
+            .in("grpId", teacherGroupIds)
+            .order("projCreatedAt", { ascending: false, nullsFirst: false })
+            .order("projId", { ascending: false })
+        : { data: [] };
+    const { data: finishedStatus } = await supabase
+        .from("STATUS")
+        .select("statId")
+        .ilike("statName", "Finished")
+        .maybeSingle();
+    const ongoingProjects = [];
+    for (const project of teacherProjects || []) {
+        const { data: tasks } = await supabase
+            .from("TASK")
+            .select("taskId, statId")
+            .eq("projId", project.projId);
+        const taskList = tasks || [];
+        const completedCount = taskList.filter((task) => String(task.statId) === String(finishedStatus?.statId)).length;
+        const isCompleted = taskList.length > 0 && completedCount === taskList.length;
+        const status = project.projStatus || (isCompleted ? "Finished" : "Ongoing");
+        ongoingProjects.push({
+            ...project,
+            groupName: teacherGroupNames.get(Number(project.grpId)) || "Unnamed Swarm",
+            count: taskList.length,
+            completedCount,
+            status
+        });
+    }
+    const validationProjects = await getValidationProjects(teacherGroupIds, groupNames, groupLeaders);
+
     dashbData = {
         ownedGroups,
         ownedColonies,
         joinedColonies,
         ownedSwarms,
         joinedGroups,
-        stats: { owned: ownedGroups.length, joined: joinedGroups.length, pending: await getUserPendingTaskCount(user.id) }
+        ongoingProjects,
+        validationProjects,
+        stats: {
+            owned: ownedGroups.length,
+            joined: joinedGroups.length,
+            pending: await getUserPendingTaskCount(user.id),
+            validation: validationProjects.reduce((total, project) => total + project.validationCount, 0),
+            activeProjects: (activeProjects || []).filter((project) => String(project.projStatus || "Ongoing").toLowerCase() !== "finished").length
+        }
     };
 
     applyDashbData(dashbData);
@@ -234,13 +363,15 @@ const applyDashbData = (data) => {
             recordTeamVisit(group.grpId);
             sessionStorage.setItem("hive_grpId", String(group.grpId));
             sessionStorage.setItem("hive_grpName", group.name);
-            const returnPage = window.location.pathname.endsWith("/s.team.html")
+            const returnPage = window.location.pathname.endsWith("/t.category.html")
                 ? "teams"
                 : "dashboard";
             sessionStorage.setItem("hive_group_return_page", returnPage);
             const isColony = String(group.grpType || "").toUpperCase() === "COLONY";
-            if (isColony) {
-                window.location.href = `s.colony.html?grpId=${group.grpId}&from=${returnPage}`;
+            if (group.isTeacher) {
+                window.location.href = `t.grpviewing.html?grpId=${group.grpId}&from=${returnPage}`;
+            } else if (isColony) {
+                window.location.href = `t.colony.html?grpId=${group.grpId}&from=${returnPage}`;
             } else {
                 window.location.href = isOwned
                     ? `leader/s.leadergrpviewing.html?from=${returnPage}`
@@ -263,7 +394,7 @@ const applyDashbData = (data) => {
             ...(data.ownedColonies || data.ownedGroups || []),
             ...(data.joinedColonies || [])
         ];
-        if (colonyAddButton) colonyAddButton.hidden = false;
+        if (colonyAddButton) colonyAddButton.hidden = !colonies.length;
         if (!colonies.length) {
             colonyList.innerHTML = `
                 <div class="empty-state team-empty-placeholder">
@@ -340,27 +471,47 @@ const applyDashbData = (data) => {
     }
 
     if (joinedGroupsList && isDashboardPage) {
-        const allGroups = [
-            ...(data.ownedGroups || []).map(group => ({ ...group, isOwned: true })),
-            ...(data.joinedGroups || []).map(group => ({ ...group, isOwned: false }))
-        ];
-        const visits = getRecentVisits();
-        const recentGroups = allGroups
-            .filter(group => visits[String(group.grpId)])
-            .sort((first, second) => visits[String(second.grpId)] - visits[String(first.grpId)]);
-
         joinedGroupsList.innerHTML = "";
-        joinedGroupsList.classList.toggle("is-empty", !recentGroups.length);
-        if (!recentGroups.length) {
+        const ongoingProjects = data.ongoingProjects || [];
+        joinedGroupsList.classList.toggle("is-empty", !ongoingProjects.length);
+        if (!ongoingProjects.length) {
             joinedGroupsList.innerHTML = `
                 <div class="empty-state dashboard-empty-placeholder">
                     <img class="empty-state-icon" src="../assets/bee-flight.svg" alt="">
-                    <p>You currently have no recently visited Teams.</p>
+                    <p>You currently have no ongoing team projects.</p>
                 </div>
             `;
         } else {
-            recentGroups.forEach(group => {
-                joinedGroupsList.appendChild(createGroupCard(group, group.isOwned));
+            ongoingProjects.forEach((project) => {
+                const item = document.createElement("div");
+                item.className = "category-item";
+                item.setAttribute("role", "listitem");
+                item.dataset.category = project.projId;
+                item.innerHTML = `
+                    <button class="category-main-btn" type="button">
+                        <span class="category-group-name"></span>
+                        <span class="category-name"></span>
+                        <span class="category-due-date"></span>
+                        <span class="category-footer">
+                            <span class="category-count"></span>
+                            <span class="category-status"></span>
+                        </span>
+                    </button>
+                `;
+                item.querySelector(".category-group-name").textContent = `Swarm: ${project.groupName}`;
+                item.querySelector(".category-name").textContent = project.projName || "Unnamed Project";
+                item.querySelector(".category-due-date").textContent = formatProjectDueDate(project.projDueD);
+                item.querySelector(".category-count").textContent = `${project.completedCount}/${project.count} Tasks Completed`;
+                const statusElement = item.querySelector(".category-status");
+                statusElement.textContent = project.status || "Ongoing";
+                statusElement.classList.add(String(project.status || "Ongoing").toLowerCase() === "finished" ? "completed" : "ongoing");
+                item.querySelector(".category-main-btn").addEventListener("click", () => {
+                    sessionStorage.setItem("hive_grpId", String(project.grpId));
+                    sessionStorage.setItem("hive_selected_project", String(project.projId));
+                    sessionStorage.setItem("hive_selected_project_name", project.projName || "Unnamed Project");
+                    window.location.href = `t.projectbreakdown.html?grpId=${encodeURIComponent(project.grpId)}&projId=${encodeURIComponent(project.projId)}`;
+                });
+                joinedGroupsList.appendChild(item);
             });
         }
     }
@@ -391,12 +542,64 @@ const applyDashbData = (data) => {
         }
     }
 
+    const validationList = document.querySelector("#validationList");
+    if (validationList) {
+        const validationProjects = data.validationProjects || [];
+        validationList.innerHTML = "";
+        if (!validationProjects.length) {
+            validationList.innerHTML = `
+                <div class="validation-item">
+                    <div class="validation-project"><strong>No pending tasks</strong><span>No projects need instructor validation</span></div>
+                    <div class="validation-summary"><strong>0 new tasks to be validated</strong><span>All caught up</span></div>
+                    <div class="validation-due"><span>Due:</span><strong>--/--/----</strong><span aria-hidden="true">›</span></div>
+                </div>`;
+        } else {
+            validationProjects.forEach((project) => {
+                const item = document.createElement("div");
+                item.className = "validation-item";
+                item.setAttribute("role", "button");
+                item.setAttribute("tabindex", "0");
+                item.innerHTML = `
+                    <div class="validation-project"><strong></strong><span></span></div>
+                    <div class="validation-summary"><strong></strong><span class="validation-leader"><img alt=""><span></span></span></div>
+                    <div class="validation-due"><span>Due:</span><strong></strong><span aria-hidden="true">›</span></div>
+                `;
+                item.querySelector(".validation-project strong").textContent = project.projName || "Unnamed Project";
+                item.querySelector(".validation-project span").textContent = `Swarm: ${project.groupName}`;
+                item.querySelector(".validation-summary strong").textContent = `${project.validationCount} new tasks to be validated`;
+                const leaderAvatar = item.querySelector(".validation-leader img");
+                leaderAvatar.src = project.leader.avatarUrl;
+                leaderAvatar.alt = `${project.leader.name} profile picture`;
+                item.querySelector(".validation-leader span").textContent = `Verified by ${project.leader.name}`;
+                item.querySelector(".validation-due strong").textContent = project.projDueD || "--/--/----";
+                const openProject = () => {
+                    sessionStorage.setItem("hive_grpId", String(project.grpId));
+                    sessionStorage.setItem("hive_selected_project", String(project.projId));
+                    sessionStorage.setItem("hive_selected_project_name", project.projName || "Unnamed Project");
+                    window.location.href = `t.projectbreakdown.html?grpId=${encodeURIComponent(project.grpId)}&projId=${encodeURIComponent(project.projId)}&tab=submissions`;
+                };
+                item.addEventListener("click", openProject);
+                item.addEventListener("keydown", (event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openProject();
+                    }
+                });
+                validationList.appendChild(item);
+            });
+        }
+    }
+
     const teamsStat = document.querySelector('[data-stat="teams"]');
     const yourTeamsStat = document.querySelector('[data-stat="your-teams"]');
-    const pendingStat = document.querySelector('[data-stat="pending"]');
+    const validationsStat = document.querySelector('[data-stat="validations"]');
+    const activeProjectsStat = document.querySelector('[data-stat="active-projects"]');
+    const validationSummary = document.querySelector("#validationList .validation-summary strong");
     if (teamsStat) teamsStat.textContent = String((data.ownedGroups || []).length + (data.joinedGroups || []).length).padStart(2, "0");
     if (yourTeamsStat) yourTeamsStat.textContent = String((data.joinedGroups || []).length).padStart(2, "0");
-    if (pendingStat) pendingStat.textContent = String(data.stats.pending || 0).padStart(2, "0");
+    if (validationsStat) validationsStat.textContent = String(data.stats.validation || 0).padStart(2, "0");
+    if (activeProjectsStat) activeProjectsStat.textContent = String(data.stats.activeProjects || 0).padStart(2, "0");
+    if (validationSummary) validationSummary.textContent = `${data.stats.validation || 0} new tasks to be validated`;
 };
 
 // Load on page start
@@ -451,7 +654,8 @@ const openJoinGroupModalBtn = document.querySelector("#openJoinGroupModal");
 const discardJoinGroupBtn = document.querySelector("#discardJoinGroup");
 const joinGroupBtn = document.querySelector("#joinGroupBtn");
 const closeInvitationPreviewBtn = document.querySelector("#closeInvitationPreviewBtn");
-const acceptInvitationPreviewBtn = document.querySelector("#acceptInvitationPreviewBtn");
+const joinAsContributorBtn = document.querySelector("#joinAsContributorBtn");
+const joinAsInstructorBtn = document.querySelector("#joinAsInstructorBtn");
 const groupLinkInput = document.querySelector("#groupLinkInput");
 const openEditOwnedGroupModalBtn = document.querySelector("#openEditOwnedGroupModal");
 const editOwnedGroupModal = document.querySelector("#editOwnedGroupModal");
@@ -460,12 +664,47 @@ const saveEditOwnedGroupBtn = document.querySelector("#saveEditOwnedGroup");
 const editOwnedGroupNameInput = document.querySelector("#editOwnedGroupNameInput");
 const editOwnedGroupSubjectInput = document.querySelector("#editOwnedGroupSubjectInput");
 const editOwnedGroupMottoInput = document.querySelector("#editOwnedGroupMottoInput");
+let pendingCreationRole = null;
+
+const chooseCreationRole = (onChoice) => {
+    let overlay = document.querySelector("#creationRoleModal");
+    if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "creationRoleModal";
+        overlay.className = "modal-overlay open";
+        overlay.setAttribute("aria-hidden", "false");
+        overlay.innerHTML = `
+            <div class="group-modal" role="dialog" aria-modal="true" aria-labelledby="creationRoleTitle" style="max-width:460px">
+                <div class="group-modal-header"><h2 id="creationRoleTitle">Choose Your Role</h2></div>
+                <div class="group-modal-form">
+                    <p style="margin:0;color:#555">What role do you want in this Colony or Swarm?</p>
+                    <button type="button" class="group-modal-btn group-create-btn" data-creation-role="Leader">Contributor (Leader)</button>
+                    <button type="button" class="group-modal-btn group-create-btn" data-creation-role="Teacher">Instructor</button>
+                    <button type="button" class="group-modal-btn group-discard-btn" data-creation-role="cancel">Cancel</button>
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+    }
+    overlay.classList.add("open");
+    overlay.setAttribute("aria-hidden", "false");
+    overlay.querySelectorAll("[data-creation-role]").forEach((button) => {
+        button.onclick = () => {
+            const role = button.dataset.creationRole;
+            overlay.classList.remove("open");
+            overlay.setAttribute("aria-hidden", "true");
+            if (role !== "cancel") onChoice(role);
+        };
+    });
+};
 const invitePreviewIntro = document.querySelector("#invitePreviewIntro");
 const invitePreviewTitle = document.querySelector("#invitePreviewTitle");
 const invitePreviewTeamName = document.querySelector("#invitePreviewTeamName");
 const invitePreviewMeta = document.querySelector("#invitePreviewMeta");
 const invitePreviewDescription = document.querySelector("#invitePreviewDescription");
 const invitePreviewProjectCount = document.querySelector("#invitePreviewProjectCount");
+const invitePreviewStatusLabel = document.querySelector("#invitePreviewStatusLabel");
+const invitePreviewStatus = document.querySelector("#invitePreviewStatus");
+const invitePreviewMottoLabel = document.querySelector("#invitePreviewMottoLabel");
 const invitePreviewMotto = document.querySelector("#invitePreviewMotto");
 const invitePreviewLeader = document.querySelector("#invitePreviewLeader");
 const invitePreviewLeaderAvatar = document.querySelector("#invitePreviewLeaderAvatar");
@@ -756,6 +995,15 @@ if (createAddGroupBtn) {
             groupScheduleList.querySelector("input, select")?.reportValidity();
             return;
         }
+        if (!pendingCreationRole) {
+            chooseCreationRole((role) => {
+                pendingCreationRole = role;
+                createAddGroupBtn.click();
+            });
+            return;
+        }
+        const creationRole = pendingCreationRole;
+        pendingCreationRole = null;
         const groupLinks = groupLinksList
             ? [...groupLinksList.querySelectorAll(".group-link-row")]
                 .map((row) => ({
@@ -779,6 +1027,7 @@ if (createAddGroupBtn) {
                         grpName: groupName,
                         grpSubject: subjectName,
                         grpType: "COLONY",
+                        ...(creationRole === "Teacher" ? { teacherId: user.id } : {}),
                         grpMotto: groupMottoInput?.value.trim() || null,
                         grpDescription: groupDescription || null,
                         grpMeetingSchedule: getGroupSchedule(),
@@ -787,18 +1036,13 @@ if (createAddGroupBtn) {
                     .select("grpId").single();
                 if (grpErr || !newGroup) { showAlert("Failed to create group: " + (grpErr?.message || "Unknown error"), { title: "Error" }); return; }
 
-                const { data: leaderRole, error: roleErr } = await supabase
-                    .from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle();
-                if (roleErr || !leaderRole) {
-                    showAlert("Could not find Leader role. Group has been removed.", { title: "Setup Error" });
-                    await supabase.from("GROUP").delete().eq("grpId", newGroup.grpId);
-                    return;
-                }
+                const { data: creatorRole } = await supabase.from("ROLE").select("roleId").eq("roleName", creationRole).maybeSingle();
+                if (!creatorRole) return;
 
                 const { error: memErr } = await supabase
                     .from("GROUPMEMBER")
-                    .insert({ userId: user.id, grpId: newGroup.grpId, roleId: leaderRole.roleId });
-                if (memErr) { showAlert("Group created but failed to assign Leader role: " + memErr.message, { title: "Error" }); return; }
+                    .insert({ userId: user.id, grpId: newGroup.grpId, roleId: creatorRole.roleId });
+                if (memErr) { showAlert("Group created but failed to assign your role: " + memErr.message, { title: "Error" }); return; }
 
                 closeAddGroupModal();
                 await loadDashbData(); // refresh from DB
@@ -819,6 +1063,15 @@ if (createTeamForm) {
         const teamSubject = teamSubjectInput?.value.trim() || "";
         const teamDescription = teamDescriptionInput?.value.trim() || "";
         if (!teamName || !teamSubject || !teamDescription) return;
+        if (!pendingCreationRole) {
+            chooseCreationRole((role) => {
+                pendingCreationRole = role;
+                createTeamForm.requestSubmit();
+            });
+            return;
+        }
+        const creationRole = pendingCreationRole;
+        pendingCreationRole = null;
         const teamLinks = [...(teamLinksList?.querySelectorAll(".group-link-row") || [])]
             .map((row) => ({ type: row.querySelector("select")?.value || "other", url: row.querySelector("input")?.value.trim() || "" }))
             .filter((link) => link.url);
@@ -828,14 +1081,15 @@ if (createTeamForm) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data: leaderRole } = await supabase
-            .from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle();
-        if (!leaderRole) return;
+        const creatorRoleName = creationRole === "Teacher" ? "Teacher" : "Leader";
+        const { data: creatorRole } = await supabase.from("ROLE").select("roleId").eq("roleName", creatorRoleName).maybeSingle();
+        if (!creatorRole) return;
 
         const { data: team, error } = await supabase.from("GROUP").insert({
             grpName: teamName,
             grpSubject: teamSubject,
             grpType: "SWARM",
+            ...(creationRole === "Teacher" ? { teacherId: user.id } : {}),
             parentGrpId: null,
             grpMotto: teamMottoInput?.value.trim() || null,
             grpDescription: teamDescription,
@@ -850,7 +1104,7 @@ if (createTeamForm) {
         const { error: membershipError } = await supabase.from("GROUPMEMBER").insert({
             userId: user.id,
             grpId: team.grpId,
-            roleId: leaderRole.roleId
+            roleId: creatorRole.roleId
         });
         if (membershipError) {
             await supabase.from("GROUP").delete().eq("grpId", team.grpId);
@@ -919,15 +1173,27 @@ const populateInvitationPreview = async (grpId) => {
 
     const { data: groupMembers } = await supabase
         .from("GROUPMEMBER")
-        .select("ROLE(roleName), USER(userDisplayName, avatarPath)")
+        .select("userId, ROLE(roleName), USER(userDisplayName, avatarPath)")
         .eq("grpId", grpId);
 
     const leader = (groupMembers || []).find((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() === "leader");
     const teacher = (groupMembers || []).find((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() === "teacher");
-    const instructorCount = (groupMembers || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() === "teacher").length;
+    const instructorIds = new Set((groupMembers || [])
+        .filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() === "teacher")
+        .map((member) => String(member.userId)));
+    if (group.teacherId) instructorIds.add(String(group.teacherId));
+    const instructorCount = instructorIds.size;
     const normalizedType = String(group.grpType || "COLONY").toUpperCase();
     const isSwarm = normalizedType === "SWARM";
-    const memberCount = (memberCountResult?.count ?? 0) || 0;
+    const memberCount = Math.max(0, (memberCountResult?.count ?? 0) - instructorIds.size);
+    const { count: projectCount = 0 } = await supabase
+        .from("PROJECT")
+        .select("projId", { count: "exact", head: true })
+        .eq("grpId", grpId);
+    const [{ data: latestNotification }, { data: latestNote }] = await Promise.all([
+        supabase.from("NOTIFICATION").select('"notiDate&Time"').eq("grpId", grpId).order("notiDate&Time", { ascending: false }).limit(1),
+        supabase.from("GROUP_NOTE").select("createdAt").eq("grpId", grpId).order("createdAt", { ascending: false }).limit(1)
+    ]);
     const leaderName = leader?.USER?.userDisplayName || teacher?.USER?.userDisplayName || "Leader unavailable";
     
     let leaderAvatar = "../assets/profile.png";
@@ -948,17 +1214,29 @@ const populateInvitationPreview = async (grpId) => {
     if (invitePreviewTeamName) invitePreviewTeamName.textContent = detailName;
     if (invitePreviewMeta) invitePreviewMeta.textContent = `${detailSubject || "Subject"} | ${memberCount} members | ${instructorCount} ${instructorCount === 1 ? "instructor" : "instructors"}`;
     if (invitePreviewDescription) invitePreviewDescription.textContent = descriptionText;
-    if (invitePreviewProjectCount) invitePreviewProjectCount.textContent = `${0} ${0 === 1 ? "Project" : "Projects"}`;
+    if (invitePreviewProjectCount) invitePreviewProjectCount.textContent = `${projectCount} ${projectCount === 1 ? "Project" : "Projects"}`;
     if (invitePreviewMotto) invitePreviewMotto.textContent = mottoText;
     if (invitePreviewLeader) invitePreviewLeader.textContent = leaderName;
     if (invitePreviewLeaderAvatar) invitePreviewLeaderAvatar.src = leaderAvatar;
+    if (invitePreviewStatusLabel) invitePreviewStatusLabel.textContent = `${entityLabel} Status`;
+    if (invitePreviewMottoLabel) invitePreviewMottoLabel.textContent = `${entityLabel} Motto`;
+    const latestActivity = [latestNotification?.[0]?.["notiDate&Time"], latestNote?.[0]?.createdAt]
+        .map((value) => new Date(value || 0).getTime())
+        .filter(Number.isFinite)
+        .sort((a, b) => b - a)[0] || 0;
+    const isActive = Date.now() - latestActivity < 7 * 24 * 60 * 60 * 1000;
+    if (invitePreviewStatus) {
+        invitePreviewStatus.textContent = isActive ? "Active" : "Inactive";
+        invitePreviewStatus.classList.toggle("status-active", isActive);
+        invitePreviewStatus.classList.toggle("status-inactive", !isActive);
+    }
 
     if (invitationPreviewModal) {
         invitationPreviewModal.classList.add("open");
         invitationPreviewModal.setAttribute("aria-hidden", "false");
     }
 
-    const pendingJoin = async () => {
+    const pendingJoin = async (roleName) => {
         const { data: { user }, error: userErr } = await supabase.auth.getUser();
         if (!user || userErr) { showAlert("You must be logged in.", { title: "Not Logged In" }); closeInvitationPreviewModal(); return; }
 
@@ -973,7 +1251,7 @@ const populateInvitationPreview = async (grpId) => {
         const { data: memberRole } = await supabase
             .from("ROLE")
             .select("roleId")
-            .eq("roleName", "Member")
+            .eq("roleName", roleName)
             .maybeSingle();
 
         const { error: memErr } = await supabase
@@ -1009,25 +1287,12 @@ const populateInvitationPreview = async (grpId) => {
         closeInvitationPreviewModal();
         closeJoinGroupModal();
 
-        // Redirect to the group page after joining
-        const { data: groupData } = await supabase
-            .from("GROUP")
-            .select("grpType, parentGrpId")
-            .eq("grpId", grpId)
-            .maybeSingle();
-
-        if (groupData?.parentGrpId) {
-            // It's a swarm, redirect to parent colony
-            window.location.href = `s.colony.html?grpId=${groupData.parentGrpId}&from=dashboard`;
-        } else {
-            // It's a top-level group, redirect to member viewing page
-            window.location.href = `member/s.membergrpviewing.html?grpId=${grpId}&from=dashboard`;
-        }
+        // Teachers use the teacher group view for both Colonies and Swarms.
+        window.location.href = `t.grpviewing.html?grpId=${grpId}&from=dashboard`;
     };
 
-    if (acceptInvitationPreviewBtn) {
-        acceptInvitationPreviewBtn.onclick = pendingJoin;
-    }
+    if (joinAsContributorBtn) joinAsContributorBtn.onclick = () => pendingJoin("Member");
+    if (joinAsInstructorBtn) joinAsInstructorBtn.onclick = () => pendingJoin("Teacher");
 };
 
 const openJoinGroupModal = () => {
@@ -1179,7 +1444,7 @@ loadTopbarAvatar();
 
 const notifBtns = document.querySelectorAll(".notif-btn, .notif-btn-mobile");
 notifBtns.forEach((btn) => {
-    btn.addEventListener("click", () => { window.location.href = "s.notification.html"; });
+    btn.addEventListener("click", () => { window.location.href = "t.notification.html"; });
 });
 
 const checkUnreadNotifications = async () => {

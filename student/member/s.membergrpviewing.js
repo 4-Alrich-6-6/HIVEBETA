@@ -1255,7 +1255,7 @@ const getGroupLink = () => {
   if (!grpId) return "—";
   // Open the preview modal from the dashboard instead of navigating to a separate page.
   const baseURL = window.location.origin;
-  return `${baseURL}/student/s.dashb.html?invite=${grpId}`;
+  return `${baseURL}/invite.html?invite=${grpId}`;
 };
 
 const getGroupInviteCode = () => {

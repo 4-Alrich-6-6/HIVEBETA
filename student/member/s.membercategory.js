@@ -98,7 +98,12 @@ const loadProjects = async () => {
                 .select("taskId, statId")
                 .eq("projId", p.projId);
             const taskList = tasks || [];
-            const completedCount = taskList.filter((task) => String(task.statId) === String(finishedStatusId)).length;
+            const taskIds = taskList.map((task) => task.taskId);
+            const { data: approvedSubmissions } = taskIds.length
+                ? await supa().from("SUBMISSION").select("taskId").in("taskId", taskIds).eq("status", "approved")
+                : { data: [] };
+            const leaderVerifiedTaskIds = new Set((approvedSubmissions || []).map((submission) => submission.taskId));
+            const completedCount = taskList.filter((task) => String(task.statId) === String(finishedStatusId) || leaderVerifiedTaskIds.has(task.taskId)).length;
             const isCompleted = taskList.length > 0 && completedCount === taskList.length;
             return {
                 key: String(p.projId),
@@ -140,7 +145,7 @@ const createCategoryItem = (name, key, count, completedCount, dueDate, dueTime, 
         sessionStorage.setItem("hive_selected_project", key);
         sessionStorage.setItem("hive_selected_project_name", name);
         const grpId = getGrpId();
-        window.location.href = `s.leaderprojectbreakdown.html${grpId ? "?grpId=" + grpId : ""}`;
+        window.location.href = `s.memberprojectbreakdown.html${grpId ? "?grpId=" + grpId : ""}`;
     });
     return categoryItem;
 };

@@ -1,4 +1,15 @@
 const supa = () => window.hiveSupabase;
+const teacherSidebarRoutes = {
+	"s.dashb.html": "t.dashb.html",
+	"s.team.html": "t.category.html",
+	"s.tasklist.html": "t.tasklist.html",
+	"s.notification.html": "t.notification.html"
+};
+document.querySelectorAll(".sidebar a[href]").forEach((link) => {
+	const route = teacherSidebarRoutes[link.getAttribute("href")];
+	if (route) link.setAttribute("href", route);
+});
+document.querySelectorAll('.sidebar a[href="t.category.html"]').forEach((link) => { link.href = "t.team.html"; });
 const STATUSES = { 1: "Not Active", 2: "Active", 3: "On Break", 4: "Verifying", 5: "Finished", 6: "Missing", 7: "Not Active" };
 const HIDDEN_TASK_STATUSES = new Set([4, 5]);
 
@@ -65,7 +76,7 @@ const openTaskProject = (task) => {
 	sessionStorage.setItem("hive_selected_project", String(projectId));
 	sessionStorage.setItem("hive_selected_project_name", task.PROJECT?.projName || "Project");
 	sessionStorage.setItem("hive_grpId", String(groupId));
-	window.location.href = `s.taskdt.html?taskId=${encodeURIComponent(task.taskId)}&grpId=${encodeURIComponent(groupId)}&projId=${encodeURIComponent(projectId)}`;
+	window.location.href = `t.taskdt.html?taskId=${encodeURIComponent(task.taskId)}&grpId=${encodeURIComponent(groupId)}&projId=${encodeURIComponent(projectId)}`;
 };
 
 const renderTasks = (tasks) => {
@@ -77,7 +88,7 @@ const renderTasks = (tasks) => {
 			<div class="empty-state task-empty-placeholder">
 				<img class="empty-state-icon" src="../assets/bee-flight.svg" alt="">
 				<h2>You Have No Pending Tasks Yet</h2>
-				<p>Check back later or explore your projects to find other's unfinished tasks and help them like a good team member.</p>
+							   <p>No pending tasks require your attention right now. Check your projects to review student progress.</p>
 			</div>
 		`;
 		return;

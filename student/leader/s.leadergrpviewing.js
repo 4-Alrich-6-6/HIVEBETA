@@ -526,6 +526,7 @@ const createMemberCard = (member, cardClass, avatarSize) => {
     : "";
   const isTeacher = cardClass.includes("teacher-card");
   const isLeader = normalizeText(member.roleName) === "leader";
+  const displayRole = isLeader ? "Project Manager" : member.roleName;
 
   return `
   <article class="info-card ${cardClass}" data-member-id="${member.userId}" style="cursor:pointer;">
@@ -535,7 +536,7 @@ const createMemberCard = (member, cardClass, avatarSize) => {
     <div class="member-details">
       <div class="member-info">
         <h3>${member.fullName}</h3>
-        <p>${member.roleName}</p>
+        <p>${displayRole}</p>
       </div>
       ${canManageMembers && !isTeacher && !isLeader ? `
       <button class="member-more-btn" type="button" aria-label="More member options">
@@ -1153,7 +1154,7 @@ const getAvatarLightbox = () => {
 
 const openMemberProfile = async (member) => {
   if (!memberProfileOverlay || !memberProfileAvatar) return;
-  memberProfileRole.textContent  = member.roleName;
+  memberProfileRole.textContent  = normalizeText(member.roleName) === "leader" ? "Project Manager" : member.roleName;
   memberProfileName.textContent  = member.fullName;
   memberProfileEmail.textContent = member.email;
   const field = member.deptName || member.progName || "";
@@ -1255,7 +1256,7 @@ const getGroupLink = () => {
   if (!grpId) return "—";
   // Open the preview modal from the dashboard instead of navigating to a separate page.
   const baseURL = window.location.origin;
-  return `${baseURL}/student/s.dashb.html?invite=${grpId}`;
+  return `${baseURL}/invite.html?invite=${grpId}`;
 };
 
 const getGroupInviteCode = () => {

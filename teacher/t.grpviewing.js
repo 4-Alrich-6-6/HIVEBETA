@@ -1,5 +1,9 @@
 /* ── Supabase accessor — lazy so it's never captured before supabaseClient.js runs ── */
 const getSupabase = () => window.hiveSupabase;
+const teacherSidebarRoutes = { "../s.dashb.html": "t.dashb.html", "../s.team.html": "t.team.html", "../s.tasklist.html": "t.tasklist.html", "../s.notification.html": "t.notification.html" };
+document.querySelectorAll(".sidebar a[href]").forEach((link) => { const route = teacherSidebarRoutes[link.getAttribute("href")]; if (route) link.setAttribute("href", route); });
+document.querySelectorAll('a[href$="s.team.html"]').forEach((link) => { link.href = "t.team.html"; });
+document.querySelectorAll('a[href$="s.notification.html"]').forEach((link) => { link.href = "t.notification.html"; });
 
 const loadTopbarAvatar = async () => {
   const profileImage = document.querySelector(".profile-trigger img");
@@ -21,6 +25,15 @@ loadTopbarAvatar();
 const topBackBtn               = document.querySelector("#TopBackBtn");
 // NOTE: #backBtn does not exist in the HTML — TopBackBtn handles all back navigation
 const projectBreakdownTab      = document.querySelector("#projectBreakdownTab");
+const projectAddBtn            = document.querySelector("#openPostCategoryModalBtn");
+const emptyCreateProjectBtn    = document.querySelector("#emptyCreateProjectBtn");
+const postCategoryModalOverlay = document.querySelector("#postCategoryModalOverlay");
+const postCategoryForm         = document.querySelector("#postCategoryForm");
+const discardPostCategoryBtn   = document.querySelector("#discardPostCategoryBtn");
+const categoryNameInput        = document.querySelector("#categoryNameInput");
+const categoryDescriptionInput = document.querySelector("#categoryDescriptionInput");
+const categoryDueDateInput     = document.querySelector("#categoryDueDateInput");
+const categoryDueTimeInput     = document.querySelector("#categoryDueTimeInput");
 const groupTabs                = document.querySelectorAll(".group-tab");
 const openAddMembersModalBtn   = document.querySelector("#openAddMembersModalBtn");
 const memberSearchInput        = document.querySelector("#memberSearchInput");
@@ -289,7 +302,7 @@ deleteGroupBtn?.addEventListener("click", () => {
   safeShowConfirmation(`Delete "${currentGroup.name}" and all of its projects and tasks? This cannot be undone.`, async () => {
     const { error } = await supabase.rpc("delete_group_cascade", { p_grp_id: Number(grpId) });
     if (error) { showAlert(`Failed to delete swarm: ${error.message}`, { title: "Error" }); return; }
-    window.location.href = "../s.team.html";
+    window.location.href = "t.team.html";
   }, { title: "Delete Swarm", confirmText: "Delete", cancelText: "Cancel" });
 });
 
@@ -306,6 +319,51 @@ const getGroupId = () => {
   if (grpId) sessionStorage.setItem("hive_grpId", String(grpId));
   return grpId || null;
 };
+const todayISO = () => new Date().toISOString().split("T")[0];
+
+const closePostCategoryModal = () => {
+  postCategoryModalOverlay?.classList.remove("open");
+  postCategoryModalOverlay?.setAttribute("aria-hidden", "true");
+  postCategoryForm?.reset();
+};
+
+const openPostCategoryModal = () => {
+  if (!postCategoryModalOverlay) return;
+  if (categoryDueDateInput) categoryDueDateInput.min = todayISO();
+  postCategoryModalOverlay.classList.add("open");
+  postCategoryModalOverlay.setAttribute("aria-hidden", "false");
+  categoryNameInput?.focus();
+};
+
+projectAddBtn?.addEventListener("click", openPostCategoryModal);
+emptyCreateProjectBtn?.addEventListener("click", openPostCategoryModal);
+discardPostCategoryBtn?.addEventListener("click", closePostCategoryModal);
+postCategoryModalOverlay?.addEventListener("click", (event) => {
+  if (event.target === postCategoryModalOverlay) closePostCategoryModal();
+});
+
+postCategoryForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const supabase = getSupabase();
+  const grpId = getGroupId();
+  const projName = categoryNameInput?.value.trim() || "";
+  const dueDate = categoryDueDateInput?.value || "";
+  if (!supabase || !grpId || !projName || !dueDate || dueDate < todayISO()) return;
+
+  const { error } = await supabase.from("PROJECT").insert({
+    projName,
+    projDesc: categoryDescriptionInput?.value.trim() || null,
+    projDueD: dueDate,
+    projDueT: categoryDueTimeInput?.value || null,
+    grpId: Number(grpId)
+  });
+  if (error) {
+    showAlert(`Failed to post project: ${error.message}`, { title: "Error" });
+    return;
+  }
+  closePostCategoryModal();
+  await loadGroupFromDB();
+});
 
 const normalizeText = (v) => String(v || "").trim().toLowerCase();
 
@@ -341,6 +399,66 @@ const formatGroupCreatedDate = (value) => {
   if (!value) return "Not available";
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? "Not available" : new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(date);
+};
+
+const formatProjectDueDate = (value) => {
+  if (!value) return "Due: --/--/----";
+  const [year, month, day] = String(value).split("-");
+  return year && month && day ? `Due: ${month}/${day}/${year}` : "Due: --/--/----";
+};
+
+const renderGroupProjects = (projects) => {
+  const categoryList = document.querySelector(".project-collection .category-list");
+  const addProjectButton = document.querySelector("#openPostCategoryModalBtn");
+  if (!categoryList) return;
+  categoryList.innerHTML = "";
+
+  if (!projects?.length) {
+    if (addProjectButton) addProjectButton.hidden = true;
+    categoryList.innerHTML = `
+      <div class="project-empty-state" role="status">
+        <img class="project-empty-state-illustration" src="../../assets/bee-flight.svg" alt="">
+        <strong>No Projects Yet</strong>
+        <p>Click the "+" button to post a project and start breaking down tasks.</p>
+        <button type="button" class="empty-state-create-link" id="emptyCreateProjectBtn">Create Project</button>
+      </div>`;
+    document.querySelector("#emptyCreateProjectBtn")?.addEventListener("click", openPostCategoryModal);
+    return;
+  }
+
+  if (addProjectButton) addProjectButton.hidden = false;
+
+  projects.forEach((project) => {
+    const item = document.createElement("div");
+    item.className = "category-item";
+    item.setAttribute("role", "listitem");
+    item.dataset.category = project.projId;
+    item.dataset.dueDate = project.projDueD || "";
+    item.dataset.description = project.projDesc || "";
+    item.innerHTML = `
+      <button class="category-main-btn" type="button">
+        <span class="category-name"></span>
+        <span class="category-due-date"></span>
+        <span class="category-footer">
+          <span class="category-count"></span>
+          <span class="category-status"></span>
+        </span>
+      </button>
+    `;
+    item.querySelector(".category-name").textContent = project.projName || "Unnamed Project";
+    item.querySelector(".category-due-date").textContent = formatProjectDueDate(project.projDueD);
+    item.querySelector(".category-count").textContent = `${project.completedCount}/${project.count} Tasks Completed`;
+    const status = project.status || "Ongoing";
+    const statusElement = item.querySelector(".category-status");
+    statusElement.textContent = status;
+    statusElement.classList.add(String(status).toLowerCase() === "finished" ? "completed" : "ongoing");
+    item.querySelector(".category-main-btn")?.addEventListener("click", () => {
+      sessionStorage.setItem("hive_selected_project", String(project.projId));
+      sessionStorage.setItem("hive_selected_project_name", project.projName || "Unnamed Project");
+      window.location.href = `t.projectbreakdown.html?projId=${encodeURIComponent(project.projId)}&grpId=${encodeURIComponent(getGroupId() || "")}`;
+    });
+    categoryList.appendChild(item);
+  });
 };
 
 const loadSwarmActivityStatus = async (grpId) => {
@@ -448,13 +566,50 @@ const loadGroupFromDB = async () => {
   }
 
   const { data: { user: currentUser } } = await supabase.auth.getUser();
-  canManageMembers = Boolean(currentUser && currentMembers.some((member) => String(member.userId) === String(currentUser.id) && normalizeText(member.roleName) === "leader"));
+  canManageMembers = Boolean(currentUser && currentMembers.some((member) =>
+    String(member.userId) === String(currentUser.id)
+    && ["leader", "teacher"].includes(normalizeText(member.roleName))
+  ));
 
   // 3. Project count
   const { count: projCount = 0 } = await supabase
     .from("PROJECT")
     .select("*", { count: "exact", head: true })
     .eq("grpId", grpId);
+  const { data: projects, error: projectsError } = await supabase
+    .from("PROJECT")
+    .select("projId, projName, projDesc, projCreatedAt, projDueD, projStatus")
+    .eq("grpId", grpId)
+    .order("projCreatedAt", { ascending: false, nullsFirst: false })
+    .order("projId", { ascending: false });
+  if (projectsError) console.error("Error loading group projects:", projectsError);
+  const { data: finishedStatus } = await supabase
+    .from("STATUS")
+    .select("statId")
+    .ilike("statName", "Finished")
+    .maybeSingle();
+  const finishedStatusId = finishedStatus?.statId;
+  const projectsWithCounts = await Promise.all((projects || []).map(async (project) => {
+    const { data: tasks } = await supabase
+      .from("TASK")
+      .select("taskId, statId")
+      .eq("projId", project.projId);
+    const taskList = tasks || [];
+    const taskIds = taskList.map((task) => task.taskId);
+    const { data: approvedSubmissions } = taskIds.length
+      ? await supabase.from("SUBMISSION").select("taskId").in("taskId", taskIds).eq("status", "approved")
+      : { data: [] };
+    const verifiedTaskIds = new Set((approvedSubmissions || []).map((submission) => submission.taskId));
+    const completedCount = taskList.filter((task) => String(task.statId) === String(finishedStatusId) || verifiedTaskIds.has(task.taskId)).length;
+    const isCompleted = taskList.length > 0 && completedCount === taskList.length;
+    return {
+      ...project,
+      count: taskList.length,
+      completedCount,
+      status: project.projStatus || (isCompleted ? "Finished" : "Ongoing")
+    };
+  }));
+  renderGroupProjects(projectsWithCounts);
 
   // 4. Render summary cards
   const nonTeacher = currentMembers.filter((m) => normalizeText(m.roleName) !== "teacher");
@@ -1248,7 +1403,7 @@ const getGroupLink = () => {
   if (!grpId) return "—";
   // Open the preview modal from the dashboard instead of navigating to a separate page.
   const baseURL = window.location.origin;
-  return `${baseURL}/student/s.dashb.html?invite=${grpId}`;
+  return `${baseURL}/invite.html?invite=${grpId}`;
 };
 
 const getGroupInviteCode = () => {
@@ -1321,6 +1476,18 @@ const openSelectLeaderModal = () => {
   renderSelectLeaderList();
   selectLeaderModalOverlay.classList.add("open");
   selectLeaderModalOverlay.setAttribute("aria-hidden", "false");
+};
+
+const openLeaveFlow = async () => {
+  const supabase = getSupabase();
+  if (!supabase) return;
+  const { data: { user } } = await supabase.auth.getUser();
+  const currentMember = (currentMembers || []).find((member) => member.userId === user?.id);
+  if (normalizeText(currentMember?.roleName) === "teacher") {
+    openConfirmLeaveModal();
+    return;
+  }
+  openSelectLeaderModal();
 };
 
 /* ── CONFIRM LEAVE MODAL ─────────────────────────────────────────────────── */
@@ -1411,7 +1578,7 @@ const leaveGroup = async () => {
     ));
   } catch (e) {}
   
-  window.location.href = "../s.dashb.html";
+  window.location.href = "t.dashb.html";
 };
 
 /* ── REMOVE MEMBERS MODAL ────────────────────────────────────────────────── */
@@ -1576,12 +1743,27 @@ async function handleMemberAction(member, action) {
   if (!user) return;
 
   if (action === "leader") {
-    safeShowConfirmation(`Set ${member.fullName} as the new leader? You will lose leadership of this swarm.`, async () => {
-      const { error } = await supabase.rpc("transfer_leadership", {
-        p_grp_id: grpId,
-        p_new_leader_user_id: member.userId,
-        p_old_leader_user_id: user.id
-      });
+    safeShowConfirmation(`Set ${member.fullName} as the new leader? The current leader will become a member.`, async () => {
+      const [{ data: leaderRole }, { data: memberRole }] = await Promise.all([
+        supabase.from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle(),
+        supabase.from("ROLE").select("roleId").eq("roleName", "Member").maybeSingle()
+      ]);
+      if (!leaderRole || !memberRole) {
+        showAlert("Leader and Member roles must be configured.", { title: "Role Setup Required" });
+        return;
+      }
+      const currentLeader = currentMembers.find((candidate) => normalizeText(candidate.roleName) === "leader");
+      if (currentLeader?.grpmemId && String(currentLeader.userId) !== String(member.userId)) {
+        const { error } = await supabase.from("GROUPMEMBER")
+          .update({ roleId: memberRole.roleId })
+          .eq("grpmemId", currentLeader.grpmemId)
+          .eq("grpId", grpId);
+        if (error) { showAlert(`Failed to demote the current leader: ${error.message}`, { title: "Error" }); return; }
+      }
+      const { error } = await supabase.from("GROUPMEMBER")
+        .update({ roleId: leaderRole.roleId })
+        .eq("grpmemId", member.grpmemId)
+        .eq("grpId", grpId);
       if (error) { showAlert(`Failed to set leader: ${error.message}`, { title: "Error" }); return; }
       await loadGroupFromDB();
     }, { title: "Set as Leader", confirmText: "Set Leader", cancelText: "Cancel" });
@@ -1609,12 +1791,12 @@ async function handleMemberAction(member, action) {
 // FIX: TopBackBtn is the only back button in the HTML — #backBtn does not exist
 if (topBackBtn) topBackBtn.addEventListener("click", () => {
   const queryReturnPage = new URLSearchParams(window.location.search).get("from");
-  const referrerReturnPage = document.referrer.includes("/s.team.html") ? "teams" : null;
+  const referrerReturnPage = document.referrer.includes("/t.team.html") || document.referrer.includes("/t.category.html") ? "teams" : null;
   const returnPage = referrerReturnPage
     || queryReturnPage
     || sessionStorage.getItem("hive_group_return_page");
-  if (returnPage === "dashboard") window.location.href = "../s.dashb.html";
-  else if (returnPage === "teams") window.location.href = "../s.team.html";
+  if (returnPage === "dashboard") window.location.href = "t.dashb.html";
+  else if (returnPage === "teams") window.location.href = "t.team.html";
   else window.history.back();
 });
 
@@ -1680,7 +1862,7 @@ if (copyGroupLinkBtn) {
   });
 }
 
-if (leaveBtn)               leaveBtn.addEventListener("click", openSelectLeaderModal);
+if (leaveBtn)               leaveBtn.addEventListener("click", openLeaveFlow);
 if (discardSelectLeaderBtn) discardSelectLeaderBtn.addEventListener("click", closeSelectLeaderModal);
 if (selectLeaderModalOverlay) selectLeaderModalOverlay.addEventListener("click", (e) => { if (e.target === selectLeaderModalOverlay) closeSelectLeaderModal(); });
 if (leaveGroupBtn)          leaveGroupBtn.addEventListener("click", openConfirmLeaveModal);

@@ -191,7 +191,16 @@
                         <div class="p2p-evaluation-content">
                             <h2>Peer-to-Peer Evaluations</h2>
                             <p class="p2p-evaluation-help">Rate each swarm mate from 1 to 10 based on criteria like contribution, activeness, participation, and performance.</p>
-                            <div class="p2p-evaluation-list" id="p2pEvaluationList" aria-live="polite"></div>
+                            <div class="p2p-evaluation-stage" id="p2pEvaluationStage">
+                                <div class="p2p-evaluation-list" id="p2pEvaluationList" aria-live="polite"></div>
+                                <div class="p2p-evaluation-lock" id="p2pEvaluationLock" role="status" hidden>
+                                    <div class="p2p-evaluation-lock-card">
+                                        <img class="p2p-evaluation-lock-bee" src="../../assets/bee-flight.svg" alt="">
+                                        <h3>Project Not Finished Yet</h3>
+                                        <p>Please finish the project first before you can evaluate your Swarm Mates</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </section>
                 </div>

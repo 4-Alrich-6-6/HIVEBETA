@@ -21,6 +21,8 @@ const verifyReviseBtn = document.querySelector("#verifyReviseBtn");
 const verifyCloseBtn = document.querySelector("#verifyCloseBtn");
 const submissionFilterButtons = Array.from(document.querySelectorAll("[data-submission-filter]"));
 const submissionsList = document.querySelector("#submissionsList");
+const p2pEvaluationList = document.querySelector("#p2pEvaluationList");
+const p2pEvaluationLock = document.querySelector("#p2pEvaluationLock");
 const pauseFinishChoiceOverlay = document.querySelector("#pauseFinishChoiceOverlay");
 const pauseFinishPauseBtn = document.querySelector("#pauseFinishPauseBtn");
 const pauseFinishFinishBtn = document.querySelector("#pauseFinishFinishBtn");
@@ -70,15 +72,19 @@ const reputationSummaryPanel = document.querySelector("#reputationSummaryPanel")
 const participationSummaryList = document.querySelector("#participationSummaryList");
 const reputationSummaryList = document.querySelector("#reputationSummaryList");
 
-const STAT_ID = { inactive:1, active:2, pause:3, verifying:4, finished:5, missing:6, revising:7 };
-const STAT_SLUG = { 1:"inactive", 2:"active", 3:"pause", 4:"verifying", 5:"finished", 6:"missing", 7:"revising" };
-const STATUS_TEXT = { inactive:"Not Active", active:"Active", pause:"On Break", verifying:"Verifying", finished:"Finished", missing:"Missing", revising:"Revising" };
+const STAT_ID = { inactive:1, active:2, pause:3, verifying:4, finished:5, missing:6 };
+const STAT_SLUG = { 1:"inactive", 2:"active", 3:"pause", 4:"verifying", 5:"finished", 6:"missing", 7:"inactive" };
+const STATUS_TEXT = { inactive:"Not Active", active:"Active", pause:"On Break", verifying:"Verifying", finished:"Finished", missing:"Missing" };
+const canManageTasks = false;
 
 const isTerminal = (s) => s === "finished" || s === "missing";
 const isPastDue  = (t) => !(!t.dueDate || !t.dueTime) && Date.now() > new Date(`${t.dueDate}T${t.dueTime}`).getTime();
 const supa       = () => window.hiveSupabase;
 const getProjId  = () => sessionStorage.getItem("hive_selected_project");
 const getGrpId   = () => sessionStorage.getItem("hive_grpId");
+const setP2PEvaluationLocked = (locked) => {
+    if (p2pEvaluationLock) p2pEvaluationLock.hidden = !locked;
+};
 
 const reputationLabel = (score) => {
     if (score >= 90) return "Very High Contributor";
@@ -111,7 +117,7 @@ const loadContributorSummary = async () => {
 
     const { data: members } = await supa()
         .from("GROUPMEMBER")
-        .select("grpmemId, USER(userDisplayName, avatarPath)")
+        .select("grpmemId, USER(userDisplayName, avatarPath), ROLE(roleName)")
         .eq("grpId", Number(groupId));
     const { data: tasks } = await supa()
         .from("TASK")
@@ -127,7 +133,7 @@ const loadContributorSummary = async () => {
         if (Number.isFinite(Number(entry.partScore))) scores.push(Number(entry.partScore));
         scoresByMember.set(entry.grpmemId, scores);
     });
-    const contributors = (members || []).map((member) => {
+    const contributors = (members || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() !== "teacher").map((member) => {
         const scores = scoresByMember.get(member.grpmemId) || [];
         const average = scores.length ? scores.reduce((sum, score) => sum + score, 0) / scores.length : 0;
         return {
@@ -202,7 +208,7 @@ const loadSubmissions = async (filter = "evaluation") => {
 
     const { data, error } = await supa()
         .from("SUBMISSION")
-        .select("subId, taskId, grpmemId, proofLink, submittedAt, status, leaderNote, TASK!inner(taskName, statId, projId, TASKASSIGNMENT(GROUPMEMBER(USER(userDisplayName)))), GROUPMEMBER(USER(userDisplayName))")
+        .select("subId, taskId, grpmemId, proofLink, submittedAt, status, leaderNote, TASK!inner(taskName, statId, projId, teacherApproved, TASKASSIGNMENT(GROUPMEMBER(USER(userDisplayName, avatarPath)))), GROUPMEMBER(USER(userDisplayName, avatarPath))")
         .eq("TASK.projId", Number(projId))
         .order("submittedAt", { ascending: false });
 
@@ -212,43 +218,77 @@ const loadSubmissions = async (filter = "evaluation") => {
         return;
     }
 
+    const leaderVerifiedTaskIds = new Set((data || [])
+        .filter((submission) => String(submission.status || "").toLowerCase() === "approved")
+        .map((submission) => submission.taskId));
     const submissions = (data || []).filter((submission) => {
         const status = String(submission.status || "").toLowerCase();
         const taskStatus = Number(submission.TASK?.statId);
-        const isFinished = taskStatus === STAT_ID.finished;
-        const isForEvaluation = taskStatus === STAT_ID.verifying;
+        const isLeaderVerified = leaderVerifiedTaskIds.has(submission.taskId);
+        const isFinished = taskStatus === STAT_ID.finished || isLeaderVerified;
+        const isForEvaluation = taskStatus === STAT_ID.verifying && !isLeaderVerified;
         return filter === "finished" ? isFinished : isForEvaluation;
     });
 
-    if (!submissions.length) {
+    const submissionsByTask = new Map();
+    submissions.forEach((submission) => {
+        const taskSubmissions = submissionsByTask.get(submission.taskId) || [];
+        taskSubmissions.push(submission);
+        submissionsByTask.set(submission.taskId, taskSubmissions);
+    });
+    const uniqueSubmissions = [...submissionsByTask.values()].map((taskSubmissions) => ({
+        ...taskSubmissions[0],
+        taskSubmissions,
+        leaderEvaluated: taskSubmissions.some((item) => String(item.status).toLowerCase() === "approved")
+    }));
+
+    if (!uniqueSubmissions.length) {
         submissionsList.innerHTML = `<div class="submissions-empty empty-state"><img class="empty-state-icon" src="../../assets/bee-flight.svg" alt=""><h3>No ${filter === "finished" ? "Finished" : "Submissions For Evaluation"}</h3><p>There are no submissions in this list.</p></div>`;
         return;
     }
 
     submissionsList.innerHTML = "";
-    submissions.forEach((submission) => {
+    uniqueSubmissions.forEach((submission) => {
         const card = document.createElement("article");
         card.className = "submission-card";
         const submittedAt = submission.submittedAt ? new Date(submission.submittedAt).toLocaleString() : "Date unavailable";
-        const status = String(submission.status || "For evaluation");
         card.innerHTML = `
             <div class="submission-card-main">
                 <h3></h3>
-                <p class="submission-contributor"></p>
+                <div class="submission-contributor"><span>Assigned to:</span><span class="submission-assignees"></span><button class="submission-info" type="button" title="View assigned members" aria-label="View assigned members">i</button></div>
                 <p class="submission-date"></p>
             </div>
             <div class="submission-card-side">
-                <span class="submission-status"></span>
+                <button class="submission-verify submission-verifying" type="button" disabled></button>
                 <a class="submission-proof" target="_blank" rel="noopener" hidden>View Proof</a>
             </div>`;
         card.querySelector("h3").textContent = submission.TASK?.taskName || "Unnamed task";
-        const assignedNames = (submission.TASK?.TASKASSIGNMENT || [])
-            .map((assignment) => assignment.GROUPMEMBER?.USER?.userDisplayName)
-            .filter(Boolean);
+        const assignments = submission.TASK?.TASKASSIGNMENT || [];
+        const assignedNames = assignments.map((assignment) => assignment.GROUPMEMBER?.USER?.userDisplayName).filter(Boolean);
         const fallbackName = submission.GROUPMEMBER?.USER?.userDisplayName || "Unknown contributor";
-        card.querySelector(".submission-contributor").textContent = `Assigned to: ${assignedNames.join(", ") || fallbackName}`;
+        const assignees = card.querySelector(".submission-assignees");
+        const visibleAssignments = assignments.length > 3 ? assignments.slice(0, 2) : assignments.slice(0, 3);
+        const avatarMarkup = visibleAssignments.map((assignment) => {
+            const user = assignment.GROUPMEMBER?.USER;
+            const name = user?.userDisplayName || fallbackName;
+            const avatarPath = user?.avatarPath;
+            const avatar = avatarPath?.startsWith("http")
+                ? avatarPath
+                : (avatarPath ? supa().storage.from("profilePicture").getPublicUrl(avatarPath).data?.publicUrl : null);
+            return `<span class="submission-avatar" title="${name}">${avatar ? `<img src="${avatar}" alt="${name}">` : name.charAt(0).toUpperCase()}</span>`;
+        });
+        if (assignments.length > 3) avatarMarkup.push(`<span class="submission-avatar submission-avatar-overflow" title="${assignments.length - 2} more assignees">+${assignments.length - 2}</span>`);
+        assignees.innerHTML = avatarMarkup.join("") || `<span class="submission-assignee-name">${fallbackName}</span>`;
+        card.querySelector(".submission-info").title = assignedNames.join(", ") || fallbackName;
         card.querySelector(".submission-date").textContent = submittedAt;
-        card.querySelector(".submission-status").textContent = status;
+        const statusButton = card.querySelector(".submission-verify");
+        statusButton.textContent = filter === "finished"
+            ? (submission.TASK?.teacherApproved ? "Instructor Verified" : "Not Yet Instructor Verified")
+            : "Verifying";
+        if (filter === "finished") {
+            statusButton.classList.add("instructor-status");
+            statusButton.classList.toggle("instructor-verified", Boolean(submission.TASK?.teacherApproved));
+        }
         const proof = card.querySelector(".submission-proof");
         if (submission.proofLink) {
             proof.href = submission.proofLink;
@@ -265,6 +305,53 @@ const setSubmissionFilter = (filter) => {
 
 submissionFilterButtons.forEach((button) => button.addEventListener("click", () => setSubmissionFilter(button.dataset.submissionFilter)));
 
+const peerHexagonPath = "M2.46148 12.8001C2.29321 12.5087 2.20908 12.3629 2.17615 12.208C2.14701 12.0709 2.14701 11.9293 2.17615 11.7922C2.20908 11.6373 2.29321 11.4915 2.46148 11.2001L6.53772 4.13984C6.70598 3.8484 6.79011 3.70268 6.90782 3.5967C7.01196 3.50268 7.13465 3.43209 7.26793 3.38879C7.41856 3.33984 7.58683 3.33984 7.92336 3.33984H16.0758C16.4123 3.33984 16.5806 3.33984 16.7313 3.38879C16.8645 3.43209 16.9872 3.50268 17.0914 3.5967C17.2091 3.70268 17.2932 3.8484 17.4615 4.13984L21.5377 11.2001C21.706 11.4915 21.7901 11.6373 21.823 11.7922C21.8522 11.9293 21.8522 12.0709 21.823 12.208C21.7901 12.3629 21.706 12.5085 21.5377 12.8001L17.4615 19.8604C17.2932 20.1518 17.2091 20.2975 17.0914 20.4035C16.9872 20.4975 16.8645 20.5681 16.7313 20.6114C16.5806 20.6604 16.4123 20.6604 16.0758 20.6604H7.92336C7.58683 20.6604 7.41856 20.6604 7.26793 20.6114C7.13465 20.5681 7.01196 20.4975 6.90782 20.4035C6.79011 20.2975 6.70598 20.1518 6.53772 19.8604L2.46148 12.8001Z";
+const renderPeerRating = (rating = 0) => Array.from({ length: 10 }, (_, index) => `<button class="p2p-rating-hexagon${index < rating ? " selected" : ""}" type="button" data-rating="${index + 1}" aria-label="Rate ${index + 1} out of 10"><svg viewBox="0 0 24 24"><path d="${peerHexagonPath}"></path></svg></button>`).join("");
+const loadP2PEvaluations = async () => {
+    if (!p2pEvaluationList) return;
+    const groupId = getGrpId(); const projectId = getProjId();
+    if (!groupId || !projectId || !currentUserId) return;
+    const { data: project } = await supa().from("PROJECT").select("projStatus").eq("projId", Number(projectId)).maybeSingle();
+    setP2PEvaluationLocked(String(project?.projStatus || "ongoing").toLowerCase() !== "finished");
+    p2pEvaluationList.innerHTML = `<p class="p2p-evaluation-loading">Loading members...</p>`;
+    const [{ data: members, error }, { data: evaluations }] = await Promise.all([
+        supa().from("GROUPMEMBER").select("grpmemId, userId, USER(userDisplayName, avatarPath), ROLE(roleName)").eq("grpId", Number(groupId)),
+        supa().from("PEEREVAL").select("evaluatedGrpmemId, evaluatorId, confirmed, evalRemarks").eq("projId", Number(projectId)).is("taskId", null)
+    ]);
+    if (error) { p2pEvaluationList.innerHTML = `<p class="p2p-evaluation-loading">Unable to load members.</p>`; return; }
+    const eligibleMembers = (members || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() !== "teacher");
+    const others = eligibleMembers.filter((member) => String(member.userId) !== String(currentUserId));
+    const groupUserIds = new Set(eligibleMembers.map((member) => String(member.userId)));
+    const ratings = new Map((evaluations || []).filter((item) => String(item.evaluatorId) === String(currentUserId)).map((item) => [String(item.evaluatedGrpmemId), Number(String(item.evalRemarks || "").match(/(10|[1-9])\s*\/\s*10/)?.[1] || 0)]));
+    const totalMembers = Math.max(eligibleMembers.length - 1, 0);
+    if (!others.length) { p2pEvaluationList.innerHTML = `<p class="p2p-evaluation-loading">No other members to evaluate.</p>`; return; }
+    p2pEvaluationList.innerHTML = others.map((member) => {
+        const name = member.USER?.userDisplayName || "Member"; const avatarPath = member.USER?.avatarPath;
+        const avatar = avatarPath?.startsWith("http") ? avatarPath : (avatarPath ? supa().storage.from("profilePicture").getPublicUrl(avatarPath).data?.publicUrl : "../../assets/profile-placeholder.svg");
+        const rating = ratings.get(String(member.grpmemId)) || 0;
+        const evaluatedBy = new Set((evaluations || []).filter((evaluation) => evaluation.confirmed && String(evaluation.evaluatedGrpmemId) === String(member.grpmemId) && String(evaluation.evaluatorId) !== String(member.userId) && groupUserIds.has(String(evaluation.evaluatorId))).map((evaluation) => String(evaluation.evaluatorId))).size;
+        return `<article class="p2p-evaluation-row" data-member-id="${member.grpmemId}" data-rating="${rating}"><div class="p2p-member-info"><img src="${avatar}" alt=""><strong>${name.replace(/</g, "&lt;")}</strong></div><div class="p2p-rating-wrap"><div class="p2p-rating-controls" role="radiogroup" aria-label="Rate ${name.replace(/"/g, "&quot;")}">${renderPeerRating(rating)}</div><span class="p2p-rating-value">${rating ? `${rating}/10` : ""}</span></div><div class="p2p-evaluation-footer">${evaluatedBy} out of ${totalMembers} Members Evaluated</div></article>`;
+    }).join("");
+    p2pEvaluationList.querySelectorAll(".p2p-evaluation-row").forEach((row) => {
+        const member = others.find((item) => String(item.grpmemId) === row.dataset.memberId); const controls = row.querySelectorAll(".p2p-rating-hexagon");
+        if (ratings.has(String(member.grpmemId))) controls.forEach((control) => { control.disabled = true; });
+        const paint = (rating) => controls.forEach((control, index) => control.classList.toggle("preview", index < rating));
+        controls.forEach((control) => {
+            control.addEventListener("mouseenter", () => paint(Number(control.dataset.rating)));
+            control.addEventListener("focus", () => paint(Number(control.dataset.rating)));
+            control.addEventListener("click", () => {
+                const rating = Number(control.dataset.rating);
+                showConfirmation(`Submit a rating of ${rating}/10 for ${member.USER?.userDisplayName || "this group member"}? This evaluation cannot be changed later.`, async () => {
+                    const { error: saveError } = await supa().from("PEEREVAL").insert({ evaluatedGrpmemId: member.grpmemId, evaluatorId: currentUserId, confirmed: true, projId: Number(projectId), taskId: null, evalRemarks: `Rating: ${rating}/10` });
+                    if (saveError) { showAlert(saveError.message, { title: "Error" }); return; }
+                    await loadP2PEvaluations();
+                }, { title: "Confirm Peer Evaluation", confirmText: "Submit Rating", cancelText: "Cancel" });
+            });
+        });
+        row.addEventListener("mouseleave", () => controls.forEach((control) => control.classList.remove("preview")));
+    });
+};
+
 const applyStatusToBtn = (btn, status) => {
     btn.textContent = STATUS_TEXT[status] || status;
     btn.className = `task-status ${status}`;
@@ -276,7 +363,7 @@ const loadTasks = async () => {
     if (!projId) return [];
     const { data, error } = await supa()
         .from("TASK")
-        .select("taskId, taskName, taskDesc, taskDueD, taskIntensity, taskPrio, taskResource, taskSpan, taskAcmD, statId, teacherApproved, STATUS(statName), TASKASSIGNMENT(grpmemId, GROUPMEMBER(userId, USER(userDisplayName)))")
+        .select("taskId, taskName, taskDesc, taskDueD, taskIntensity, taskPrio, taskResource, taskSpan, taskAcmD, statId, wasRevising, teacherApproved, STATUS(statName), TASKASSIGNMENT(grpmemId, GROUPMEMBER(userId, USER(userDisplayName)))")
         .eq("projId", Number(projId));
     if (error || !data) return [];
     const tasks = data.map((t, originalIndex) => ({
@@ -293,6 +380,7 @@ const loadTasks = async () => {
         // Convert to milliseconds for JS arithmetic
         spanMs: intervalToMs(t.taskSpan),
         acmD: t.taskAcmD || null,
+        wasRevising: Boolean(t.wasRevising) || Number(t.statId) === 7,
         teacherApproved: t.teacherApproved || false,
         status: STAT_SLUG[t.statId] || t.STATUS?.statName?.toLowerCase() || "inactive",
         statId: t.statId || 1,
@@ -302,7 +390,7 @@ const loadTasks = async () => {
             name: a.GROUPMEMBER?.USER?.userDisplayName || "Member"
         }))
     }));
-    const statusOrder = { active: 0, pause: 1, revising: 2, verifying: 3, inactive: 4, missing: 5, finished: 6 };
+    const statusOrder = { active: 0, pause: 1, verifying: 2, inactive: 3, missing: 4, finished: 5 };
     return tasks.sort((first, second) => {
         const firstOwn = first.assignees.some(assignee => assignee.userId === currentUserId) ? 0 : 1;
         const secondOwn = second.assignees.some(assignee => assignee.userId === currentUserId) ? 0 : 1;
@@ -368,12 +456,19 @@ const updateTaskStatus = async (taskId, slugStatus, task) => {
         task.acmD = null;
     }
 
-    await supa().from("TASK").update(updates).eq("taskId", taskId);
+    if (slugStatus === "finished") updates.wasRevising = false;
+    const { error: taskError } = await supa().from("TASK").update(updates).eq("taskId", taskId);
+    if (taskError) {
+        showAlert(`Could not update the task: ${taskError.message}`, { title: "Task Update Error" });
+        return false;
+    }
 
     // Send notification when leader finishes a task
     if (slugStatus === "finished") {
         try {
             const { data: { user } } = await supa().auth.getUser();
+            const { data: membership } = await supa().from("GROUPMEMBER").select("ROLE(roleName)").eq("grpId", Number(getGrpId())).eq("userId", user?.id).maybeSingle();
+            if (membership?.ROLE?.roleName?.toLowerCase() !== "leader") return true;
             const { data: leaderInfo } = await supa().from("USER").select("userDisplayName").eq("userId", user.id).maybeSingle();
             const grpId = getGrpId();
             const projectName = sessionStorage.getItem("hive_selected_project_name") || "a project";
@@ -398,6 +493,7 @@ const updateTaskStatus = async (taskId, slugStatus, task) => {
             ));
         } catch (e) {}
     }
+    return true;
 };
 
 const loadGroupMembers = async () => {
@@ -603,7 +699,7 @@ const openVerifyChoice = async (taskId, onFinish, onRevise) => {
     }
     if (noteEl) noteEl.value = "";
 
-    verifyChoiceCallback = { onFinish, onRevise };
+    verifyChoiceCallback = { taskId, onFinish, onRevise };
     verifyChoiceOverlay?.classList.add("open");
     verifyChoiceOverlay?.setAttribute("aria-hidden","false");
 };
@@ -617,8 +713,14 @@ const closeVerifyChoice = () => {
 if (verifyFinishBtn) {
     verifyFinishBtn.addEventListener("click", async () => {
         const note = document.querySelector("#leaderNoteInput")?.value.trim() || null;
+        const taskId = verifyChoiceCallback?.taskId;
         if (_verifySubmissionId) {
-            await supa().from("SUBMISSION").update({ status: "approved", leaderNote: note }).eq("subId", _verifySubmissionId);
+            const { error } = await supa().from("SUBMISSION").update({ status: "approved", leaderNote: note }).eq("subId", _verifySubmissionId);
+            if (error) { showAlert(`Could not approve the submission: ${error.message}`, { title: "Verification Error" }); return; }
+        }
+        if (taskId) {
+            const { error } = await supa().from("TASK").update({ statId: STAT_ID.finished, taskAcmD: null, wasRevising: false }).eq("taskId", taskId);
+            if (error) { showAlert(`Could not mark the task as finished: ${error.message}`, { title: "Verification Error" }); return; }
         }
         verifyChoiceCallback?.onFinish?.();
         closeVerifyChoice();
@@ -628,8 +730,14 @@ if (verifyFinishBtn) {
 if (verifyReviseBtn) {
     verifyReviseBtn.addEventListener("click", async () => {
         const note = document.querySelector("#leaderNoteInput")?.value.trim() || null;
+        const taskId = verifyChoiceCallback?.taskId;
         if (_verifySubmissionId) {
-            await supa().from("SUBMISSION").update({ status: "rejected", leaderNote: note }).eq("subId", _verifySubmissionId);
+            const { error } = await supa().from("SUBMISSION").update({ status: "rejected", leaderNote: note }).eq("subId", _verifySubmissionId);
+            if (error) { showAlert(`Could not reject the submission: ${error.message}`, { title: "Verification Error" }); return; }
+        }
+        if (taskId) {
+            const { error } = await supa().from("TASK").update({ statId: STAT_ID.inactive, taskAcmD: null, wasRevising: true }).eq("taskId", taskId);
+            if (error) { showAlert(`Could not send the task back for revision: ${error.message}`, { title: "Revision Error" }); return; }
         }
         verifyChoiceCallback?.onRevise?.();
         closeVerifyChoice();
@@ -673,7 +781,7 @@ const attachLeaderStatusBtn = (btn, task, isOwnTask) => {
     };
 
     const setStatus = async (s) => {
-        await updateTaskStatus(task.taskId, s, task);
+        if (!await updateTaskStatus(task.taskId, s, task)) return;
         task.status = s;
         if (s === "active") { task.acmD = new Date().toISOString(); }
         else { task.acmD = null; }
@@ -723,12 +831,12 @@ const attachLeaderStatusBtn = (btn, task, isOwnTask) => {
             else if (cur==="pause") await setStatus("active");
         } else {
             if (cur==="inactive") await setStatus("active");
-            else if (cur==="active" || cur==="revising") openLeaderActiveChoice(
+            else if (cur==="active") openLeaderActiveChoice(
                 () => { task._prePauseStatus = cur; setStatus("pause"); },
                 () => setStatus("finished")
             );
-            else if (cur==="pause") await setStatus(task._prePauseStatus === "revising" ? "revising" : "active");
-            else if (cur==="verifying") openVerifyChoice(task.taskId, ()=>setStatus("finished"), ()=>setStatus("active"));
+            else if (cur==="pause") await setStatus("active");
+            else if (cur==="verifying") openVerifyChoice(task.taskId, ()=>setStatus("finished"), ()=>setStatus("inactive"));
         }
     });
 };
@@ -772,7 +880,7 @@ const renderTask = async (task, idx, isOwnTask, target) => {
     if (!target) return;
     if (!isTerminal(task.status) && task.status!=="verifying" && isPastDue(task)) {
         task.status="missing";
-        await updateTaskStatus(task.taskId,"missing",task);
+        if (!await updateTaskStatus(task.taskId,"missing",task)) return;
         notifyTaskMissing(task);
     }
     const assigneeCount = task.assignees.length;
@@ -790,7 +898,7 @@ const renderTask = async (task, idx, isOwnTask, target) => {
         <div class="task-left">
             <h3>${isOwnTask ? `<svg class="assigned-task-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true"><path d="M 72.44 16.13 L 90.56 47.50 A 5 5 0 0 1 90.56 52.50 L 72.44 83.87 A 5 5 0 0 1 68.11 86.37 L 31.89 86.37 A 5 5 0 0 1 27.56 83.87 L 9.44 52.50 A 5 5 0 0 1 9.44 47.50 L 27.56 16.13 A 5 5 0 0 1 31.89 13.63 L 68.11 13.63 A 5 5 0 0 1 72.44 16.13 Z" fill="#FFCC00"></path></svg>` : ""}${task.name}</h3>
             <p>${assigneeCount} Assigned Contributor${assigneeCount === 1 ? "" : "s"}</p>
-            <p class="task-time-row">Active Timespan: ${timeHtml}${status === "revising" ? ` <span class="task-revising-label">Revising</span>` : ""}</p>
+            <p class="task-time-row">Active Timespan: ${timeHtml}${task.wasRevising ? ` <span class="task-revising-label">Revising</span>` : ""}</p>
         </div>
         <div class="task-due">
             <span>Due Date: ${task.dueDate || "--/--/----"}</span>
@@ -806,19 +914,20 @@ const renderTask = async (task, idx, isOwnTask, target) => {
 };
 
 const renderAllTasks = async () => {
-    const tasks=(await loadTasks()).filter(task => task.status !== "finished" && task.status !== "verifying");
+    const allTasks = await loadTasks();
+    const tasks = allTasks.filter(task => task.status !== "finished" && task.status !== "verifying");
     const yl = document.querySelector("#yourTasksList");
     const ol = document.querySelector("#otherTasksList");
     if (yl) yl.hidden = false;
     if (ol) ol.hidden = true;
     if(yl) yl.innerHTML=""; if(ol) ol.innerHTML="";
-    let own=0,other=0,verify=0;
+    let own=0,other=0;
     for(let i=0;i<tasks.length;i++){
         const t=tasks[i]; const mine=t.assignees.some(a=>a.userId===currentUserId);
         await renderTask(t, i, mine, yl);
         if(mine) own++; else other++;
-        if(t.status==="verifying") verify++;
     }
+    const verify = allTasks.filter(task => task.status === "verifying").length;
     if (yl && own === 0 && other === 0) yl.innerHTML = `<div class="empty-state task-empty-placeholder"><img src="../../assets/bee-flight.svg" class="empty-state-icon" alt=""><h2>You Have No Pending Tasks Yet</h2><p>Check back later or explore your projects to find other's unfinished tasks and help them like a good team member.</p></div>`;
     const sc=document.querySelectorAll(".summary-card h3");
     if(sc[0]) sc[0].textContent=own; if(sc[1]) sc[1].textContent=other; if(sc[2]) sc[2].textContent=verify;
@@ -851,7 +960,8 @@ projectTabs.forEach(tab => tab.addEventListener("click", () => {
     projectTabPanels.forEach(panel => {
         panel.hidden = panel.id !== tab.getAttribute("aria-controls");
     });
-    if (tab.id === "submissionsTab") loadSubmissions("evaluation");
+    if (tab.id === "submissionsTab") setSubmissionFilter("evaluation");
+    if (tab.id === "p2pEvaluationTab") loadP2PEvaluations();
 }));
 
 const openPostTaskModal = async () => {
@@ -866,7 +976,7 @@ const openPostTaskModal = async () => {
     updatePostTaskSubmitState();
 };
 
-if (inlinePostTaskBtn) inlinePostTaskBtn.addEventListener("click", openPostTaskModal);
+if (inlinePostTaskBtn && canManageTasks) inlinePostTaskBtn.addEventListener("click", openPostTaskModal);
 if (projectBackLink) projectBackLink.addEventListener("click", () => { window.location.href = "s.membergrpviewing.html"; });
 
 // Global ticker — updates all active task cards + the open details modal every second
@@ -971,6 +1081,7 @@ if(taskDetailsOverlay) taskDetailsOverlay.addEventListener("click",e=>{if(e.targ
 
 if(confirmRemoveTaskBtn){
     confirmRemoveTaskBtn.addEventListener("click",async()=>{
+        if (!canManageTasks) return;
         if(activeTaskIndex===null)return;
         const tasks=await loadTasks(); const taskId=tasks[activeTaskIndex]?.taskId;
         if(taskId){
@@ -982,11 +1093,12 @@ if(confirmRemoveTaskBtn){
 
 manualStatusButtons.forEach(btn=>{
     btn.addEventListener("click",async()=>{
+        if (!canManageTasks) return;
         if(activeTaskIndex===null)return;
         const tasks=await loadTasks(); const task=tasks[activeTaskIndex]; if(!task)return;
         const targetStatus=btn.dataset.manualStatus;
         const wasFinished=task.status==="finished";
-        await updateTaskStatus(task.taskId,targetStatus,task);
+        if (!await updateTaskStatus(task.taskId,targetStatus,task)) return;
         if(targetStatus==="finished"){
             if(!wasFinished) await ensureSubmissionsForFinishedTask(task.taskId,task.assignees);
             closeManualStatus(); await renderAllTasks();
@@ -1005,7 +1117,7 @@ const updatePostTaskSubmitState=()=>{
 };
 
 if(openPostTaskModalBtn&&postTaskModalOverlay){
-    openPostTaskModalBtn.addEventListener("click", openPostTaskModal);
+    if (canManageTasks) openPostTaskModalBtn.addEventListener("click", openPostTaskModal);
 }
 if(discardPostTaskBtn) discardPostTaskBtn.addEventListener("click",()=>{postTaskForm?.reset();updatePostTaskSubmitState();closePostTaskModal();});
 if(taskNameInput) taskNameInput.addEventListener("input",updatePostTaskSubmitState);
@@ -1016,6 +1128,7 @@ if(postTaskModalOverlay) postTaskModalOverlay.addEventListener("click",e=>{if(e.
 if(postTaskForm){
     postTaskForm.addEventListener("submit",e=>{
         e.preventDefault();
+        if (!canManageTasks) return;
         const checked=Array.from(postTaskForm.querySelectorAll("input[name='assignees']:checked"));
         if(!taskNameInput?.value.trim()||checked.length===0||!dueDateInput?.value||!dueTimeInput?.value)return;
         const name=taskNameInput.value.trim();
@@ -1060,6 +1173,7 @@ if(postTaskForm){
 if(editTaskInfoForm){
     editTaskInfoForm.addEventListener("submit",e=>{
         e.preventDefault();
+        if (!canManageTasks) return;
         if(activeTaskIndex===null)return;
         const checked=Array.from(document.querySelectorAll("input[name='editAssignees']:checked"));
         if(!editTaskNameInput?.value.trim()||checked.length===0||!editDueDateInput?.value||!editDueTimeInput?.value)return;

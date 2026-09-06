@@ -1,4 +1,4 @@
-@import url('s.dashb.css');
+@import url('../student/s.dashb.css');
 
 .main-header {
     position: sticky;
@@ -1041,6 +1041,36 @@ body {
 .notif-delete-btn {
     border-radius: 7px;
     background: #FFCC00;
+}
+
+.notif-section .notif-list {
+    max-height: calc(100vh - 190px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: #FFCC00 #F4F1D5;
+}
+
+.notif-section .notif-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.notif-section .notif-list::-webkit-scrollbar-track {
+    border-radius: 4px;
+    background: #F4F1D5;
+}
+
+.notif-section .notif-list::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background: #FFCC00;
+}
+
+@media (max-width: 600px) {
+    .notif-section .notif-list {
+        max-height: calc(100vh - 220px);
+        padding-right: 6px;
+    }
 }
 
 @media (max-width: 900px) {

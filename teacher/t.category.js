@@ -123,7 +123,8 @@ const createCategoryItem = (name, key, count, completedCount, dueDate, dueTime, 
         sessionStorage.setItem("hive_selected_project", key);
         sessionStorage.setItem("hive_selected_project_name", name);
         const grpId = getGrpId();
-        window.location.href = `t.projectbreakdown.html${grpId ? "?grpId=" + grpId : ""}`;
+        const query = new URLSearchParams({ projId: String(key), ...(grpId ? { grpId: String(grpId) } : {}) });
+        window.location.href = `t.projectbreakdown.html?${query.toString()}`;
     });
     return categoryItem;
 };
@@ -319,15 +320,15 @@ if (postCategoryForm) {
     });
 }
 
-if (categoryTopBackBtn) categoryTopBackBtn.addEventListener("click", () => { window.location.href = "../s.dashb.html"; });
+if (categoryTopBackBtn) categoryTopBackBtn.addEventListener("click", () => { window.location.href = "t.dashb.html"; });
 if (groupInfoTab)  groupInfoTab.addEventListener("click",  () => {
     const grpId = getGrpId();
-    window.location.href = `s.leadergrpviewing.html${grpId ? "?grpId=" + grpId : ""}`;
+    window.location.href = `t.grpviewing.html${grpId ? "?grpId=" + grpId : ""}`;
 });
 
 document.querySelector("#mobileGroupInfoBtn")?.addEventListener("click", () => {
     const grpId = getGrpId();
-    window.location.href = `s.leadergrpviewing.html${grpId ? "?grpId=" + grpId : ""}`;
+    window.location.href = `t.grpviewing.html${grpId ? "?grpId=" + grpId : ""}`;
 });
 
 const categoryLogoutBtn = document.querySelector(".logout");

@@ -1,3 +1,8 @@
+const inviteId = new URLSearchParams(window.location.search).get("invite");
+const storedInviteRole = String(localStorage.getItem("hive_role") || "").trim().toLowerCase();
+if (inviteId && (storedInviteRole === "teacher" || storedInviteRole === "professor")) {
+    window.location.replace(`../teacher/t.dashb.html?invite=${encodeURIComponent(inviteId)}`);
+}
 const menuBtn = document.querySelector(".menu-btn");
 const sidebar = document.querySelector("#sidebar");
 const profileTrigger = document.querySelector("#profileTrigger");
@@ -158,9 +163,9 @@ const loadDashbData = async () => {
             ownedColonies.push(groupObj);
         } else if (isColony) {
             joinedColonies.push(groupObj);
-        } else if (isLeader && isSwarm && !isNestedSwarm) {
+        } else if (isLeader && isSwarm) {
             ownedSwarms.push(groupObj);
-        } else if (isSwarm && !isNestedSwarm) {
+        } else if (isSwarm) {
             joinedGroups.push(groupObj);
         }
     }
@@ -242,9 +247,10 @@ const applyDashbData = (data) => {
             if (isColony) {
                 window.location.href = `s.colony.html?grpId=${group.grpId}&from=${returnPage}`;
             } else {
+                const groupQuery = `?grpId=${encodeURIComponent(group.grpId)}&from=${returnPage}`;
                 window.location.href = isOwned
-                    ? `leader/s.leadergrpviewing.html?from=${returnPage}`
-                    : `member/s.membergrpviewing.html?from=${returnPage}`;
+                    ? `leader/s.leadergrpviewing.html${groupQuery}`
+                    : `member/s.membergrpviewing.html${groupQuery}`;
             }
         });
         if (isOwned) {
@@ -263,8 +269,8 @@ const applyDashbData = (data) => {
             ...(data.ownedColonies || data.ownedGroups || []),
             ...(data.joinedColonies || [])
         ];
-        if (colonyAddButton) colonyAddButton.hidden = false;
         if (!colonies.length) {
+            if (colonyAddButton) colonyAddButton.hidden = true;
             colonyList.innerHTML = `
                 <div class="empty-state team-empty-placeholder">
                     <img class="empty-state-icon" src="../assets/bee-flight.svg" alt="">
@@ -274,14 +280,15 @@ const applyDashbData = (data) => {
                 </div>`;
             colonyList.querySelector(".empty-create-colony-btn")?.addEventListener("click", openAddGroupModal);
         } else {
+            if (colonyAddButton) colonyAddButton.hidden = false;
             colonies.forEach((colony) => colonyList.appendChild(createGroupCard(colony, colony.isLeader)));
         }
     }
 
     if (isTeamPage && joinedGroupsList) {
-        const ownedGroups = (data.ownedSwarms || []).filter(group => !group.parentGrpId);
-        const joinedGroups = (data.joinedGroups || []).filter(group => !group.parentGrpId);
-        const allGroups = [...ownedGroups, ...joinedGroups];
+        const ownedGroups = (data.ownedSwarms || []).filter((group) => !group.parentGrpId);
+        const joinedGroups = (data.joinedGroups || []).filter((group) => !group.parentGrpId);
+        const allGroups = [...new Map([...ownedGroups, ...joinedGroups].map((group) => [String(group.grpId), group])).values()];
         const ownedGroupIds = new Set(
             allGroups.filter(group => group.isLeader).map(group => String(group.grpId))
         );
@@ -342,10 +349,11 @@ const applyDashbData = (data) => {
     if (joinedGroupsList && isDashboardPage) {
         const allGroups = [
             ...(data.ownedGroups || []).map(group => ({ ...group, isOwned: true })),
+            ...(data.ownedSwarms || []).map(group => ({ ...group, isOwned: true })),
             ...(data.joinedGroups || []).map(group => ({ ...group, isOwned: false }))
         ];
         const visits = getRecentVisits();
-        const recentGroups = allGroups
+        const recentGroups = [...new Map(allGroups.map((group) => [String(group.grpId), group])).values()]
             .filter(group => visits[String(group.grpId)])
             .sort((first, second) => visits[String(second.grpId)] - visits[String(first.grpId)]);
 
@@ -452,6 +460,8 @@ const discardJoinGroupBtn = document.querySelector("#discardJoinGroup");
 const joinGroupBtn = document.querySelector("#joinGroupBtn");
 const closeInvitationPreviewBtn = document.querySelector("#closeInvitationPreviewBtn");
 const acceptInvitationPreviewBtn = document.querySelector("#acceptInvitationPreviewBtn");
+const joinAsContributorBtn = document.querySelector("#joinAsContributorBtn");
+const joinAsInstructorBtn = document.querySelector("#joinAsInstructorBtn");
 const groupLinkInput = document.querySelector("#groupLinkInput");
 const openEditOwnedGroupModalBtn = document.querySelector("#openEditOwnedGroupModal");
 const editOwnedGroupModal = document.querySelector("#editOwnedGroupModal");
@@ -790,13 +800,8 @@ if (createAddGroupBtn) {
                     .select("grpId").single();
                 if (grpErr || !newGroup) { showAlert("Failed to create group: " + (grpErr?.message || "Unknown error"), { title: "Error" }); return; }
 
-                const { data: leaderRole, error: roleErr } = await supabase
-                    .from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle();
-                if (roleErr || !leaderRole) {
-                    showAlert("Could not find Leader role. Group has been removed.", { title: "Setup Error" });
-                    await supabase.from("GROUP").delete().eq("grpId", newGroup.grpId);
-                    return;
-                }
+                const { data: leaderRole } = await supabase.from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle();
+                if (!leaderRole) return;
 
                 const { error: memErr } = await supabase
                     .from("GROUPMEMBER")
@@ -831,8 +836,7 @@ if (createTeamForm) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data: leaderRole } = await supabase
-            .from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle();
+        const { data: leaderRole } = await supabase.from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle();
         if (!leaderRole) return;
 
         const { data: team, error } = await supabase.from("GROUP").insert({
@@ -922,15 +926,19 @@ const populateInvitationPreview = async (grpId) => {
 
     const { data: groupMembers } = await supabase
         .from("GROUPMEMBER")
-        .select("ROLE(roleName), USER(userDisplayName, avatarPath)")
+        .select("userId, ROLE(roleName), USER(userDisplayName, avatarPath)")
         .eq("grpId", grpId);
 
     const leader = (groupMembers || []).find((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() === "leader");
     const teacher = (groupMembers || []).find((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() === "teacher");
-    const instructorCount = (groupMembers || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() === "teacher").length;
+    const instructorIds = new Set((groupMembers || [])
+        .filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() === "teacher")
+        .map((member) => String(member.userId)));
+    if (group.teacherId) instructorIds.add(String(group.teacherId));
+    const instructorCount = instructorIds.size;
     const normalizedType = String(group.grpType || "COLONY").toUpperCase();
     const isSwarm = normalizedType === "SWARM";
-    const memberCount = (memberCountResult?.count ?? 0) || 0;
+    const memberCount = Math.max(0, (memberCountResult?.count ?? 0) - instructorIds.size);
     const { count: projectCount = 0 } = await supabase
         .from("PROJECT")
         .select("projId", { count: "exact", head: true })
@@ -954,6 +962,8 @@ const populateInvitationPreview = async (grpId) => {
     const descriptionText = group.grpDescription || `${detailName} is a ${detailSubject} ${isSwarm ? "swarm" : "colony"}. Keep your shared project context here.`;
     const mottoText = String(group.grpMotto || "").trim() || "Not Set";
     const entityLabel = isSwarm ? "Swarm" : "Colony";
+    const storedRole = String(localStorage.getItem("hive_role") || "").trim().toLowerCase();
+    const isTeacherPerspective = storedRole === "teacher" || storedRole === "professor";
 
     if (invitePreviewIntro) invitePreviewIntro.textContent = `We are inviting you to our ${entityLabel}`;
     if (invitePreviewTeamName) invitePreviewTeamName.textContent = detailName;
@@ -975,6 +985,10 @@ const populateInvitationPreview = async (grpId) => {
         invitePreviewStatus.classList.toggle("status-active", isActive);
         invitePreviewStatus.classList.toggle("status-inactive", !isActive);
     }
+
+    if (acceptInvitationPreviewBtn) acceptInvitationPreviewBtn.hidden = isTeacherPerspective;
+    if (joinAsContributorBtn) joinAsContributorBtn.hidden = !isTeacherPerspective;
+    if (joinAsInstructorBtn) joinAsInstructorBtn.hidden = !isTeacherPerspective;
 
     if (invitationPreviewModal) {
         invitationPreviewModal.classList.add("open");
@@ -1039,7 +1053,9 @@ const populateInvitationPreview = async (grpId) => {
             .eq("grpId", grpId)
             .maybeSingle();
 
-        if (groupData?.parentGrpId) {
+        if (isTeacherPerspective) {
+            window.location.href = `../teacher/t.grpviewing.html?grpId=${grpId}&from=dashboard`;
+        } else if (groupData?.parentGrpId) {
             // It's a swarm, redirect to parent colony
             window.location.href = `s.colony.html?grpId=${groupData.parentGrpId}&from=dashboard`;
         } else {
@@ -1051,6 +1067,8 @@ const populateInvitationPreview = async (grpId) => {
     if (acceptInvitationPreviewBtn) {
         acceptInvitationPreviewBtn.onclick = pendingJoin;
     }
+    if (joinAsContributorBtn) joinAsContributorBtn.onclick = () => pendingJoin("Member");
+    if (joinAsInstructorBtn) joinAsInstructorBtn.onclick = () => pendingJoin("Teacher");
 };
 
 const openJoinGroupModal = () => {

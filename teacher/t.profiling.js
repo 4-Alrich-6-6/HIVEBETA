@@ -258,7 +258,7 @@ if (saveButton) {
             onClose: () => {
                 localStorage.removeItem("hive_posId");
                 localStorage.removeItem("hive_role");
-                window.location.href = "s.dashb.html";
+                window.location.href = "t.dashb.html";
             },
         });
         return;

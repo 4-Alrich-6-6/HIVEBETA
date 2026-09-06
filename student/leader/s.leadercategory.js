@@ -81,7 +81,12 @@ const loadProjects = async () => {
                 .select("taskId, statId")
                 .eq("projId", p.projId);
             const taskList = tasks || [];
-            const completedCount = taskList.filter((task) => String(task.statId) === String(finishedStatusId)).length;
+            const taskIds = taskList.map((task) => task.taskId);
+            const { data: approvedSubmissions } = taskIds.length
+                ? await supa().from("SUBMISSION").select("taskId").in("taskId", taskIds).eq("status", "approved")
+                : { data: [] };
+            const leaderVerifiedTaskIds = new Set((approvedSubmissions || []).map((submission) => submission.taskId));
+            const completedCount = taskList.filter((task) => String(task.statId) === String(finishedStatusId) || leaderVerifiedTaskIds.has(task.taskId)).length;
             const isCompleted = taskList.length > 0 && completedCount === taskList.length;
             return {
                 key: String(p.projId),
@@ -199,6 +204,10 @@ const saveProjectName = async () => {
     const newDue  = editProjectDueDateInput ? editProjectDueDateInput.value : "";
     const newDueTime = editProjectDueTimeInput ? editProjectDueTimeInput.value : "";
     if (!newName) return;
+    if (newDue && newDue < todayISO()) {
+        showAlert("Due date must be today or a future date.", { title: "Invalid Due Date" });
+        return;
+    }
     const projId = Number(activeProjectItem.dataset.category);
     const { error } = await supa().from("PROJECT").update({ projName: newName, projDesc: newDescription || null, projDueD: newDue || null, projDueT: newDueTime || null }).eq("projId", projId);
     if (error) { showAlert("Failed to update project: " + error.message, { title: "Error" }); return; }
