@@ -375,7 +375,8 @@
     font-weight: 500;
 }
 
-.settings-form-group input {
+.settings-form-group input,
+.settings-form-group select {
     height: 44px;
     border-radius: 10px;
     border: 1.5px solid #ccc;
@@ -386,7 +387,8 @@
     font-family: 'Kodchasan', sans-serif;
 }
 
-.settings-form-group input:focus {
+.settings-form-group input:focus,
+.settings-form-group select:focus {
     outline: none;
     border-color: #000;
 }

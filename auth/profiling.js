@@ -23,13 +23,14 @@ const optionsEl = document.getElementById("positionOptions");
         positions.forEach((pos) => {
             const role = pos.posName.toLowerCase();
             const cssClass = role === "student" ? "option-professor" : "option-student";
-            const route = role === "teacher"
+            const isTeacher = role === "teacher" || role === "professor";
+            const route = isTeacher
                 ? "../teacher/t.profiling.html"
                 : "../student/s.profiling.html";
 
             const div = document.createElement("div");
             div.className = cssClass;
-            const displayName = role === "teacher" ? "Instructor" : pos.posName;
+            const displayName = isTeacher ? "Instructor" : pos.posName;
             div.innerHTML = `<h2>${displayName}</h2>`;
 
             div.addEventListener("click", () => {

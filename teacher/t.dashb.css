@@ -272,6 +272,7 @@ button {
     border: 1px solid #d8d8d8;
     border-radius: 8px;
     background: #ffffbf;
+    cursor: pointer;
 }
 
 .validation-project,
@@ -308,6 +309,13 @@ button {
 
 .validation-project strong,
 .validation-summary strong { font-size: 14px; }
+.validation-project strong,
+.validation-project span {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .validation-summary strong {
     font-family: 'Inter', sans-serif;
     font-size: 23px;
@@ -2408,6 +2416,14 @@ body {
     font-family: 'Kodchasan', sans-serif;
     font-size: 19px;
     line-height: 1.1;
+}
+
+.dashboard-copy-page .validation-project strong,
+.dashboard-copy-page .validation-project span {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .dashboard-copy-page .validation-summary strong {
