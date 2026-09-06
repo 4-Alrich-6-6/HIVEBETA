@@ -2167,10 +2167,15 @@ body {
     text-align: right;
 }
 
+.leader-project-page .contributor-summary-unassigned {
+    font-size: 13px;
+    white-space: nowrap;
+}
+
 .leader-project-page .contributor-summary-reputation {
     color: #111;
     font-family: 'Inter', sans-serif;
-    font-size: 23px;
+    font-size: 13px;
     font-weight: 700;
     text-align: right;
 }

@@ -236,17 +236,31 @@
     </div>
     <!-- Member Profile Modal -->
     <div class="modal-overlay" id="memberProfileOverlay" aria-hidden="true">
-        <div class="confirmation-modal" role="dialog" aria-modal="true">
+        <div class="confirmation-modal member-profile-card" role="dialog" aria-modal="true">
             <div class="confirmation-modal-header">
-                <h2 id="memberProfileRole">Role</h2>
+                <h2>Profile Card</h2>
             </div>
             <div class="confirmation-modal-body" style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 18px;">
-                <div class="circle-avatar large" id="memberProfileAvatar" style="flex-shrink:0;"><img src="../assets/profile-placeholder.svg" alt="Profile picture placeholder"></div>
-                <div style="text-align:center;">
+                <div class="member-profile-identity"><div class="circle-avatar large" id="memberProfileAvatar" style="flex-shrink:0;"><img src="../assets/profile-placeholder.svg" alt="Profile picture placeholder"></div>
+                <div style="text-align:left;">
+                    <p id="memberProfileRole" style="margin:0 0 4px;font-size:12px;color:#666;"></p>
                     <p id="memberProfileName" style="margin:0 0 4px;font-weight:800;font-size:17px;"></p>
                     <p id="memberProfileField" style="margin:0 0 4px;font-size:14px;"></p>
                     <p id="memberProfileEmail" style="margin:0;font-size:13px;color:#555;word-break:break-all;"></p>
+                </div></div>
+                <div id="memberProfileStatsContent">
+                <div class="member-profile-stats">
+                    <div class="member-profile-stat"><span class="member-profile-stat-label">Total Teams</span><strong class="member-profile-stat-value" id="memberProfileTotalTeams">--</strong></div>
+                    <div class="member-profile-stat"><span class="member-profile-stat-label">Created Teams</span><strong class="member-profile-stat-value" id="memberProfileCreatedTeams">--</strong></div>
+                    <div class="member-profile-stat"><span class="member-profile-stat-label">Ongoing Projects</span><strong class="member-profile-stat-value" id="memberProfileCompletedTasks">--</strong></div>
+                    <div class="member-profile-stat"><span class="member-profile-stat-label">Pending Tasks</span><strong class="member-profile-stat-value" id="memberProfilePendingTasks">--</strong></div>
                 </div>
+                <div class="member-profile-detail">
+                    <div class="member-profile-task-stats"><p>Total Tasks Received: <strong id="memberProfileReceivedTasks">--</strong></p><p>Total Tasks Completed: <strong id="memberProfileCompletedTaskTotal">--</strong></p><p>Total Tasks Missed: <strong id="memberProfileMissedTasks">--</strong></p></div>
+                    <div class="member-profile-average"><div><p class="member-profile-average-label">Average Score:</p><p class="member-profile-average-value" id="memberProfileAverageScore">N/A</p></div><div><p class="member-profile-average-label">Average Reputation:</p><p class="member-profile-average-value reputation" id="memberProfileAverageReputation">N/A</p></div></div>
+                </div>
+                </div>
+                <div id="memberProfileStatsHidden" class="member-profile-statistics-hidden" hidden>Profile Statistics hidden</div>
             </div>
             <div class="confirmation-modal-actions">
                 <button type="button" class="modal-btn discard-btn" id="closeMemberProfileBtn">Close</button>
@@ -428,6 +442,7 @@
     <script src="../lib/datetime.js"></script>
     <script src="../lib/confirmation-modal.js"></script>
     <script src="../lib/manage-profile.js"></script>
+    <script src="../lib/member-profile-stats.js"></script>
     <script src="../lib/settings.js"></script>
     <script src="s.colony.js"></script>
     <script src="s.leadercategory.js"></script>

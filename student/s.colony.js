@@ -1431,11 +1431,12 @@ const getAvatarLightbox = () => {
 
 const openMemberProfile = async (member) => {
   if (!memberProfileOverlay || !memberProfileAvatar) return;
-  memberProfileRole.textContent  = normalizeText(member.roleName) === "leader" ? "Project Manager" : member.roleName;
+  memberProfileRole.textContent  = normalizeText(member.roleName) === "leader" ? "Project Manager" : (member.roleName || "Member");
   memberProfileName.textContent  = member.fullName;
   memberProfileEmail.textContent = member.email;
-  const field = member.deptName || member.progName || "";
-  memberProfileField.textContent = field ? (member.deptName ? `Department: ${field}` : `Program: ${field}`) : "";
+  memberProfileEmail.style.visibility = "hidden";
+  const field = member.progName || member.deptName || "";
+  memberProfileField.textContent = field || "N/A";
   let avatarPath = member.avatarPath;
   if (!avatarPath) {
     const supabase = getSupabase();
@@ -1462,6 +1463,7 @@ const openMemberProfile = async (member) => {
   }
   memberProfileOverlay.classList.add("open");
   memberProfileOverlay.setAttribute("aria-hidden", "false");
+  window.memberProfileStats?.load(member);
 };
 
 const closeMemberProfile = () => {
@@ -1890,8 +1892,7 @@ if (topBackBtn) topBackBtn.addEventListener("click", () => {
     || sessionStorage.getItem("hive_group_return_page")
     || "teams";
   if (returnPage === "dashboard") window.location.href = "s.dashb.html";
-  else if (returnPage === "teams") window.location.href = "s.team.html";
-  else window.history.back();
+  else window.location.href = "s.team.html";
 });
 
 if (projectBreakdownTab) projectBreakdownTab.addEventListener("click", () => {

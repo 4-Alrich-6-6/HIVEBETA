@@ -19,7 +19,7 @@ if (menuBtn && sidebar) {
 }
 
 // ─── DB: load groups from Supabase ───────────────────────────────────────────
-let dashbData = { ownedGroups: [], joinedGroups: [], stats: { owned: 0, joined: 0, totalTeams: 0, createdTeams: 0, pending: 0 } };
+let dashbData = { ownedGroups: [], joinedGroups: [], stats: { owned: 0, joined: 0, totalTeams: 0, createdTeams: 0, pending: 0, averageScore: null, averageReputation: null } };
 let recentVisitsKey = "hive_recent_team_visits";
 
 const getRecentVisits = () => {
@@ -83,6 +83,128 @@ const getUserTaskStats = async (userId) => {
         console.error("Error fetching task stats:", err);
         return { received: 0, completed: 0, missed: 0, pending: 0 };
     }
+};
+
+const getUserOngoingProjectCount = async (userId) => {
+    const supabase = window.hiveSupabase;
+    if (!supabase) return 0;
+    const { data: memberships } = await supabase.from("GROUPMEMBER").select("grpmemId").eq("userId", userId);
+    const memberIds = (memberships || []).map((membership) => membership.grpmemId).filter(Boolean);
+    if (!memberIds.length) return 0;
+    const { data: assignments } = await supabase.from("TASKASSIGNMENT").select("taskId").in("grpmemId", memberIds);
+    const taskIds = [...new Set((assignments || []).map((assignment) => assignment.taskId))];
+    if (!taskIds.length) return 0;
+    const { data: tasks } = await supabase.from("TASK").select("projId, PROJECT(projStatus)").in("taskId", taskIds);
+    return new Set((tasks || [])
+        .filter((task) => String(task.PROJECT?.projStatus || "").toLowerCase() === "ongoing")
+        .map((task) => String(task.projId))).size;
+};
+
+const getHistoricalAverageScore = async (userId) => {
+    const supabase = window.hiveSupabase;
+    if (!supabase) return null;
+    const { data: history, error } = await supabase
+        .from("TASKHISTORY")
+        .select("taskId, statId, projId, taskDueD, submittedAt, assignedAt")
+        .eq("userId", userId)
+        .not("projId", "is", null);
+    if (error || !history?.length) return { score: null, calculation: "" };
+
+    const projects = new Map();
+    history.forEach((task) => {
+        const projectTasks = projects.get(String(task.projId)) || [];
+        projectTasks.push(task);
+        projects.set(String(task.projId), projectTasks);
+    });
+    const projectScores = [...projects.values()]
+        .filter((tasks) => tasks.length > 0)
+        .sort((first, second) => new Date(first[0].assignedAt || 0) - new Date(second[0].assignedAt || 0))
+        .map((tasks) => {
+        let score = 0;
+        tasks.forEach((task) => {
+            if (Number(task.statId) === 5) {
+                const dueAt = Date.parse(task.taskDueD || "");
+                const submittedAt = Date.parse(task.submittedAt || "");
+                score += dueAt && submittedAt && submittedAt > dueAt ? 0.75 : 1;
+            }
+        });
+        return Math.round((score / tasks.length) * 100 * 10) / 10;
+        });
+    if (!projectScores.length) return { score: null, calculation: "" };
+    const total = Math.round(projectScores.reduce((sum, score) => sum + score, 0) * 10) / 10;
+    const average = Math.round((total / projectScores.length) * 10) / 10;
+    const displayedScores = projectScores.length > 3
+        ? [
+            Math.round(projectScores.slice(0, -2).reduce((sum, score) => sum + score, 0) * 10) / 10,
+            ...projectScores.slice(-2)
+        ]
+        : projectScores;
+    return {
+        score: average,
+        calculation: `${displayedScores.map((score) => `${score}%`).join(" + ")} = ${total}% / ${projectScores.length} = ${average}%`
+    };
+};
+
+const getScoreGrade = (score) => {
+    if (score === null) return "Not Rated Yet";
+    if (score >= 90) return "S";
+    if (score >= 80) return "A";
+    if (score >= 70) return "B";
+    if (score >= 60) return "C";
+    if (score >= 50) return "D";
+    return "F";
+};
+
+const getHistoricalAverageReputation = async (userId) => {
+    const supabase = window.hiveSupabase;
+    if (!supabase) return { score: null, calculation: "" };
+    const { data: history, error: historyError } = await supabase
+        .from("TASKHISTORY")
+        .select("projId")
+        .eq("userId", userId)
+        .not("projId", "is", null);
+    if (historyError || !history?.length) return { score: null, calculation: "" };
+
+    const projectIds = [...new Set(history.map((task) => Number(task.projId)).filter(Number.isFinite))];
+    const { data: memberships, error: membershipError } = await supabase
+        .from("GROUPMEMBER")
+        .select("grpmemId")
+        .eq("userId", userId);
+    if (membershipError || !memberships?.length) return { score: null, calculation: "" };
+
+    const memberIds = memberships.map((membership) => membership.grpmemId);
+    const { data: evaluations, error: evaluationError } = await supabase
+        .from("PEEREVAL")
+        .select("projId, evaluatedGrpmemId, evalRemarks, confirmed")
+        .in("projId", projectIds)
+        .in("evaluatedGrpmemId", memberIds);
+    if (evaluationError || !evaluations?.length) return { score: null, calculation: "" };
+
+    const ratingsByProject = new Map();
+    evaluations.filter((evaluation) => evaluation.confirmed !== false).forEach((evaluation) => {
+        const rating = Number(String(evaluation.evalRemarks || "").match(/(10|[0-9])\s*\/\s*10/)?.[1]);
+        if (!Number.isFinite(rating)) return;
+        const ratings = ratingsByProject.get(String(evaluation.projId)) || [];
+        ratings.push(rating);
+        ratingsByProject.set(String(evaluation.projId), ratings);
+    });
+
+    const projectAverages = [...ratingsByProject.values()]
+        .filter((ratings) => ratings.length > 0)
+        .map((ratings) => ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length);
+    if (!projectAverages.length) return { score: null, calculation: "" };
+    const total = Math.round(projectAverages.reduce((sum, average) => sum + average, 0) * 10) / 10;
+    const average = Math.round((total / projectAverages.length) * 10) / 10;
+    const displayedAverages = projectAverages.length > 3
+        ? [
+            Math.round(projectAverages.slice(0, -2).reduce((sum, value) => sum + value, 0) * 10) / 10,
+            ...projectAverages.slice(-2).map((value) => Math.round(value * 10) / 10)
+        ]
+        : projectAverages.map((value) => Math.round(value * 10) / 10);
+    return {
+        score: average,
+        calculation: `${displayedAverages.map((value) => `${value}/10`).join(" + ")} = ${total}/10 / ${projectAverages.length} = ${average}/10`
+    };
 };
 
 const loadDashbData = async () => {
@@ -175,7 +297,12 @@ const loadDashbData = async () => {
         }
     }
 
-    const taskStats = await getUserTaskStats(user.id);
+    const [taskStats, averageScore, averageReputation, ongoingProjects] = await Promise.all([
+        getUserTaskStats(user.id),
+        getHistoricalAverageScore(user.id),
+        getHistoricalAverageReputation(user.id),
+        getUserOngoingProjectCount(user.id)
+    ]);
     const allTeams = [
         ...ownedGroups,
         ...ownedSwarms,
@@ -199,8 +326,11 @@ const loadDashbData = async () => {
             createdTeams,
             received: taskStats.received,
             completed: taskStats.completed,
+            ongoingProjects,
             missed: taskStats.missed,
-            pending: taskStats.pending
+            pending: taskStats.pending,
+            averageScore,
+            averageReputation
         }
     };
 
@@ -429,13 +559,38 @@ const applyDashbData = (data) => {
     const completedStat = document.querySelector('[data-stat="completed"]');
     const pendingStat = document.querySelector('[data-stat="pending"]');
     const ratingsTotals = document.querySelectorAll(".ratings-totals strong");
+    const averageScoreElement = document.querySelector(".average-score strong");
+    const averageScoreCalculation = document.querySelector("#averageScoreCalculation");
+    const averageReputationElement = document.querySelector(".average-reputation strong");
+    const averageReputationCalculation = document.querySelector("#averageReputationCalculation");
     if (teamsStat) teamsStat.textContent = String(data.stats.totalTeams || 0).padStart(2, "0");
     if (yourTeamsStat) yourTeamsStat.textContent = String(data.stats.createdTeams || 0).padStart(2, "0");
-    if (completedStat) completedStat.textContent = String(data.stats.completed || 0).padStart(2, "0");
+    if (completedStat) completedStat.textContent = String(data.stats.ongoingProjects || 0).padStart(2, "0");
     if (pendingStat) pendingStat.textContent = String(data.stats.pending || 0).padStart(2, "0");
     if (ratingsTotals[0]) ratingsTotals[0].textContent = String(data.stats.received || 0).padStart(2, "0");
     if (ratingsTotals[1]) ratingsTotals[1].textContent = String(data.stats.completed || 0).padStart(2, "0");
     if (ratingsTotals[2]) ratingsTotals[2].textContent = String(data.stats.missed || 0).padStart(2, "0");
+    if (averageScoreElement) {
+        const averageScore = data.stats.averageScore || { score: null, calculation: "" };
+        const score = averageScore.score;
+        averageScoreElement.textContent = score === null || score === undefined
+            ? "N/A"
+            : getScoreGrade(score);
+        if (averageScoreCalculation) {
+            averageScoreCalculation.textContent = averageScore.calculation || "Not Rated Yet";
+            averageScoreCalculation.hidden = !averageScore.calculation;
+        }
+    }
+    if (averageReputationElement) {
+        const averageReputation = data.stats.averageReputation || { score: null, calculation: "" };
+        averageReputationElement.textContent = averageReputation.score === null || averageReputation.score === undefined
+            ? "N/A"
+            : `${averageReputation.score}/10`;
+        if (averageReputationCalculation) {
+            averageReputationCalculation.textContent = averageReputation.calculation || "N/A";
+            averageReputationCalculation.hidden = !averageReputation.calculation;
+        }
+    }
 };
 
 // Load on page start

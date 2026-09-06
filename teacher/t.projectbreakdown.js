@@ -100,6 +100,15 @@ document.querySelectorAll('a[href$="s.notification.html"], a[href$="../s.notific
 
 const reputationLabel = (score) => {
     if (score === null) return "N/A";
+    if (score >= 100) return "Team MVP";
+    if (score >= 70) return "Reliable Teammate";
+    if (score >= 40) return "Basic Teammate";
+    if (score >= 10) return "Passive Member";
+    return "Inactive Member";
+};
+
+const participationLabel = (score) => {
+    if (score === null) return "N/A";
     if (score >= 80) return "High Contributor";
     if (score >= 60) return "Moderate Contributor";
     if (score >= 40) return "Low Contributor";
@@ -132,14 +141,18 @@ const calculateTaskPerformance = (tasks, assignments, submissions, memberId) => 
         if (dueAt && submittedAt && submittedAt > dueAt) late += 1; else onTime += 1;
     });
     const total = onTime + late + missed + pending;
-    return { onTime, late, missed, pending, total, score: total ? Math.round(((onTime + (late * LATE_WEIGHT) + (missed * MISSED_WEIGHT)) / total) * 100) : null };
+    return { assigned: memberTaskIds.size > 0, onTime, late, missed, pending, total, score: total ? Math.round(((onTime + (late * LATE_WEIGHT) + (missed * MISSED_WEIGHT)) / total) * 100) : null };
 };
 
 const renderContributorRows = (list, contributors, useReputation) => {
     if (!list) return;
-    const rankedContributors = useReputation
-        ? [...contributors].sort((first, second) => second.score - first.score)
-        : contributors;
+    const rankedContributors = [...contributors].sort((first, second) => {
+        const firstScore = useReputation ? first.reputationScore : first.score;
+        const secondScore = useReputation ? second.reputationScore : second.score;
+        if (firstScore === null) return 1;
+        if (secondScore === null) return -1;
+        return secondScore - firstScore;
+    });
     list.innerHTML = contributors.length
         ? rankedContributors.map((contributor, index) => `
             <div class="contributor-summary-row${useReputation ? " reputation-leaderboard-row" : ""}">
@@ -147,8 +160,8 @@ const renderContributorRows = (list, contributors, useReputation) => {
                     <img class="contributor-summary-avatar" src="${contributor.avatarUrl}" alt="">
                     <span class="contributor-summary-name">${contributor.name.replace(/</g, "&lt;")}</span>
                 </span>
-                <span class="contributor-summary-score">${contributor.score === null ? "N/A" : (useReputation ? `${Math.round(contributor.score / 10)}/10` : `${contributor.score}%`)}</span>
-                <span class="contributor-summary-reputation">${reputationLabel(contributor.score)}</span>
+                <span class="contributor-summary-score${!contributor.assigned || (useReputation && contributor.reputationScore === null) ? " contributor-summary-unassigned" : ""}">${!contributor.assigned ? "Not Assigned Yet" : (useReputation ? (contributor.reputationScore === null ? "Not Rated Yet" : `${contributor.reputationScore}/10`) : (contributor.score === null ? "N/A" : `${contributor.score}%`))}</span>
+                <span class="contributor-summary-reputation">${!contributor.assigned || (useReputation && contributor.reputationScore === null) ? "" : (useReputation ? reputationLabel(contributor.reputationScore * 10) : participationLabel(contributor.score))}</span>
             </div>
         `).join("")
         : '<p class="contributor-summary-empty">No contributors found.</p>';
@@ -173,6 +186,15 @@ const loadContributorSummary = async () => {
     const { data: submissions } = taskIds.length
         ? await supa().from("SUBMISSION").select("taskId, grpmemId, submittedAt, status").in("taskId", taskIds)
         : { data: [] };
+    const { data: peerEvaluations } = await supa().from("PEEREVAL").select("evaluatedGrpmemId, evalRemarks, confirmed").eq("projId", Number(projectId));
+    const reputationByMember = new Map();
+    (peerEvaluations || []).filter((evaluation) => evaluation.confirmed !== false).forEach((evaluation) => {
+        const rating = Number(String(evaluation.evalRemarks || "").match(/(10|[0-9])\s*\/\s*10/)?.[1]);
+        if (!Number.isFinite(rating)) return;
+        const ratings = reputationByMember.get(String(evaluation.evaluatedGrpmemId)) || [];
+        ratings.push(rating);
+        reputationByMember.set(String(evaluation.evaluatedGrpmemId), ratings);
+    });
     const contributors = (members || [])
         .filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() !== "teacher")
         .map((member) => {
@@ -185,6 +207,9 @@ const loadContributorSummary = async () => {
                     ? supa().storage.from("profilePicture").getPublicUrl(member.USER.avatarPath).data?.publicUrl
                     : "../../assets/profile-placeholder.svg"),
             ...performance
+            , reputationScore: reputationByMember.has(String(member.grpmemId))
+                ? Math.round((reputationByMember.get(String(member.grpmemId)).reduce((sum, rating) => sum + rating, 0) / reputationByMember.get(String(member.grpmemId)).length) * 10) / 10
+                : null
         };
         });
     renderContributorRows(participationSummaryList, contributors, false);

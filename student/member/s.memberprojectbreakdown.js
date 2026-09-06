@@ -88,6 +88,15 @@ const setP2PEvaluationLocked = (locked) => {
 
 const reputationLabel = (score) => {
     if (score === null) return "N/A";
+    if (score >= 100) return "Team MVP";
+    if (score >= 70) return "Reliable Teammate";
+    if (score >= 40) return "Basic Teammate";
+    if (score >= 10) return "Passive Member";
+    return "Inactive Member";
+};
+
+const participationLabel = (score) => {
+    if (score === null) return "N/A";
     if (score >= 80) return "High Contributor";
     if (score >= 60) return "Moderate Contributor";
     if (score >= 40) return "Low Contributor";
@@ -131,8 +140,9 @@ const calculateTaskPerformance = (tasks, assignments, submissions, memberId) => 
         else onTime += 1;
     });
     const total = onTime + late + missed + pending;
-    if (!total) return { onTime, late, missed, pending, total, score: null };
+    if (!total) return { assigned: memberTaskIds.size > 0, onTime, late, missed, pending, total, score: null };
     return {
+        assigned: memberTaskIds.size > 0,
         onTime,
         late,
         missed,
@@ -144,9 +154,13 @@ const calculateTaskPerformance = (tasks, assignments, submissions, memberId) => 
 
 const renderContributorRows = (list, contributors, useReputation) => {
     if (!list) return;
-    const rankedContributors = useReputation
-        ? [...contributors].sort((first, second) => second.score - first.score)
-        : contributors;
+    const rankedContributors = [...contributors].sort((first, second) => {
+        const firstScore = useReputation ? first.reputationScore : first.score;
+        const secondScore = useReputation ? second.reputationScore : second.score;
+        if (firstScore === null) return 1;
+        if (secondScore === null) return -1;
+        return secondScore - firstScore;
+    });
     list.innerHTML = contributors.length
         ? rankedContributors.map((contributor, index) => `
             <div class="contributor-summary-row${useReputation ? " reputation-leaderboard-row" : ""}">
@@ -154,8 +168,8 @@ const renderContributorRows = (list, contributors, useReputation) => {
                     <img class="contributor-summary-avatar" src="${contributor.avatarUrl}" alt="">
                     <span class="contributor-summary-name">${contributor.name.replace(/</g, "&lt;")}</span>
                 </span>
-                <span class="contributor-summary-score">${contributor.score === null ? "N/A" : (useReputation ? `${Math.round(contributor.score / 10)}/10` : `${contributor.score}%`)}</span>
-                <span class="contributor-summary-reputation">${reputationLabel(contributor.score)}</span>
+                <span class="contributor-summary-score${!contributor.assigned || (useReputation && contributor.reputationScore === null) ? " contributor-summary-unassigned" : ""}">${!contributor.assigned ? "Not Assigned Yet" : (useReputation ? (contributor.reputationScore === null ? "Not Rated Yet" : `${contributor.reputationScore}/10`) : (contributor.score === null ? "N/A" : `${contributor.score}%`))}</span>
+                <span class="contributor-summary-reputation">${!contributor.assigned || (useReputation && contributor.reputationScore === null) ? "" : (useReputation ? reputationLabel(contributor.reputationScore * 10) : participationLabel(contributor.score))}</span>
             </div>
         `).join("")
         : '<p class="contributor-summary-empty">No contributors found.</p>';
@@ -180,6 +194,15 @@ const loadContributorSummary = async () => {
     const { data: submissions } = taskIds.length
         ? await supa().from("SUBMISSION").select("taskId, grpmemId, submittedAt, status").in("taskId", taskIds)
         : { data: [] };
+    const { data: peerEvaluations } = await supa().from("PEEREVAL").select("evaluatedGrpmemId, evalRemarks, confirmed").eq("projId", Number(projectId));
+    const reputationByMember = new Map();
+    (peerEvaluations || []).filter((evaluation) => evaluation.confirmed !== false).forEach((evaluation) => {
+        const rating = Number(String(evaluation.evalRemarks || "").match(/(10|[0-9])\s*\/\s*10/)?.[1]);
+        if (!Number.isFinite(rating)) return;
+        const ratings = reputationByMember.get(String(evaluation.evaluatedGrpmemId)) || [];
+        ratings.push(rating);
+        reputationByMember.set(String(evaluation.evaluatedGrpmemId), ratings);
+    });
     const contributors = (members || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() !== "teacher").map((member) => {
         const performance = calculateTaskPerformance(tasks, assignments, submissions, member.grpmemId);
         return {
@@ -190,6 +213,9 @@ const loadContributorSummary = async () => {
                     ? supa().storage.from("profilePicture").getPublicUrl(member.USER.avatarPath).data?.publicUrl
                     : "../../assets/profile-placeholder.svg"),
             ...performance
+            , reputationScore: reputationByMember.has(String(member.grpmemId))
+                ? Math.round((reputationByMember.get(String(member.grpmemId)).reduce((sum, rating) => sum + rating, 0) / reputationByMember.get(String(member.grpmemId)).length) * 10) / 10
+                : null
         };
     });
     renderContributorRows(participationSummaryList, contributors, false);
@@ -357,7 +383,8 @@ const setSubmissionFilter = (filter) => {
 submissionFilterButtons.forEach((button) => button.addEventListener("click", () => setSubmissionFilter(button.dataset.submissionFilter)));
 
 const peerHexagonPath = "M2.46148 12.8001C2.29321 12.5087 2.20908 12.3629 2.17615 12.208C2.14701 12.0709 2.14701 11.9293 2.17615 11.7922C2.20908 11.6373 2.29321 11.4915 2.46148 11.2001L6.53772 4.13984C6.70598 3.8484 6.79011 3.70268 6.90782 3.5967C7.01196 3.50268 7.13465 3.43209 7.26793 3.38879C7.41856 3.33984 7.58683 3.33984 7.92336 3.33984H16.0758C16.4123 3.33984 16.5806 3.33984 16.7313 3.38879C16.8645 3.43209 16.9872 3.50268 17.0914 3.5967C17.2091 3.70268 17.2932 3.8484 17.4615 4.13984L21.5377 11.2001C21.706 11.4915 21.7901 11.6373 21.823 11.7922C21.8522 11.9293 21.8522 12.0709 21.823 12.208C21.7901 12.3629 21.706 12.5085 21.5377 12.8001L17.4615 19.8604C17.2932 20.1518 17.2091 20.2975 17.0914 20.4035C16.9872 20.4975 16.8645 20.5681 16.7313 20.6114C16.5806 20.6604 16.4123 20.6604 16.0758 20.6604H7.92336C7.58683 20.6604 7.41856 20.6604 7.26793 20.6114C7.13465 20.5681 7.01196 20.4975 6.90782 20.4035C6.79011 20.2975 6.70598 20.1518 6.53772 19.8604L2.46148 12.8001Z";
-const renderPeerRating = (rating = 0) => Array.from({ length: 10 }, (_, index) => `<button class="p2p-rating-hexagon${index < rating ? " selected" : ""}" type="button" data-rating="${index + 1}" aria-label="Rate ${index + 1} out of 10"><svg viewBox="0 0 24 24"><path d="${peerHexagonPath}"></path></svg></button>`).join("");
+const renderZeroRating = (rating, hasRating) => `<button class="p2p-rating-hexagon p2p-rating-zero${hasRating && rating === 0 ? " selected" : ""}" type="button" data-rating="0" aria-label="Rate 0 out of 10"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.9485 11.0195C21.2909 11.6283 21.2909 12.3717 20.9485 12.9805L17.5735 18.9805C17.2192 19.6103 16.5529 20 15.8303 20H8.16969C7.44715 20 6.78078 19.6103 6.42654 18.9805L3.05154 12.9805C2.70908 12.3717 2.70908 11.6283 3.05154 11.0195L6.42654 5.01948C6.78078 4.38972 7.44715 4 8.16969 4H15.8303C16.5529 4 17.2192 4.38972 17.5735 5.01948L20.9485 11.0195Z"></path><path d="M12 4L11.2 6.5L12.8 9L11.4 11.5L13 14L11.6 16.5L12.5 18.2L12 20"></path></svg><span class="p2p-rating-zero-popover">Rate your swarm mate 0?</span></button>`;
+const renderPeerRating = (rating = 0, hasRating = false) => `${renderZeroRating(rating, hasRating)}${Array.from({ length: 10 }, (_, index) => `<button class="p2p-rating-hexagon${index < rating ? " selected" : ""}" type="button" data-rating="${index + 1}" aria-label="Rate ${index + 1} out of 10"><svg viewBox="0 0 24 24"><path d="${peerHexagonPath}"></path></svg></button>`).join("")}`;
 const loadP2PEvaluations = async () => {
     if (!p2pEvaluationList) return;
     const groupId = getGrpId(); const projectId = getProjId();
@@ -365,28 +392,31 @@ const loadP2PEvaluations = async () => {
     const { data: project } = await supa().from("PROJECT").select("projStatus").eq("projId", Number(projectId)).maybeSingle();
     setP2PEvaluationLocked(String(project?.projStatus || "ongoing").toLowerCase() !== "finished");
     p2pEvaluationList.innerHTML = `<p class="p2p-evaluation-loading">Loading members...</p>`;
-    const [{ data: members, error }, { data: evaluations }] = await Promise.all([
+    const [{ data: members, error }, { data: evaluations }, { data: projectTasks }] = await Promise.all([
         supa().from("GROUPMEMBER").select("grpmemId, userId, USER(userDisplayName, avatarPath), ROLE(roleName)").eq("grpId", Number(groupId)),
-        supa().from("PEEREVAL").select("evaluatedGrpmemId, evaluatorId, confirmed, evalRemarks").eq("projId", Number(projectId)).is("taskId", null)
+        supa().from("PEEREVAL").select("evaluatedGrpmemId, evaluatorId, confirmed, evalRemarks").eq("projId", Number(projectId)).is("taskId", null),
+        supa().from("TASK").select("TASKASSIGNMENT(grpmemId)").eq("projId", Number(projectId))
     ]);
     if (error) { p2pEvaluationList.innerHTML = `<p class="p2p-evaluation-loading">Unable to load members.</p>`; return; }
-    const eligibleMembers = (members || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() !== "teacher");
+    const assignedMemberIds = new Set((projectTasks || []).flatMap((task) => task.TASKASSIGNMENT || []).map((assignment) => String(assignment.grpmemId)));
+    const eligibleMembers = (members || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() !== "teacher" && assignedMemberIds.has(String(member.grpmemId)));
     const others = eligibleMembers.filter((member) => String(member.userId) !== String(currentUserId));
     const groupUserIds = new Set(eligibleMembers.map((member) => String(member.userId)));
-    const ratings = new Map((evaluations || []).filter((item) => String(item.evaluatorId) === String(currentUserId)).map((item) => [String(item.evaluatedGrpmemId), Number(String(item.evalRemarks || "").match(/(10|[1-9])\s*\/\s*10/)?.[1] || 0)]));
+    const ratings = new Map((evaluations || []).filter((item) => String(item.evaluatorId) === String(currentUserId)).map((item) => [String(item.evaluatedGrpmemId), Number(String(item.evalRemarks || "").match(/(10|[0-9])\s*\/\s*10/)?.[1] || 0)]));
     const totalMembers = Math.max(eligibleMembers.length - 1, 0);
     if (!others.length) { p2pEvaluationList.innerHTML = `<p class="p2p-evaluation-loading">No other members to evaluate.</p>`; return; }
     p2pEvaluationList.innerHTML = others.map((member) => {
         const name = member.USER?.userDisplayName || "Member"; const avatarPath = member.USER?.avatarPath;
         const avatar = avatarPath?.startsWith("http") ? avatarPath : (avatarPath ? supa().storage.from("profilePicture").getPublicUrl(avatarPath).data?.publicUrl : "../../assets/profile-placeholder.svg");
+        const hasRating = ratings.has(String(member.grpmemId));
         const rating = ratings.get(String(member.grpmemId)) || 0;
         const evaluatedBy = new Set((evaluations || []).filter((evaluation) => evaluation.confirmed && String(evaluation.evaluatedGrpmemId) === String(member.grpmemId) && String(evaluation.evaluatorId) !== String(member.userId) && groupUserIds.has(String(evaluation.evaluatorId))).map((evaluation) => String(evaluation.evaluatorId))).size;
-        return `<article class="p2p-evaluation-row" data-member-id="${member.grpmemId}" data-rating="${rating}"><div class="p2p-member-info"><img src="${avatar}" alt=""><strong>${name.replace(/</g, "&lt;")}</strong></div><div class="p2p-rating-wrap"><div class="p2p-rating-controls" role="radiogroup" aria-label="Rate ${name.replace(/"/g, "&quot;")}">${renderPeerRating(rating)}</div><span class="p2p-rating-value">${rating ? `${rating}/10` : ""}</span></div><div class="p2p-evaluation-footer">${evaluatedBy} out of ${totalMembers} Members Evaluated</div></article>`;
+        return `<article class="p2p-evaluation-row" data-member-id="${member.grpmemId}" data-rating="${rating}"><div class="p2p-member-info"><img src="${avatar}" alt=""><strong>${name.replace(/</g, "&lt;")}</strong></div><div class="p2p-rating-wrap"><div class="p2p-rating-controls" role="radiogroup" aria-label="Rate ${name.replace(/"/g, "&quot;")}">${renderPeerRating(rating, hasRating)}</div><span class="p2p-rating-value">${hasRating ? `${rating}/10` : ""}</span></div><div class="p2p-evaluation-footer">${evaluatedBy} out of ${totalMembers} Members Evaluated</div></article>`;
     }).join("");
     p2pEvaluationList.querySelectorAll(".p2p-evaluation-row").forEach((row) => {
         const member = others.find((item) => String(item.grpmemId) === row.dataset.memberId); const controls = row.querySelectorAll(".p2p-rating-hexagon");
         if (ratings.has(String(member.grpmemId))) controls.forEach((control) => { control.disabled = true; });
-        const paint = (rating) => controls.forEach((control, index) => control.classList.toggle("preview", index < rating));
+        const paint = (rating) => controls.forEach((control) => control.classList.toggle("preview", Number(control.dataset.rating) > 0 && Number(control.dataset.rating) <= rating));
         controls.forEach((control) => {
             control.addEventListener("mouseenter", () => paint(Number(control.dataset.rating)));
             control.addEventListener("focus", () => paint(Number(control.dataset.rating)));
@@ -1028,7 +1058,10 @@ const openPostTaskModal = async () => {
 };
 
 if (inlinePostTaskBtn && canManageTasks) inlinePostTaskBtn.addEventListener("click", openPostTaskModal);
-if (projectBackLink) projectBackLink.addEventListener("click", () => { window.location.href = "s.membergrpviewing.html"; });
+if (projectBackLink) projectBackLink.addEventListener("click", () => {
+    const groupId = getGrpId();
+    window.location.replace(`s.membergrpviewing.html${groupId ? `?grpId=${encodeURIComponent(groupId)}` : ""}`);
+});
 
 // Global ticker — updates all active task cards + the open details modal every second
 // Stored on window so it is never started more than once

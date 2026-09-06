@@ -335,7 +335,7 @@ const getMemberStat = (member, keys) => {
 /* ── STATE (populated by loadGroupFromDB) ────────────────────────────────── */
 let currentMembers = []; // full list of {grpmemId, userId, fullName, email, roleName, roleId}
 let canManageMembers = false;
-let currentGroup = { name: "Team", subject: "Subject", description: "", motto: "", meetingSchedule: "", links: [], createdAt: "" };
+let currentGroup = { name: "Team", subject: "Subject", description: "", motto: "", meetingSchedule: "", links: [], createdAt: "", parentGrpId: null };
 
 const formatGroupCreatedDate = (value) => {
   if (!value) return "Not available";
@@ -368,7 +368,7 @@ const loadGroupFromDB = async () => {
   // 1. Group info
   const { data: grp, error: grpErr } = await supabase
     .from("GROUP")
-    .select("grpName, grpSubject, grpDescription, grpMotto, grpMeetingSchedule, grpLinks, grpCreatedAt, teacherId")
+    .select("grpName, grpSubject, grpDescription, grpMotto, grpMeetingSchedule, grpLinks, grpCreatedAt, teacherId, parentGrpId")
     .eq("grpId", grpId)
     .maybeSingle();
 
@@ -380,8 +380,15 @@ const loadGroupFromDB = async () => {
       motto: grp.grpMotto || "",
       meetingSchedule: grp.grpMeetingSchedule || "",
       links: Array.isArray(grp.grpLinks) ? grp.grpLinks : [],
-      createdAt: grp.grpCreatedAt || ""
+      createdAt: grp.grpCreatedAt || "",
+      parentGrpId: grp.parentGrpId || null
     };
+    if (topBackBtn) {
+      const backLabel = currentGroup.parentGrpId ? "Colony" : "Teams";
+      topBackBtn.setAttribute("aria-label", `Back to ${backLabel}`);
+      const label = topBackBtn.querySelector("span");
+      if (label) label.textContent = backLabel;
+    }
     const h2 = document.querySelector(".group-label h2");
     const p  = document.querySelector(".group-label p");
     const groupTitle = document.querySelector("#groupTitle");
@@ -1154,11 +1161,12 @@ const getAvatarLightbox = () => {
 
 const openMemberProfile = async (member) => {
   if (!memberProfileOverlay || !memberProfileAvatar) return;
-  memberProfileRole.textContent  = normalizeText(member.roleName) === "leader" ? "Project Manager" : member.roleName;
+  memberProfileRole.textContent  = normalizeText(member.roleName) === "leader" ? "Project Manager" : (member.roleName || "Member");
   memberProfileName.textContent  = member.fullName;
   memberProfileEmail.textContent = member.email;
-  const field = member.deptName || member.progName || "";
-  memberProfileField.textContent = field ? (member.deptName ? `Department: ${field}` : `Program: ${field}`) : "";
+  memberProfileEmail.style.visibility = "hidden";
+  const field = member.progName || member.deptName || "";
+  memberProfileField.textContent = field || "N/A";
   let avatarPath = member.avatarPath;
   if (!avatarPath) {
     const supabase = getSupabase();
@@ -1185,6 +1193,7 @@ const openMemberProfile = async (member) => {
   }
   memberProfileOverlay.classList.add("open");
   memberProfileOverlay.setAttribute("aria-hidden", "false");
+  window.memberProfileStats?.load(member);
 };
 
 const closeMemberProfile = () => {
@@ -1616,6 +1625,10 @@ async function handleMemberAction(member, action) {
 
 // FIX: TopBackBtn is the only back button in the HTML — #backBtn does not exist
 if (topBackBtn) topBackBtn.addEventListener("click", () => {
+  if (currentGroup.parentGrpId) {
+    window.location.href = `../s.colony.html?grpId=${encodeURIComponent(currentGroup.parentGrpId)}`;
+    return;
+  }
   const queryReturnPage = new URLSearchParams(window.location.search).get("from");
   const referrerReturnPage = document.referrer.includes("/s.team.html") ? "teams" : null;
   const returnPage = referrerReturnPage

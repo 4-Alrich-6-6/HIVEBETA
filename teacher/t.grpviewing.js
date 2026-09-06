@@ -1301,11 +1301,12 @@ const getAvatarLightbox = () => {
 
 const openMemberProfile = async (member) => {
   if (!memberProfileOverlay || !memberProfileAvatar) return;
-  memberProfileRole.textContent  = member.roleName;
+  memberProfileRole.textContent  = member.roleName || "Member";
   memberProfileName.textContent  = member.fullName;
   memberProfileEmail.textContent = member.email;
-  const field = member.deptName || member.progName || "";
-  memberProfileField.textContent = field ? (member.deptName ? `Department: ${field}` : `Program: ${field}`) : "";
+  memberProfileEmail.style.visibility = "hidden";
+  const field = member.progName || member.deptName || "";
+  memberProfileField.textContent = field || "N/A";
   let avatarPath = member.avatarPath;
   if (!avatarPath) {
     const supabase = getSupabase();
@@ -1332,6 +1333,7 @@ const openMemberProfile = async (member) => {
   }
   memberProfileOverlay.classList.add("open");
   memberProfileOverlay.setAttribute("aria-hidden", "false");
+  window.memberProfileStats?.load(member);
 };
 
 const closeMemberProfile = () => {

@@ -240,7 +240,7 @@ const renderTeamList = (teams) => {
     card.querySelector(".group-subject-text").textContent = team.subject;
     card.querySelector(".swarm-card-menu-btn")?.addEventListener("click", (event) => {
       event.stopPropagation();
-      openAddMembersModal(team);
+      openAddSwarmMembersModal(team);
     });
     card.addEventListener("click", () => openTeam(team));
     card.addEventListener("keydown", (event) => {
@@ -892,13 +892,13 @@ const moveMemberToSwarm = async () => {
   await loadGroupFromDB();
 };
 
-const closeAddMembersModal = () => {
+const closeAddSwarmMembersModal = () => {
   addSwarmMembersModalOverlay?.classList.remove("open");
   addSwarmMembersModalOverlay?.setAttribute("aria-hidden", "true");
   swarmToAddMembers = null;
 };
 
-const openAddMembersModal = async (swarm) => {
+const openAddSwarmMembersModal = async (swarm) => {
   if (!isColonyInstructor) {
     showAlert("Only the colony instructor can add members to a swarm.", { title: "Not Allowed" });
     return;
@@ -931,7 +931,7 @@ const addMembersToSwarm = async () => {
     showAlert(`Failed to add members: ${error.message}`, { title: "Add Members" });
     return;
   }
-  closeAddMembersModal();
+  closeAddSwarmMembersModal();
   await loadColonyTeams();
 };
 
@@ -1609,11 +1609,12 @@ const getAvatarLightbox = () => {
 
 const openMemberProfile = async (member) => {
   if (!memberProfileOverlay || !memberProfileAvatar) return;
-  memberProfileRole.textContent  = normalizeText(member.roleName) === "leader" ? "Project Manager" : member.roleName;
+  memberProfileRole.textContent  = normalizeText(member.roleName) === "leader" ? "Project Manager" : (member.roleName || "Member");
   memberProfileName.textContent  = member.fullName;
   memberProfileEmail.textContent = member.email;
-  const field = member.deptName || member.progName || "";
-  memberProfileField.textContent = field ? (member.deptName ? `Department: ${field}` : `Program: ${field}`) : "";
+  memberProfileEmail.style.visibility = "hidden";
+  const field = member.progName || member.deptName || "";
+  memberProfileField.textContent = field || "N/A";
   let avatarPath = member.avatarPath;
   if (!avatarPath) {
     const supabase = getSupabase();
@@ -1640,6 +1641,7 @@ const openMemberProfile = async (member) => {
   }
   memberProfileOverlay.classList.add("open");
   memberProfileOverlay.setAttribute("aria-hidden", "false");
+  window.memberProfileStats?.load(member);
 };
 
 const closeMemberProfile = () => {
@@ -1931,13 +1933,13 @@ confirmMoveMemberBtn?.addEventListener("click", moveMemberToSwarm);
 moveMemberModalOverlay?.addEventListener("click", (event) => {
   if (event.target === moveMemberModalOverlay) closeMoveMemberModal();
 });
-cancelAddSwarmMembersBtn?.addEventListener("click", closeAddMembersModal);
+cancelAddSwarmMembersBtn?.addEventListener("click", closeAddSwarmMembersModal);
 confirmAddSwarmMembersBtn?.addEventListener("click", addMembersToSwarm);
 addSwarmMembersList?.addEventListener("change", () => {
   if (confirmAddSwarmMembersBtn) confirmAddSwarmMembersBtn.disabled = !addSwarmMembersList.querySelector("input[type='checkbox']:checked");
 });
 addSwarmMembersModalOverlay?.addEventListener("click", (event) => {
-  if (event.target === addSwarmMembersModalOverlay) closeAddMembersModal();
+  if (event.target === addSwarmMembersModalOverlay) closeAddSwarmMembersModal();
 });
 
 if (openRemoveMembersModalBtn) openRemoveMembersModalBtn.addEventListener("click", openRemoveMembersModal);
