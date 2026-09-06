@@ -96,6 +96,16 @@ const reputationLabel = (score) => {
 
 const LATE_WEIGHT = 0.75;
 const MISSED_WEIGHT = 0;
+const parseTaskDueAsLocalTime = (value) => {
+    const localDateTime = String(value || "").slice(0, 19);
+    const match = localDateTime.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
+    return match ? Number(`${match[1]}${match[2]}${match[3]}${match[4]}${match[5]}${match[6] || "00"}`) : null;
+};
+const getSubmissionWallClockTime = (value) => {
+    const parts = new Intl.DateTimeFormat(undefined, { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }).formatToParts(new Date(value));
+    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    return Number(`${values.year}${values.month}${values.day}${values.hour}${values.minute}${values.second}`);
+};
 
 const calculateTaskPerformance = (tasks, assignments, submissions, memberId) => {
     const memberTaskIds = new Set((assignments || [])
@@ -115,8 +125,8 @@ const calculateTaskPerformance = (tasks, assignments, submissions, memberId) => 
         const submission = (submissions || [])
             .filter((item) => String(item.taskId) === String(task.taskId) && String(item.grpmemId) === String(memberId))
             .sort((first, second) => new Date(first.submittedAt) - new Date(second.submittedAt))[0];
-        const dueAt = task.taskDueD ? new Date(task.taskDueD).getTime() : null;
-        const submittedAt = submission?.submittedAt ? new Date(submission.submittedAt).getTime() : null;
+        const dueAt = parseTaskDueAsLocalTime(task.taskDueD);
+        const submittedAt = submission?.submittedAt ? getSubmissionWallClockTime(submission.submittedAt) : null;
         if (dueAt && submittedAt && submittedAt > dueAt) late += 1;
         else onTime += 1;
     });
@@ -168,7 +178,7 @@ const loadContributorSummary = async () => {
     const taskIds = (tasks || []).map((task) => task.taskId);
     const assignments = (tasks || []).flatMap((task) => (task.TASKASSIGNMENT || []).map((assignment) => ({ ...assignment, taskId: task.taskId })));
     const { data: submissions } = taskIds.length
-        ? await supa().from("SUBMISSION").select("taskId, grpmemId, submittedAt, status").in("taskId", taskIds).eq("status", "approved")
+        ? await supa().from("SUBMISSION").select("taskId, grpmemId, submittedAt, status").in("taskId", taskIds)
         : { data: [] };
     const contributors = (members || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() !== "teacher").map((member) => {
         const performance = calculateTaskPerformance(tasks, assignments, submissions, member.grpmemId);
@@ -244,7 +254,7 @@ const loadSubmissions = async (filter = "evaluation") => {
 
     const { data, error } = await supa()
         .from("SUBMISSION")
-        .select("subId, taskId, grpmemId, proofLink, submittedAt, status, leaderNote, TASK!inner(taskName, statId, projId, teacherApproved, TASKASSIGNMENT(GROUPMEMBER(USER(userDisplayName, avatarPath)))), GROUPMEMBER(USER(userDisplayName, avatarPath))")
+        .select("subId, taskId, grpmemId, proofLink, submittedAt, status, leaderNote, TASK!inner(taskName, taskDueD, statId, projId, teacherApproved, TASKASSIGNMENT(GROUPMEMBER(USER(userDisplayName, avatarPath)))), GROUPMEMBER(USER(userDisplayName, avatarPath))")
         .eq("TASK.projId", Number(projId))
         .order("submittedAt", { ascending: false });
 
@@ -293,12 +303,17 @@ const loadSubmissions = async (filter = "evaluation") => {
                 <h3></h3>
                 <div class="submission-contributor"><span>Assigned to:</span><span class="submission-assignees"></span><button class="submission-info" type="button" title="View assigned members" aria-label="View assigned members">i</button></div>
                 <p class="submission-date"></p>
+                <span class="submission-late-label" hidden>Late Submission</span>
             </div>
             <div class="submission-card-side">
                 <button class="submission-verify submission-verifying" type="button" disabled></button>
                 <a class="submission-proof" target="_blank" rel="noopener" hidden>View Proof</a>
             </div>`;
         card.querySelector("h3").textContent = submission.TASK?.taskName || "Unnamed task";
+        const firstSubmission = (submission.taskSubmissions || [submission]).filter((item) => item.submittedAt).sort((first, second) => new Date(first.submittedAt) - new Date(second.submittedAt))[0];
+        const dueAt = parseTaskDueAsLocalTime(submission.TASK?.taskDueD);
+        const isLateSubmission = Boolean(dueAt && firstSubmission?.submittedAt && getSubmissionWallClockTime(firstSubmission.submittedAt) > dueAt);
+        card.querySelector(".submission-late-label").hidden = !isLateSubmission;
         const assignments = submission.TASK?.TASKASSIGNMENT || [];
         const assignedNames = assignments.map((assignment) => assignment.GROUPMEMBER?.USER?.userDisplayName).filter(Boolean);
         const fallbackName = submission.GROUPMEMBER?.USER?.userDisplayName || "Unknown contributor";

@@ -2399,6 +2399,19 @@ body {
     font-weight: 800;
 }
 
+.leader-project-page .submission-late-label {
+    display: inline-block;
+    margin-left: 8px;
+    color: #b44a00;
+    font-family: 'Kodchasan', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.leader-project-page .submission-late-label[hidden] {
+    display: none;
+}
+
 .leader-project-page .submission-contributor {
     display: flex;
     align-items: center;
