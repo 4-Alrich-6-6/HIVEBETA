@@ -73,7 +73,79 @@ const profilePicPreview = document.querySelector("#profilePicPreview");
 const displayNameInput = document.querySelector("#displayNameInput");
 const programSelect = document.querySelector("#program");
 
+const updateSaveButtonState = () => {
+    if (!saveButton) return;
+    saveButton.disabled = !displayNameInput?.value.trim() || !programSelect?.value;
+};
+
+displayNameInput?.addEventListener("input", updateSaveButtonState);
+programSelect?.addEventListener("change", updateSaveButtonState);
+updateSaveButtonState();
+
 let avatarFile = null;
+const cropOverlay = document.querySelector("#profileCropOverlay");
+const cropCanvas = document.querySelector("#profileCropCanvas");
+const cropZoom = document.querySelector("#profileCropZoom");
+const cropCancel = document.querySelector("#profileCropCancel");
+const cropSave = document.querySelector("#profileCropSave");
+let cropImage = null;
+let cropScale = 1;
+let cropOffsetX = 0;
+let cropOffsetY = 0;
+let cropPointer = null;
+
+const drawCropPreview = () => {
+    if (!cropImage || !cropCanvas) return;
+    const context = cropCanvas.getContext("2d");
+    const size = cropCanvas.width;
+    const baseScale = Math.max(size / cropImage.width, size / cropImage.height);
+    const scale = baseScale * cropScale;
+    context.clearRect(0, 0, size, size);
+    context.fillStyle = "#fff";
+    context.fillRect(0, 0, size, size);
+    context.drawImage(cropImage, (size - cropImage.width * scale) / 2 + cropOffsetX, (size - cropImage.height * scale) / 2 + cropOffsetY, cropImage.width * scale, cropImage.height * scale);
+};
+
+const closeCrop = () => {
+    cropOverlay?.classList.remove("open");
+    cropOverlay?.setAttribute("aria-hidden", "true");
+    cropImage = null;
+    cropPointer = null;
+};
+
+const openCrop = (file) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+        cropImage = new Image();
+        cropImage.onload = () => {
+            cropScale = 1;
+            cropOffsetX = 0;
+            cropOffsetY = 0;
+            if (cropZoom) cropZoom.value = "1";
+            drawCropPreview();
+            cropOverlay?.classList.add("open");
+            cropOverlay?.setAttribute("aria-hidden", "false");
+        };
+        cropImage.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+};
+
+cropZoom?.addEventListener("input", () => { cropScale = Number(cropZoom.value); drawCropPreview(); });
+cropCanvas?.addEventListener("pointerdown", (event) => { cropPointer = { x: event.clientX, y: event.clientY }; cropCanvas.setPointerCapture(event.pointerId); });
+cropCanvas?.addEventListener("pointermove", (event) => { if (!cropPointer) return; cropOffsetX += event.clientX - cropPointer.x; cropOffsetY += event.clientY - cropPointer.y; cropPointer = { x: event.clientX, y: event.clientY }; drawCropPreview(); });
+cropCanvas?.addEventListener("pointerup", () => { cropPointer = null; });
+cropCanvas?.addEventListener("pointercancel", () => { cropPointer = null; });
+cropCancel?.addEventListener("click", closeCrop);
+cropOverlay?.addEventListener("click", (event) => { if (event.target === cropOverlay) closeCrop(); });
+cropSave?.addEventListener("click", async () => {
+    if (!cropImage || !cropCanvas) return;
+    const blob = await new Promise((resolve) => cropCanvas.toBlob(resolve, "image/jpeg", 0.9));
+    if (!blob) return;
+    avatarFile = new File([blob], "profile-picture.jpg", { type: "image/jpeg" });
+    if (profilePicPreview) profilePicPreview.src = cropCanvas.toDataURL("image/jpeg", 0.9);
+    closeCrop();
+});
 
 const getPositionId = async (supabase, roleName) => {
     const { data, error } = await supabase
@@ -141,12 +213,25 @@ const loadProfileData = async () => {
 (async () => {
     if (!programSelect) return;
     const supabase = window.hiveSupabase;
-    if (!supabase) return;
+    if (!supabase) {
+        console.error("Program dropdown could not load: Supabase client is unavailable.");
+        showNotice("Program options could not be loaded. Please refresh and try again.", { title: "Loading Error" });
+        return;
+    }
     const { data, error } = await supabase
         .from("PROGRAM")
         .select("progId, progName")
         .order("progId", { ascending: true });
-    if (error || !data) return;
+    if (error) {
+        console.error("Program dropdown query failed:", error);
+        showNotice(`Program options could not be loaded: ${error.message}`, { title: "Loading Error" });
+        return;
+    }
+    if (!data?.length) {
+        console.warn("Program dropdown query returned no rows. Check PROGRAM data and SELECT policies.");
+        showNotice("No programs are available yet. Please ask an administrator to add program options.", { title: "No Programs" });
+        return;
+    }
     data.forEach(prog => {
         const opt = document.createElement("option");
         opt.value = prog.progId;
@@ -156,6 +241,7 @@ const loadProfileData = async () => {
     
     // Load profile data after programs are loaded
     await loadProfileData();
+    updateSaveButtonState();
 })();
 
 if (editProfilePicBtn && profilePicInput) {
@@ -169,10 +255,7 @@ if (editProfilePicBtn && profilePicInput) {
             profilePicInput.value = "";
             return;
         }
-        avatarFile = file;
-        const reader = new FileReader();
-        reader.onload = (e) => { if (profilePicPreview) profilePicPreview.src = e.target.result; };
-        reader.readAsDataURL(file);
+        openCrop(file);
     });
 }
 
@@ -258,7 +341,7 @@ if (saveButton) {
             onClose: () => {
                 localStorage.removeItem("hive_posId");
                 localStorage.removeItem("hive_role");
-                window.location.href = "s.dashb.html";
+                window.location.href = "../lib/tutorial.html?role=student";
             },
         });
         return;

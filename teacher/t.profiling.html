@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" style="visibility:hidden">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
@@ -8,9 +8,12 @@
     <title>Student Profiling</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kodchasan:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="t.profiling.css">
+    <style>.profiling-main{width:100%;min-height:calc(100vh - 93px);padding:0 clamp(18px,8vw,96px);align-items:flex-start}.profiling-card{position:relative;margin:70px auto 0}.profiling-card .back-button{position:absolute;top:14px;left:16px;margin:0}.profiling-card h1{font-family:'Inter',sans-serif;font-size:clamp(34px,4vw,48px);font-weight:800;line-height:.98}.form-subtitle{font-family:'Kodchasan',sans-serif;font-size:16px}.field,.select-program select{font-size:14px}.field::placeholder{font-size:14px}.picture-label{font-size:12px}.profile-image{background:#fff}.crop-overlay{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;background:#0009}.crop-overlay.open{display:flex}.crop-modal{width:min(380px,100%);padding:20px;border-radius:12px;background:#fff}.crop-modal h2{margin:0 0 14px;font:700 20px 'Inter',sans-serif}.crop-frame{width:320px;max-width:100%;margin:auto;overflow:hidden;background:#111}.crop-frame canvas{display:block;width:100%;height:auto;touch-action:none;cursor:grab}.crop-frame canvas:active{cursor:grabbing}.crop-zoom{display:grid;gap:6px;margin:14px 0;font:600 13px 'Kodchasan',sans-serif}.crop-actions{display:flex;justify-content:flex-end;gap:8px}.crop-actions button{padding:9px 14px;border:0;border-radius:6px;background:#ffcc00;font:600 12px 'Kodchasan',sans-serif;cursor:pointer}.crop-actions button:first-child{background:#eee}@media(max-width:600px){.profiling-main{min-height:calc(100vh - 67px);padding:0 18px 44px}.profiling-card{margin-top:34px}}</style>
     <link rel="stylesheet" href="../lib/loading.css">
+    <link rel="stylesheet" href="../lib/settings.css">
+    <style>.settings-crop-modal{overflow:hidden}.settings-crop-modal .settings-header{margin:-1px -1px 0;border-radius:14px 14px 0 0;background:transparent}.settings-crop-modal .settings-zoom-control{width:100%}.settings-crop-modal .settings-zoom-control input{width:100%;min-width:0}</style>
     <script src="../lib/offline-banner.js" defer></script>
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#000000">
@@ -18,58 +21,20 @@
     <link rel="icon" href="../Logo.png">
 </head>
 <body>
-    <div class="container">
-        <div class="back-button">
-            <img src="../assets/Back.png" alt="Back">
-        </div>
-        <div class="center">
-            <div class="hex-wrap">
-            <div class="hex-left"></div>
-            <div class="hex-mid">
-                <div class="hex-container">
-                    <div class="title">
-                        <h1>WELCOME TO</h1>
-                        <img src="../Title.png" class="title-image" alt="Logo">
-                        <h2>Where Teamwork Thrives!</h2>
-                    </div>
-                    <div class="selection">
-                        <h1>Let's get you started...</h1>
-                    </div>
-                        <div class="info">
-                            <div class="info-title">
-                                <h2>Student</h2>
-                            </div>
-                            <div class="info-card">
-                                <div class="info-content">
-                                    <div class="profile-image">
-                                        <img id="profilePicPreview" src="../assets/profile.png" alt="Profile">
-                                        <div class="edit-profile">
-                                            <button type="button" id="editProfilePicBtn" aria-label="Change profile picture"><img src="../assets/Edit.png" alt="Edit"></button>
-                                        </div>
-                                        <input type="file" id="profilePicInput" accept="image/png,image/jpeg,image/jpg" hidden>
-                                    </div>
-                                    <div class="profile-info">
-                                        <div class="display-name">
-                                            <input type="text" id="displayNameInput" placeholder="Enter your Display Name" required>
-                                        </div>
-                                        <div class="select-program">
-                                            <select name="program" id="program">
-                                                <option value="">Select Program</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="save-button">
-                                <button>Save</button>
-                            </div>
-                        </div>
-                </div>
-            </div>
-            <div class="hex-right"></div>
-            </div>
-        </div>
+    <div class="profiling-page">
+        <div class="bg-wrapper" aria-hidden="true"><div class="bg-left"></div><div class="bg-right"></div></div>
+        <nav class="navbar"><img class="title-logo" src="../PrimeLogo.png" alt="HIVE Title Logo"><ul class="nav-links"></ul></nav>
+        <main class="profiling-main"><section class="profiling-card"><a href="../auth/profiling.html" class="back-button">‹ <span>Select Role</span></a>
+            <h1>Let's get you<br>started...</h1>
+            <p class="form-subtitle">Please fill up the information below.</p>
+            <div class="profile-image"><img id="profilePicPreview" src="../assets/profile-placeholder.svg" alt="Profile"><button type="button" id="editProfilePicBtn" aria-label="Choose your profile picture"><img src="../assets/Edit.png" alt=""></button><input type="file" id="profilePicInput" accept="image/png,image/jpeg,image/jpg" hidden></div>
+            <label class="picture-label" for="editProfilePicBtn">Choose your Profile Picture</label>
+            <input class="field" type="text" id="displayNameInput" placeholder="Enter your Display Name" required>
+            <div class="select-program"><select name="department" id="department"><option value="">Choose your Department</option></select></div>
+            <div class="save-button"><button>Enter Hive</button></div>
+        </section><div class="crop-overlay settings-edit-overlay" id="profileCropOverlay" aria-hidden="true"><div class="crop-modal settings-edit-modal settings-crop-modal" role="dialog" aria-modal="true" aria-labelledby="profileCropTitle"><div class="settings-header"><h2 id="profileCropTitle">Crop Profile Picture</h2></div><div class="settings-crop-body"><div class="crop-frame settings-crop-frame"><canvas id="profileCropCanvas" width="320" height="320"></canvas></div><label class="crop-zoom settings-zoom-control" for="profileCropZoom">Zoom<input id="profileCropZoom" type="range" min="1" max="3" step="0.01" value="1"></label></div><div class="crop-actions settings-edit-actions settings-crop-actions"><button type="button" class="settings-btn settings-btn-cancel" id="profileCropCancel">Cancel</button><button type="button" class="settings-btn settings-btn-save" id="profileCropSave">Save Picture</button></div></div></div></main>
     </div>
+    <style>.save-button button{font-family:'Inter',sans-serif;font-size:14px;font-weight:700}.save-button button:disabled{cursor:not-allowed;opacity:.5}.select-program::after{content:'';top:50%;right:12px;width:12px;height:8px;transform:translateY(-50%);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23111' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.8'/%3E%3C/svg%3E") center/contain no-repeat}</style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../lib/supabaseClient.js"></script>
     <script src="../lib/auth-guard.js"></script>

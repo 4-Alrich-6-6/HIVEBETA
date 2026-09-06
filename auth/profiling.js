@@ -29,7 +29,8 @@ const optionsEl = document.getElementById("positionOptions");
 
             const div = document.createElement("div");
             div.className = cssClass;
-            div.innerHTML = `<h2>${pos.posName}</h2>`;
+            const displayName = role === "teacher" ? "Instructor" : pos.posName;
+            div.innerHTML = `<h2>${displayName}</h2>`;
 
             div.addEventListener("click", () => {
                 localStorage.setItem("hive_posId", pos.posId);

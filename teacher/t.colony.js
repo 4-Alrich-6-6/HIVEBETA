@@ -1241,10 +1241,16 @@ if (createTeamForm) {
       ]);
       if (!leaderRole) throw new Error("Leader role could not be found.");
 
-      const newSwarmMembers = [{ userId: user.id, grpId: newTeam.grpId, roleId: leaderRole.roleId }];
-      if (colony?.teacherId && String(colony.teacherId) !== String(user.id)) {
-        newSwarmMembers.push({ userId: colony.teacherId, grpId: newTeam.grpId, roleId: teacherRole?.roleId || null });
+      const colonyInstructors = currentMembers.filter((member) => normalizeText(member.roleName) === "teacher");
+      if (colony?.teacherId && !colonyInstructors.some((member) => String(member.userId) === String(colony.teacherId))) {
+        colonyInstructors.push({ userId: colony.teacherId });
       }
+      const newSwarmMembers = [{ userId: user.id, grpId: newTeam.grpId, roleId: leaderRole.roleId }];
+      colonyInstructors.forEach((instructor) => {
+        if (String(instructor.userId) !== String(user.id) && teacherRole?.roleId) {
+          newSwarmMembers.push({ userId: instructor.userId, grpId: newTeam.grpId, roleId: teacherRole.roleId });
+        }
+      });
       const { error: memberError } = await supabase.from("GROUPMEMBER").insert(newSwarmMembers);
       if (memberError) {
         await supabase.from("GROUP").delete().eq("grpId", newTeam.grpId);
@@ -1375,7 +1381,9 @@ const loadGroupFromDB = async () => {
   isColonyLeader = Boolean(currentUserId && currentMembers.some((member) =>
     String(member.userId) === String(currentUserId) && normalizeText(member.roleName) === "leader"
   ));
-  isColonyInstructor = Boolean(currentUserId && String(currentGroup.teacherId || "") === String(currentUserId));
+  isColonyInstructor = Boolean(currentUserId && currentMembers.some((member) =>
+    String(member.userId) === String(currentUserId) && normalizeText(member.roleName) === "teacher"
+  ));
   canManageMembers = Boolean(currentUser && currentMembers.some((member) =>
     String(member.userId) === String(currentUser.id)
     && ["leader", "admin", "teacher"].includes(normalizeText(member.roleName))

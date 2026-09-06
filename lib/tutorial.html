@@ -5,11 +5,20 @@
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profiling</title>
+    <title>HIVE Tutorial</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kodchasan:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="profiling.css">
+    <link rel="stylesheet" href="tutorial.css">
+    <style>
+        .bg-wrapper{position:fixed;top:250px;left:-300px;width:200vw;height:100vh;display:flex;z-index:-1;overflow:visible}
+        .bg-left{position:static;width:70vw;height:100vh;background-image:url('../assets/primesubmark.png');background-size:cover;background-position:center;opacity:25%}
+        .bg-right{position:static;width:40vw;height:60vh;background-image:url('../assets/collab.png');background-size:cover;background-position:center;opacity:25%}
+        .navbar{width:100%;min-height:90px;height:auto;padding:1px 8%;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:30px;border-bottom:1px solid #BFBCBC}
+        .title-logo{width:150px;height:auto;display:block}
+        .tutorial-main{min-height:calc(100vh - 93px);padding:30px 18px;align-items:flex-start}
+        .tutorial-card{width:min(100%,410px);padding:44px 42px 34px;border-radius:9px;margin:70px auto 0}
+    </style>
     <script src="/lib/offline-banner.js" defer></script>
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#000000">
@@ -25,20 +34,17 @@
         <nav class="navbar">
             <img class="title-logo" src="../PrimeLogo.png" alt="HIVE Title Logo">
         </nav>
-        <main class="profiling-main">
-            <section class="profiling-card" aria-labelledby="profiling-title">
-                <h1 id="profiling-title">Welcome to<br>HIVE</h1>
-                <p class="profiling-prompt">To continue, please select a role.</p>
-                <div class="options" id="positionOptions">
-                    <p class="loading-option">Loading...</p>
-                </div>
+        <main class="tutorial-main">
+            <section class="tutorial-card" aria-labelledby="tutorial-title">
+                 <h1 id="tutorial-title">Tutorial</h1>
+                <div id="tutorialContent"></div>
             </section>
         </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../lib/supabaseClient.js"></script>
     <script src="../lib/auth-guard.js"></script>
-    <script src="profiling.js"></script>
+    <script src="tutorial.js"></script>
     <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js');

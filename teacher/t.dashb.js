@@ -546,12 +546,12 @@ const applyDashbData = (data) => {
     if (validationList) {
         const validationProjects = data.validationProjects || [];
         validationList.innerHTML = "";
+        validationList.classList.toggle("is-empty", !validationProjects.length);
         if (!validationProjects.length) {
             validationList.innerHTML = `
-                <div class="validation-item">
-                    <div class="validation-project"><strong>No pending tasks</strong><span>No projects need instructor validation</span></div>
-                    <div class="validation-summary"><strong>0 new tasks to be validated</strong><span>All caught up</span></div>
-                    <div class="validation-due"><span>Due:</span><strong>--/--/----</strong><span aria-hidden="true">›</span></div>
+                <div class="empty-state validation-empty-state">
+                    <h3>No tasks to validate</h3>
+                    <p>You're all caught up. New student submissions will appear here.</p>
                 </div>`;
         } else {
             validationProjects.forEach((project) => {

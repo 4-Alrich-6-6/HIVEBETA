@@ -253,6 +253,17 @@ button {
     background: #fff;
 }
 
+.validation-list.is-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.validation-list .validation-empty-state {
+    min-height: 112px;
+    margin: 0 auto;
+}
+
 .validation-item {
     display: grid;
     grid-template-columns: 165px minmax(0, 1fr) 150px;
