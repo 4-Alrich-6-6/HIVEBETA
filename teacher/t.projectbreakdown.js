@@ -274,7 +274,7 @@ const loadSubmissions = async (filter = "evaluation") => {
 
     const { data, error } = await supa()
         .from("SUBMISSION")
-        .select("subId, taskId, grpmemId, proofLink, submittedAt, status, leaderNote, TASK!inner(taskName, taskDueD, statId, projId, teacherApproved, TASKASSIGNMENT(GROUPMEMBER(USER(userDisplayName, avatarPath)))), GROUPMEMBER(USER(userDisplayName, avatarPath))")
+        .select("subId, taskId, grpmemId, proofLink, submittedAt, status, leaderNote, TASK!inner(taskName, taskDueD, statId, projId, teacherApproved, teacherApprovedBy, teacherApprovedByName, TASKASSIGNMENT(GROUPMEMBER(USER(userDisplayName, avatarPath)))), GROUPMEMBER(USER(userDisplayName, avatarPath))")
         .eq("TASK.projId", Number(projId))
         .order("submittedAt", { ascending: false });
 
@@ -283,6 +283,12 @@ const loadSubmissions = async (filter = "evaluation") => {
         submissionsList.innerHTML = `<div class="submissions-empty empty-state"><h3>Unable to load submissions</h3><p>${error.message}</p></div>`;
         return;
     }
+
+    const approverIds = [...new Set((data || []).map((submission) => submission.TASK?.teacherApprovedBy).filter(Boolean))];
+    const { data: approvers } = approverIds.length
+        ? await supa().from("USER").select("userId, userDisplayName").in("userId", approverIds)
+        : { data: [] };
+    const approverNames = new Map((approvers || []).map((approver) => [String(approver.userId), approver.userDisplayName || "Unknown Instructor"]));
 
     const leaderVerifiedTaskIds = new Set((data || [])
         .filter((submission) => String(submission.status || "").toLowerCase() === "approved")
@@ -381,7 +387,13 @@ const loadSubmissions = async (filter = "evaluation") => {
             ));
             statusElement.replaceWith(verifyButton);
         } else {
-            statusElement.textContent = submission.TASK?.teacherApproved ? "Finished" : status;
+            const approverName = submission.TASK?.teacherApprovedByName
+                || (submission.TASK?.teacherApprovedBy
+                ? approverNames.get(String(submission.TASK.teacherApprovedBy)) || "Unknown Instructor"
+                : "Unknown Instructor");
+            statusElement.textContent = submission.TASK?.teacherApproved
+                ? `Verified by Instructor (${approverName}) (Instructor Verified)`
+                : status;
         }
         const proof = card.querySelector(".submission-proof");
         if (submission.proofLink) {
@@ -833,7 +845,16 @@ if (verifyFinishBtn) {
             await supa().from("SUBMISSION").update({ status: "approved" }).eq("subId", _verifySubmissionId);
         }
         const taskId = verifyChoiceCallback?.taskId;
-        if (taskId) await supa().from("TASK").update({ statId: STAT_ID.finished, teacherApproved: true, taskAcmD: null }).eq("taskId", taskId);
+        if (taskId) {
+            const { data: approver } = await supa().from("USER").select("userDisplayName").eq("userId", currentUserId).maybeSingle();
+            await supa().from("TASK").update({
+                statId: STAT_ID.finished,
+                teacherApproved: true,
+                teacherApprovedBy: currentUserId,
+                teacherApprovedByName: approver?.userDisplayName || "Unknown Instructor",
+                taskAcmD: null
+            }).eq("taskId", taskId);
+        }
         verifyChoiceCallback?.onFinish?.();
         closeVerifyChoice();
     });
@@ -845,7 +866,7 @@ if (verifyReviseBtn) {
             await supa().from("SUBMISSION").update({ status: "rejected" }).eq("subId", _verifySubmissionId);
         }
         const taskId = verifyChoiceCallback?.taskId;
-        if (taskId) await supa().from("TASK").update({ statId: STAT_ID.inactive, wasRevising: true, teacherApproved: false, taskAcmD: null }).eq("taskId", taskId);
+        if (taskId) await supa().from("TASK").update({ statId: STAT_ID.inactive, wasRevising: true, teacherApproved: false, teacherApprovedBy: null, teacherApprovedByName: null, taskAcmD: null }).eq("taskId", taskId);
         verifyChoiceCallback?.onRevise?.();
         closeVerifyChoice();
     });

@@ -29,6 +29,10 @@ alter table "USER"
 add column if not exists "privateEmail" boolean not null default false,
 add column if not exists "privateStats" boolean not null default false;
 
+alter table "TASK"
+add column if not exists "teacherApprovedBy" uuid,
+add column if not exists "teacherApprovedByName" text;
+
 drop policy if exists "Users can read their task history" on "TASKHISTORY";
 drop policy if exists "Group members can read task history" on "TASKHISTORY";
 create policy "Group members can read task history"

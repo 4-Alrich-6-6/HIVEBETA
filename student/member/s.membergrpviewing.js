@@ -584,7 +584,7 @@ const renderGroupMembers = async (members) => {
     })
   );
 
-  const teacher       = membersWithStats.find((m) => normalizeText(m.roleName) === "teacher");
+  const teachers      = membersWithStats.filter((m) => normalizeText(m.roleName) === "teacher");
   const leader        = membersWithStats.find((m) => normalizeText(m.roleName) === "leader");
   const normalMembers = membersWithStats.filter((m) => {
     const r = normalizeText(m.roleName);
@@ -605,8 +605,8 @@ const renderGroupMembers = async (members) => {
     ${!leader && !normalMembers.length ? `<article class="info-card"><h3>No members found</h3></article>` : ""}
   `;
 
-  instructorCards.innerHTML = teacher
-    ? createMemberCard(teacher, "teacher-card member-card", "medium")
+  instructorCards.innerHTML = teachers.length
+    ? teachers.map((teacher) => createMemberCard(teacher, "teacher-card member-card", "medium")).join("")
     : `<article class="info-card teacher-card"><h3>You currently have no instructor</h3></article>`;
 
   filterMemberCards();

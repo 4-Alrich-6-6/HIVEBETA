@@ -105,7 +105,7 @@ const getValidationProjects = async (groupIds, groupNames, groupLeaders) => {
 
     const { data: tasks, error } = await supabase
         .from("TASK")
-        .select("taskId, projId")
+        .select("taskId, projId, teacherApproved")
         .in("projId", projectIds)
         .eq("statId", 4);
 
@@ -114,7 +114,24 @@ const getValidationProjects = async (groupIds, groupNames, groupLeaders) => {
         return [];
     }
 
-    const counts = (tasks || []).reduce((result, task) => {
+    const taskIds = (tasks || [])
+        .filter((task) => !task.teacherApproved)
+        .map((task) => task.taskId);
+    const { data: approvedSubmissions, error: submissionsError } = taskIds.length
+        ? await supabase
+            .from("SUBMISSION")
+            .select("taskId")
+            .in("taskId", taskIds)
+            .eq("status", "approved")
+        : { data: [], error: null };
+
+    if (submissionsError) {
+        console.error("Error fetching approved submissions for validation:", submissionsError);
+        return [];
+    }
+
+    const readyTaskIds = new Set((approvedSubmissions || []).map((submission) => String(submission.taskId)));
+    const counts = (tasks || []).filter((task) => readyTaskIds.has(String(task.taskId))).reduce((result, task) => {
         result[task.projId] = (result[task.projId] || 0) + 1;
         return result;
     }, {});
@@ -908,8 +925,14 @@ const openCreateTeamModal = () => {
 const getTeamSchedule = () => [...(teamScheduleList?.querySelectorAll(".schedule-fields") || [])]
     .map((row) => {
         const day = row.querySelector('[name="teamScheduleDay"]')?.value || "";
-        const from = row.querySelector('[name="teamScheduleFrom"]')?.value || "";
-        const to = row.querySelector('[name="teamScheduleTo"]')?.value || "";
+        const formatTime = (value) => {
+            if (!value) return "";
+            const [hours, minutes] = value.split(":");
+            const numericHour = Number(hours);
+            return `${numericHour % 12 || 12}:${minutes} ${numericHour >= 12 ? "PM" : "AM"}`;
+        };
+        const from = formatTime(row.querySelector('[name="teamScheduleFrom"]')?.value || "");
+        const to = formatTime(row.querySelector('[name="teamScheduleTo"]')?.value || "");
         return day && from && to ? `${day}, ${from} - ${to}` : "";
     }).filter(Boolean).join("; ") || null;
 
