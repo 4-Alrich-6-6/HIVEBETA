@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Breakdown</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Kodchasan:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="t.projectbreakdown.css">
+    <link rel="stylesheet" href="t.projectbreakdown.css?v=submission-status-1">
     <link rel="stylesheet" href="../../lib/loading.css">
     <link rel="stylesheet" href="../student-theme.css">
     <script src="../../lib/offline-banner.js" defer></script>
@@ -50,7 +50,23 @@
                 <div class="project-overview">
                     <section class="project-details" aria-label="Project details">
                         <div class="project-heading-row">
-                            <button class="project-back-link" id="projectBackLink" type="button" aria-label="Back to group view">‹ <span>Projects</span></button>
+                            <div class="project-heading-topline">
+                                <button class="project-back-link" id="projectBackLink" type="button" aria-label="Back to group view">‹ <span>Projects</span></button>
+                                <div class="project-actions-wrap" id="projectActionsWrap" hidden>
+                                    <button class="project-more-btn" id="projectMoreBtn" type="button" aria-label="More project options" aria-expanded="false">
+                                        <svg viewBox="0 0 488 488" aria-hidden="true" focusable="false">
+                                            <circle cx="51.2" cy="244" r="51.2"></circle>
+                                            <circle cx="244" cy="244" r="51.2"></circle>
+                                            <circle cx="436.8" cy="244" r="51.2"></circle>
+                                        </svg>
+                                    </button>
+                                    <div class="project-actions-menu" id="projectActionsMenu" role="menu" hidden>
+                                        <button type="button" role="menuitem" id="markProjectFinishedBtn">Mark as Finished</button>
+                                        <button type="button" role="menuitem" id="editProjectBtn">Edit Project</button>
+                                        <button type="button" role="menuitem" id="deleteProjectBtn">Delete Project</button>
+                                    </div>
+                                </div>
+                            </div>
                             <h2 class="project-detail-name"></h2>
                         </div>
                         <div class="project-meta">
@@ -127,6 +143,14 @@
                         </svg>
                         <span>Submissions</span>
                     </button>
+                    <button class="project-tab" id="p2pEvaluationTab" type="button" role="tab" aria-selected="false" aria-controls="p2pEvaluationPanel" hidden>
+                        <svg class="p2p-evaluation-tab-icon" viewBox="0 0 100 100" aria-hidden="true">
+                            <path d="M10 4 20 10v12L10 28 0 22V10Z"></path><rect x="30" y="10" width="28" height="3" rx="1.5"></rect><rect x="30" y="18" width="46" height="3" rx="1.5"></rect>
+                            <path fill-rule="evenodd" d="M10 36 20 42v12L10 60 0 54V42Z M3 44v8l7 4 7-4v-8l-7-4Z"></path><rect x="30" y="42" width="28" height="3" rx="1.5"></rect><rect x="30" y="50" width="46" height="3" rx="1.5"></rect>
+                            <path fill-rule="evenodd" d="M10 68 20 74v12L10 92 0 86V74Z M3 76v8l7 4 7-4v-8l-7-4Z"></path><rect x="30" y="74" width="28" height="3" rx="1.5"></rect><rect x="30" y="82" width="46" height="3" rx="1.5"></rect>
+                        </svg>
+                        <span>P2P Evaluation</span>
+                    </button>
                 </nav>
 
                 <div class="project-tab-panels">
@@ -134,7 +158,7 @@
                         <section class="task-section all-tasks-section">
                             <div class="section-title-wrap">
                                 <h2>Pending Tasks</h2>
-                                <button class="action-btn inline-post-task-btn" id="inlinePostTaskBtn" type="button"><span>+ Add Task</span></button>
+                                <button class="action-btn inline-post-task-btn" id="inlinePostTaskBtn" type="button" hidden><span>+ Add Task</span></button>
                             </div>
                             <div id="yourTasksList"></div>
                             <div id="otherTasksList" hidden></div>
@@ -147,13 +171,32 @@
                                 <button class="action-btn inline-post-task-btn submission-filter active" id="forEvaluationBtn" type="button" data-submission-filter="evaluation">For Evaluation</button>
                                 <button class="action-btn inline-post-task-btn submission-filter" id="finishedSubmissionsBtn" type="button" data-submission-filter="finished">Finished</button>
                             </div>
-                            <p class="leader-verification-notice" aria-live="polite" tabindex="0"><svg class="leader-verification-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="M12 10.5v5M12 7.5h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg><span id="leaderVerificationNotice">There are 0 tasks currently being verified by the Leader</span><span class="leader-verification-tooltip" id="leaderVerificationTasks" role="tooltip"></span></p>
+                            <div class="leader-verification-notice" id="leaderVerificationNotice" role="status" hidden>
+                                <strong>There are <span id="leaderVerificationTasks">0</span> tasks currently being verified by the Leader.</strong>
+                            </div>
                         </div>
                         <div class="submissions-list" id="submissionsList" aria-live="polite">
                             <div class="submissions-empty empty-state">
                                 <img class="empty-state-icon" src="../../assets/bee-flight.svg" alt="">
                                 <h3>No Submissions Yet</h3>
                                 <p>Task submissions will appear here when contributors submit their work.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="project-tab-panel p2p-evaluation-panel" id="p2pEvaluationPanel" role="tabpanel" aria-labelledby="p2pEvaluationTab" hidden>
+                        <div class="p2p-evaluation-content">
+                            <h2>Peer-to-Peer Evaluations</h2>
+                            <p class="p2p-evaluation-help">Rate each swarm mate from 1 to 10 based on criteria like contribution, activeness, participation, and performance.</p>
+                            <div class="p2p-evaluation-stage" id="p2pEvaluationStage">
+                                <div class="p2p-evaluation-list" id="p2pEvaluationList" aria-live="polite"></div>
+                                <div class="p2p-evaluation-lock" id="p2pEvaluationLock" role="status" hidden>
+                                    <div class="p2p-evaluation-lock-card">
+                                        <img class="p2p-evaluation-lock-bee" src="../../assets/bee-flight.svg" alt="">
+                                        <h3>Project Not Finished Yet</h3>
+                                        <p>Please finish the project first before you can evaluate your Swarm Mates</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -167,6 +210,34 @@
                 <button class="tab tab-project-breakdown active" type="button"><img src="../../assets/breakdown.png" alt=""> <span>Project<br>Breakdown</span></button>
             </nav>
         </aside>
+    </div>
+
+    <div class="modal-overlay" id="editProjectOverlay" aria-hidden="true">
+        <div class="post-task-modal" role="dialog" aria-modal="true" aria-labelledby="editProjectTitle">
+            <div class="post-task-modal-header"><h2 id="editProjectTitle">Edit Project</h2></div>
+            <form id="editProjectForm" class="post-task-form">
+                <div class="form-group">
+                    <label for="breakdownProjectNameInput">Project Name *</label>
+                    <input id="breakdownProjectNameInput" type="text" required>
+                </div>
+                <div class="form-group">
+                    <label for="breakdownProjectDescriptionInput">Description</label>
+                    <textarea id="breakdownProjectDescriptionInput" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="breakdownProjectDueDateInput">Due Date</label>
+                    <input id="breakdownProjectDueDateInput" type="date">
+                </div>
+                <div class="form-group">
+                    <label for="breakdownProjectDueTimeInput">Due Time</label>
+                    <input id="breakdownProjectDueTimeInput" type="time">
+                </div>
+                <div class="post-task-modal-actions">
+                    <button type="button" class="modal-btn discard-btn" id="cancelEditProjectBtn">Cancel</button>
+                    <button type="submit" class="modal-btn post-btn">Save</button>
+                </div>
+            </form>
+        </div>
     </div>
 
 
@@ -459,7 +530,7 @@
     <script src="../../lib/manage-profile.js"></script>
     <script src="../../lib/settings.js"></script>
     <script src="../../lib/confirmation-modal.js"></script>
-    <script src="t.projectbreakdown.js?v=late-label-3"></script>
+    <script src="t.projectbreakdown.js?v=submission-role-7"></script>
     <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js');

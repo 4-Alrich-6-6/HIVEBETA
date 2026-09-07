@@ -11,6 +11,14 @@ const profileLogoutBtn = document.querySelector("#profileLogoutBtn");
 const profileDropdownAvatar = document.querySelector("#profileDropdownAvatar");
 const profileDropdownName = document.querySelector("#profileDropdownName");
 const profileDropdownEmail = document.querySelector("#profileDropdownEmail");
+const contributorProfileBtn = document.querySelector(".contributor-profile-btn");
+const memberProfileOverlay = document.querySelector("#memberProfileOverlay");
+const closeMemberProfileBtn = document.querySelector("#closeMemberProfileBtn");
+const memberProfileAvatar = document.querySelector("#memberProfileAvatar");
+const memberProfileRole = document.querySelector("#memberProfileRole");
+const memberProfileName = document.querySelector("#memberProfileName");
+const memberProfileField = document.querySelector("#memberProfileField");
+const memberProfileEmail = document.querySelector("#memberProfileEmail");
 
 if (menuBtn && sidebar) {
     menuBtn.addEventListener("click", () => {
@@ -20,6 +28,129 @@ if (menuBtn && sidebar) {
 
 // ─── DB: load groups from Supabase ───────────────────────────────────────────
 let dashbData = { ownedGroups: [], joinedGroups: [], ongoingProjects: [], stats: { owned: 0, joined: 0, totalTeams: 0, createdTeams: 0, pending: 0 } };
+
+const closeMemberProfile = () => {
+    memberProfileOverlay?.classList.remove("open");
+    memberProfileOverlay?.setAttribute("aria-hidden", "true");
+};
+
+const getProfileAverageScore = async (userId) => {
+    const supabase = window.hiveSupabase;
+    const { data: memberships, error: membershipError } = await supabase.from("GROUPMEMBER").select("grpmemId").eq("userId", userId);
+    if (membershipError || !memberships?.length) return { score: null, calculation: "" };
+    const memberIds = memberships.map((membership) => membership.grpmemId).filter(Boolean);
+    const { data: assignments, error: assignmentError } = await supabase.from("TASKASSIGNMENT").select("taskId, grpmemId, assignedAt").in("grpmemId", memberIds);
+    const taskIds = [...new Set((assignments || []).map((assignment) => assignment.taskId).filter(Boolean))];
+    if (assignmentError || !taskIds.length) return { score: null, calculation: "" };
+    const [{ data: tasks, error: taskError }, { data: submissions }] = await Promise.all([
+        supabase.from("TASK").select("taskId, projId, taskDueD, statId").in("taskId", taskIds),
+        supabase.from("SUBMISSION").select("taskId, grpmemId, submittedAt").in("taskId", taskIds)
+    ]);
+    if (taskError || !tasks?.length) return { score: null, calculation: "" };
+    const assignmentsByTask = new Map((assignments || []).map((assignment) => [String(assignment.taskId), assignment]));
+    const submissionsByTask = new Map((submissions || []).map((submission) => [`${submission.taskId}:${submission.grpmemId}`, submission]));
+    const projects = new Map();
+    tasks.forEach((task) => {
+        const assignment = assignmentsByTask.get(String(task.taskId));
+        if (!assignment || task.projId === null || task.projId === undefined) return;
+        const projectTasks = projects.get(String(task.projId)) || [];
+        projectTasks.push({ ...task, assignment, submission: submissionsByTask.get(`${task.taskId}:${assignment.grpmemId}`) });
+        projects.set(String(task.projId), projectTasks);
+    });
+    const projectScores = [...projects.values()]
+        .sort((first, second) => new Date(first[0].assignment.assignedAt || 0) - new Date(second[0].assignment.assignedAt || 0))
+        .map((projectTasks) => {
+        let score = 0;
+        projectTasks.forEach((task) => {
+            if (Number(task.statId) !== 5) return;
+            const dueAt = Date.parse(task.taskDueD || "");
+            const submittedAt = Date.parse(task.submission?.submittedAt || "");
+            score += dueAt && submittedAt && submittedAt > dueAt ? 0.75 : 1;
+        });
+        return Math.round((score / projectTasks.length) * 100 * 10) / 10;
+        });
+    if (!projectScores.length) return { score: null, calculation: "" };
+    const total = Math.round(projectScores.reduce((sum, score) => sum + score, 0) * 10) / 10;
+    const average = Math.round((total / projectScores.length) * 10) / 10;
+    const displayed = projectScores.length > 3 ? [Math.round(projectScores.slice(0, -2).reduce((sum, score) => sum + score, 0) * 10) / 10, ...projectScores.slice(-2)] : projectScores;
+    return { score: average, calculation: `${displayed.map((score) => `${score}%`).join(" + ")} = ${total}% / ${projectScores.length} = ${average}%` };
+};
+
+const getProfileAverageReputation = async (userId) => {
+    const supabase = window.hiveSupabase;
+    const { data: history, error: historyError } = await supabase.from("TASKHISTORY").select("projId").eq("userId", userId).not("projId", "is", null);
+    if (historyError || !history?.length) return { score: null, calculation: "" };
+    const projectIds = [...new Set(history.map((task) => Number(task.projId)).filter(Number.isFinite))];
+    const { data: memberships, error: membershipError } = await supabase.from("GROUPMEMBER").select("grpmemId").eq("userId", userId);
+    if (membershipError || !memberships?.length) return { score: null, calculation: "" };
+    const { data: evaluations, error: evaluationError } = await supabase.from("PEEREVAL").select("projId, evaluatedGrpmemId, evalRemarks, confirmed").in("projId", projectIds).in("evaluatedGrpmemId", memberships.map((membership) => membership.grpmemId));
+    if (evaluationError || !evaluations?.length) return { score: null, calculation: "" };
+    const ratingsByProject = new Map();
+    evaluations.filter((evaluation) => evaluation.confirmed !== false).forEach((evaluation) => {
+        const rating = Number(String(evaluation.evalRemarks || "").match(/(10|[0-9])\s*\/\s*10/)?.[1]);
+        if (Number.isFinite(rating)) ratingsByProject.set(String(evaluation.projId), [...(ratingsByProject.get(String(evaluation.projId)) || []), rating]);
+    });
+    const projectAverages = [...ratingsByProject.values()].filter((ratings) => ratings.length).map((ratings) => ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length);
+    if (!projectAverages.length) return { score: null, calculation: "" };
+    const total = Math.round(projectAverages.reduce((sum, average) => sum + average, 0) * 10) / 10;
+    const average = Math.round((total / projectAverages.length) * 10) / 10;
+    const displayed = projectAverages.length > 3 ? [Math.round(projectAverages.slice(0, -2).reduce((sum, value) => sum + value, 0) * 10) / 10, ...projectAverages.slice(-2).map((value) => Math.round(value * 10) / 10)] : projectAverages.map((value) => Math.round(value * 10) / 10);
+    return { score: average, calculation: `${displayed.map((value) => `${value}/10`).join(" + ")} = ${total}/10 / ${projectAverages.length} = ${average}/10` };
+};
+
+const getProfileScoreGrade = (score) => score >= 90 ? "S" : score >= 80 ? "A" : score >= 70 ? "B" : score >= 60 ? "C" : score >= 50 ? "D" : "F";
+
+const openContributorProfile = async () => {
+    const supabase = window.hiveSupabase;
+    const { data: { user } = {} } = await supabase?.auth.getUser() || {};
+    if (!user || !memberProfileOverlay) return;
+    const { data: profile } = await supabase.from("USER").select("userDisplayName, userEmail, avatarPath, PROGRAM(progName), DEPARTMENT(deptName)").eq("userId", user.id).maybeSingle();
+    const member = {
+        userId: user.id,
+        fullName: profile?.userDisplayName || "Profile",
+        email: profile?.userEmail || user.email || "",
+        roleName: "Instructor",
+        progName: profile?.PROGRAM?.progName || "",
+        deptName: profile?.DEPARTMENT?.deptName || "",
+        avatarPath: profile?.avatarPath || null
+    };
+    if (memberProfileRole) memberProfileRole.textContent = member.roleName;
+    if (memberProfileRole) memberProfileRole.hidden = true;
+    if (memberProfileName) memberProfileName.textContent = member.fullName;
+    if (memberProfileField) memberProfileField.textContent = member.progName || member.deptName || "N/A";
+    if (memberProfileEmail) { memberProfileEmail.textContent = member.email; memberProfileEmail.style.visibility = "hidden"; }
+    const avatarUrl = member.avatarPath?.startsWith("http")
+        ? member.avatarPath
+        : (member.avatarPath ? supabase.storage.from("profilePicture").getPublicUrl(member.avatarPath).data?.publicUrl : "../assets/profile-placeholder.svg");
+    if (memberProfileAvatar) memberProfileAvatar.innerHTML = `<img src="${avatarUrl || "../assets/profile-placeholder.svg"}" alt="${member.fullName} profile picture">`;
+    memberProfileOverlay.classList.add("open");
+    memberProfileOverlay.setAttribute("aria-hidden", "false");
+    await window.memberProfileStats?.load(member);
+    const [averageScore, averageReputation] = await Promise.all([getProfileAverageScore(user.id), getProfileAverageReputation(user.id)]);
+    const scoreElement = document.querySelector("#memberProfileAverageScore");
+    const reputationElement = document.querySelector("#memberProfileAverageReputation");
+    const scoreCalculation = document.querySelector("#memberProfileScoreCalculation");
+    const reputationCalculation = document.querySelector("#memberProfileReputationCalculation");
+    if (scoreElement) scoreElement.textContent = averageScore.score === null ? "N/A" : getProfileScoreGrade(averageScore.score);
+    if (reputationElement) reputationElement.textContent = averageReputation.score === null ? "N/A" : `${averageReputation.score}/10`;
+    if (scoreCalculation) {
+        scoreCalculation.textContent = averageScore.calculation || "Not Rated Yet";
+        scoreCalculation.hidden = !averageScore.calculation;
+    }
+    if (reputationCalculation) {
+        reputationCalculation.textContent = averageReputation.calculation || "N/A";
+        reputationCalculation.hidden = !averageReputation.calculation;
+    }
+};
+
+contributorProfileBtn?.addEventListener("click", (event) => {
+    event.preventDefault();
+    openContributorProfile();
+});
+closeMemberProfileBtn?.addEventListener("click", closeMemberProfile);
+memberProfileOverlay?.addEventListener("click", (event) => {
+    if (event.target === memberProfileOverlay) closeMemberProfile();
+});
 let recentVisitsKey = "hive_recent_team_visits";
 
 const getRecentVisits = () => {
@@ -106,8 +237,7 @@ const getValidationProjects = async (groupIds, groupNames, groupLeaders) => {
     const { data: tasks, error } = await supabase
         .from("TASK")
         .select("taskId, projId, teacherApproved")
-        .in("projId", projectIds)
-        .eq("statId", 4);
+        .in("projId", projectIds);
 
     if (error) {
         console.error("Error fetching tasks to validate:", error);
@@ -293,6 +423,7 @@ const loadDashbData = async () => {
         const completedCount = taskList.filter((task) => String(task.statId) === String(finishedStatus?.statId)).length;
         const isCompleted = taskList.length > 0 && completedCount === taskList.length;
         const status = project.projStatus || (isCompleted ? "Finished" : "Ongoing");
+        if (String(status).trim().toLowerCase() !== "ongoing") continue;
         ongoingProjects.push({
             ...project,
             groupName: teacherGroupNames.get(Number(project.grpId)) || "Unnamed Swarm",
@@ -402,9 +533,7 @@ const applyDashbData = (data) => {
             } else if (isColony) {
                 window.location.href = `t.colony.html?grpId=${group.grpId}&from=${returnPage}`;
             } else {
-                window.location.href = isOwned
-                    ? `leader/s.leadergrpviewing.html?from=${returnPage}`
-                    : `member/s.membergrpviewing.html?from=${returnPage}`;
+                window.location.href = `t.grpviewing.html?grpId=${group.grpId}&from=${returnPage}`;
             }
         });
         if (isOwned) {

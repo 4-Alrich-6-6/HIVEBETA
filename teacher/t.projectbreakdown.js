@@ -4,6 +4,19 @@ const groupInfoTab = document.querySelector("#groupInfoTab");
 const openPostTaskModalBtn = document.querySelector("#openPostTaskModalBtn");
 const inlinePostTaskBtn = document.querySelector("#inlinePostTaskBtn");
 const projectBackLink = document.querySelector("#projectBackLink");
+const projectActionsWrap = document.querySelector("#projectActionsWrap");
+const projectMoreBtn = document.querySelector("#projectMoreBtn");
+const projectActionsMenu = document.querySelector("#projectActionsMenu");
+const markProjectFinishedBtn = document.querySelector("#markProjectFinishedBtn");
+const editProjectBtn = document.querySelector("#editProjectBtn");
+const deleteProjectBtn = document.querySelector("#deleteProjectBtn");
+const editProjectOverlay = document.querySelector("#editProjectOverlay");
+const editProjectForm = document.querySelector("#editProjectForm");
+const cancelEditProjectBtn = document.querySelector("#cancelEditProjectBtn");
+const breakdownProjectNameInput = document.querySelector("#breakdownProjectNameInput");
+const breakdownProjectDescriptionInput = document.querySelector("#breakdownProjectDescriptionInput");
+const breakdownProjectDueDateInput = document.querySelector("#breakdownProjectDueDateInput");
+const breakdownProjectDueTimeInput = document.querySelector("#breakdownProjectDueTimeInput");
 const projectTabs = Array.from(document.querySelectorAll(".project-tab"));
 const projectTabPanels = Array.from(document.querySelectorAll(".project-tab-panel"));
 const postTaskModalOverlay = document.querySelector("#postTaskModalOverlay");
@@ -72,6 +85,8 @@ const detailTaskTimeActive = document.querySelector("#detailTaskTimeActive");
 
 let activeTaskIndex = null;
 let currentUserId = null;
+let currentGroupRole = null;
+let currentUserIsInstructor = false;
 
 const participationSummaryTab = document.querySelector("#participationSummaryTab");
 const reputationSummaryTab = document.querySelector("#reputationSummaryTab");
@@ -79,10 +94,14 @@ const participationSummaryPanel = document.querySelector("#participationSummaryP
 const reputationSummaryPanel = document.querySelector("#reputationSummaryPanel");
 const participationSummaryList = document.querySelector("#participationSummaryList");
 const reputationSummaryList = document.querySelector("#reputationSummaryList");
+const p2pEvaluationTab = document.querySelector("#p2pEvaluationTab");
+const p2pEvaluationList = document.querySelector("#p2pEvaluationList");
+const p2pEvaluationLock = document.querySelector("#p2pEvaluationLock");
 
 const STAT_ID = { inactive:1, active:2, pause:3, verifying:4, finished:5, missing:6 };
 const STAT_SLUG = { 1:"inactive", 2:"active", 3:"pause", 4:"verifying", 5:"finished", 6:"missing", 7:"inactive" };
 const STATUS_TEXT = { inactive:"Not Active", active:"Active", pause:"On Break", verifying:"Verifying", finished:"Finished", missing:"Missing" };
+const PROJECT_STATUS = { ongoing: "Ongoing", finished: "Finished" };
 
 const isTerminal = (s) => s === "finished" || s === "missing";
 const isPastDue  = (t) => !(!t.dueDate || !t.dueTime) && Date.now() > new Date(`${t.dueDate}T${t.dueTime}`).getTime();
@@ -243,15 +262,118 @@ const loadProjectDueDate = async () => {
 const loadProjectDetails = async () => {
     const pid = getProjId();
     if (!pid) return null;
-    const { data } = await supa().from("PROJECT").select("projName, projDesc, projCreatedAt, projDueD, projDueT").eq("projId", Number(pid)).maybeSingle();
+    const { data } = await supa().from("PROJECT").select("projName, projDesc, projCreatedAt, projDueD, projDueT, projStatus").eq("projId", Number(pid)).maybeSingle();
     return data || null;
 };
+
+const updateProjectActionLabel = (projectStatus) => {
+    if (!markProjectFinishedBtn) return;
+    markProjectFinishedBtn.textContent = projectStatus === PROJECT_STATUS.finished ? "Mark as Ongoing" : "Mark as Finished";
+};
+
+const closeProjectActions = () => {
+    if (projectActionsMenu) projectActionsMenu.hidden = true;
+    projectMoreBtn?.setAttribute("aria-expanded", "false");
+};
+
+const closeEditProject = () => {
+    editProjectOverlay?.classList.remove("open");
+    editProjectOverlay?.setAttribute("aria-hidden", "true");
+};
+
+projectMoreBtn?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const isOpen = !projectActionsMenu?.hidden;
+    if (projectActionsMenu) projectActionsMenu.hidden = isOpen;
+    projectMoreBtn.setAttribute("aria-expanded", String(!isOpen));
+});
+document.addEventListener("click", (event) => {
+    if (!event.target.closest(".project-actions-wrap")) closeProjectActions();
+});
+
+editProjectBtn?.addEventListener("click", async () => {
+    closeProjectActions();
+    const project = await loadProjectDetails();
+    if (!project) return;
+    if (breakdownProjectNameInput) breakdownProjectNameInput.value = project.projName || "";
+    if (breakdownProjectDescriptionInput) breakdownProjectDescriptionInput.value = project.projDesc || "";
+    if (breakdownProjectDueDateInput) breakdownProjectDueDateInput.value = project.projDueD || "";
+    if (breakdownProjectDueTimeInput) breakdownProjectDueTimeInput.value = project.projDueT || "";
+    editProjectOverlay?.classList.add("open");
+    editProjectOverlay?.setAttribute("aria-hidden", "false");
+});
+cancelEditProjectBtn?.addEventListener("click", closeEditProject);
+editProjectOverlay?.addEventListener("click", (event) => {
+    if (event.target === editProjectOverlay) closeEditProject();
+});
+
+editProjectForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const projectId = getProjId();
+    const projectName = breakdownProjectNameInput?.value.trim();
+    if (!projectId || !projectName) return;
+    const { error } = await supa().from("PROJECT").update({
+        projName: projectName,
+        projDesc: breakdownProjectDescriptionInput?.value.trim() || null,
+        projDueD: breakdownProjectDueDateInput?.value || null,
+        projDueT: breakdownProjectDueTimeInput?.value || null
+    }).eq("projId", Number(projectId));
+    if (error) {
+        showAlert(`Failed to update project: ${error.message}`, { title: "Error" });
+        return;
+    }
+    sessionStorage.setItem("hive_selected_project_name", projectName);
+    document.querySelector(".project-detail-name")?.replaceChildren(document.createTextNode(projectName));
+    document.querySelector(".project-name-display h2")?.replaceChildren(document.createTextNode(projectName));
+    closeEditProject();
+});
+
+markProjectFinishedBtn?.addEventListener("click", () => {
+    closeProjectActions();
+    const projectId = getProjId();
+    const currentStatus = document.body.dataset.projectStatus || PROJECT_STATUS.ongoing;
+    const nextStatus = currentStatus === PROJECT_STATUS.finished ? PROJECT_STATUS.ongoing : PROJECT_STATUS.finished;
+    showConfirmation(`Mark this project as ${nextStatus.toLowerCase()}?`, async () => {
+        const { error } = await supa().from("PROJECT").update({ projStatus: nextStatus }).eq("projId", Number(projectId));
+        if (error) {
+            showAlert(`Failed to update project status: ${error.message}`, { title: "Error" });
+            return;
+        }
+        document.body.dataset.projectStatus = nextStatus;
+        updateProjectActionLabel(nextStatus);
+        window.location.reload();
+    }, { title: "Update Project Status", confirmText: "Confirm", cancelText: "Cancel" });
+});
+
+deleteProjectBtn?.addEventListener("click", () => {
+    closeProjectActions();
+    const projectId = Number(getProjId());
+    const projectName = sessionStorage.getItem("hive_selected_project_name") || "this project";
+    showConfirmation(`Are you sure you want to delete "${projectName}"? This also removes its tasks and submissions.`, async () => {
+        const { data: tasks } = await supa().from("TASK").select("taskId").eq("projId", projectId);
+        const taskIds = (tasks || []).map((task) => task.taskId);
+        await supa().from("PEEREVAL").delete().eq("projId", projectId);
+        if (taskIds.length) {
+            await supa().from("SUBMISSION").delete().in("taskId", taskIds);
+            await supa().from("PARTICIPATION").delete().in("taskId", taskIds);
+            await supa().from("TASKASSIGNMENT").delete().in("taskId", taskIds);
+        }
+        await supa().from("TASK").delete().eq("projId", projectId);
+        const { error } = await supa().from("PROJECT").delete().eq("projId", projectId);
+        if (error) {
+            showAlert(`Failed to delete project: ${error.message}`, { title: "Error" });
+            return;
+        }
+        window.location.href = `t.grpviewing.html${getGrpId() ? `?grpId=${encodeURIComponent(getGrpId())}` : ""}`;
+    }, { title: "Delete Project", confirmText: "Delete", cancelText: "Cancel" });
+});
 
 const loadSubmissions = async (filter = "evaluation") => {
     if (!submissionsList) return;
     submissionsList.innerHTML = `<div class="submissions-empty empty-state"><p>Loading submissions...</p></div>`;
     const projId = getProjId();
     if (!projId || !supa()) return;
+    const isLeaderView = currentGroupRole === "leader";
 
     if (filter === "evaluation") {
         const { data: verifyingTasks } = await supa()
@@ -289,27 +411,27 @@ const loadSubmissions = async (filter = "evaluation") => {
         ? await supa().from("USER").select("userId, userDisplayName").in("userId", approverIds)
         : { data: [] };
     const approverNames = new Map((approvers || []).map((approver) => [String(approver.userId), approver.userDisplayName || "Unknown Instructor"]));
+    const isInstructorView = currentUserIsInstructor && currentGroupRole !== "leader";
+    const { data: instructorMemberships } = await supa()
+        .from("GROUPMEMBER")
+        .select("userId, ROLE(roleName)")
+        .eq("grpId", Number(getGrpId()));
+    const instructorApproverIds = new Set((instructorMemberships || [])
+        .filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() === "teacher")
+        .map((member) => String(member.userId)));
 
     const leaderVerifiedTaskIds = new Set((data || [])
         .filter((submission) => String(submission.status || "").toLowerCase() === "approved")
         .map((submission) => submission.taskId));
-    const leaderVerificationTaskIds = new Set((data || [])
-        .filter((submission) => Number(submission.TASK?.statId) === STAT_ID.verifying && !leaderVerifiedTaskIds.has(submission.taskId))
-        .map((submission) => submission.taskId));
-    if (leaderVerificationNotice) leaderVerificationNotice.textContent = `There are ${leaderVerificationTaskIds.size} tasks currently being verified by the Leader`;
-    if (leaderVerificationTasks) {
-        const taskNames = [...new Map((data || [])
-            .filter((submission) => leaderVerificationTaskIds.has(submission.taskId))
-            .map((submission) => [submission.taskId, submission.TASK?.taskName || "Unnamed task"])).values()];
-        leaderVerificationTasks.textContent = taskNames.length ? `Tasks:\n${taskNames.map((name) => `- ${name}`).join("\n")}` : "No tasks are currently being verified.";
-    }
     const submissions = (data || []).filter((submission) => {
-        const status = String(submission.status || "").toLowerCase();
         const taskStatus = Number(submission.TASK?.statId);
         const isLeaderVerified = leaderVerifiedTaskIds.has(submission.taskId);
-        const isFinished = taskStatus === STAT_ID.finished;
-        const isForEvaluation = isLeaderVerified && status === "approved" && !submission.TASK?.teacherApproved;
-        return filter === "finished" ? isFinished && Boolean(submission.TASK?.teacherApproved) : isForEvaluation;
+        const isInstructorVerified = Boolean(submission.TASK?.teacherApproved);
+        const isFinished = isInstructorVerified || (taskStatus === STAT_ID.finished && !isInstructorView);
+        const isForEvaluation = isInstructorView
+            ? isLeaderVerified && !isInstructorVerified
+            : taskStatus === STAT_ID.verifying && !isLeaderVerified;
+        return filter === "finished" ? isFinished : isForEvaluation;
     });
 
     const submissionsByTask = new Map();
@@ -372,7 +494,7 @@ const loadSubmissions = async (filter = "evaluation") => {
         card.querySelector(".submission-info").title = assignedNames.join(", ") || fallbackName;
         card.querySelector(".submission-date").textContent = submittedAt;
         const statusElement = card.querySelector(".submission-status");
-        if (filter === "evaluation") {
+        if (filter === "evaluation" && (isLeaderView || isInstructorView)) {
             const verifyButton = document.createElement("button");
             verifyButton.type = "button";
             verifyButton.className = "submission-verify";
@@ -386,14 +508,27 @@ const loadSubmissions = async (filter = "evaluation") => {
                 }
             ));
             statusElement.replaceWith(verifyButton);
+        } else if (filter === "evaluation") {
+            const verifyingStatus = document.createElement("span");
+            verifyingStatus.className = "submission-status instructor-status";
+            verifyingStatus.textContent = "Verifying";
+            statusElement.replaceWith(verifyingStatus);
         } else {
             const approverName = submission.TASK?.teacherApprovedByName
                 || (submission.TASK?.teacherApprovedBy
                 ? approverNames.get(String(submission.TASK.teacherApprovedBy)) || "Unknown Instructor"
                 : "Unknown Instructor");
-            statusElement.textContent = submission.TASK?.teacherApproved
-                ? `Verified by Instructor (${approverName}) (Instructor Verified)`
-                : status;
+            const isInstructorApproved = Boolean(submission.TASK?.teacherApproved)
+                && (!submission.TASK?.teacherApprovedBy || instructorApproverIds.has(String(submission.TASK.teacherApprovedBy)));
+            if (isInstructorApproved) {
+                statusElement.classList.add("instructor-status", "instructor-verified");
+                statusElement.textContent = `Verified by Instr. ${approverName}`;
+            } else {
+                const instructorStatus = document.createElement("span");
+                instructorStatus.className = "submission-status instructor-status";
+                instructorStatus.textContent = "Not Yet Instructor Verified";
+                statusElement.replaceWith(instructorStatus);
+            }
         }
         const proof = card.querySelector(".submission-proof");
         if (submission.proofLink) {
@@ -404,12 +539,128 @@ const loadSubmissions = async (filter = "evaluation") => {
     });
 };
 
+const loadLeaderVerificationNotice = async () => {
+    if (!leaderVerificationNotice || !leaderVerificationTasks) return;
+    if (currentGroupRole !== "teacher") {
+        leaderVerificationNotice.hidden = true;
+        return;
+    }
+    const projectId = getProjId();
+    if (!projectId) return;
+    const { data: verifyingTasks } = await supa()
+        .from("TASK")
+        .select("taskId")
+        .eq("projId", Number(projectId))
+        .eq("statId", STAT_ID.verifying);
+    const taskIds = (verifyingTasks || []).map((task) => task.taskId);
+    if (!taskIds.length) {
+        leaderVerificationNotice.hidden = true;
+        return;
+    }
+    const { data: submissions } = await supa()
+        .from("SUBMISSION")
+        .select("taskId, submittedAt, status")
+        .in("taskId", taskIds);
+    const pendingLeaderVerification = new Set();
+    (submissions || []).forEach((submission) => {
+        if (!submission.submittedAt || String(submission.status || "").toLowerCase() === "approved") return;
+        pendingLeaderVerification.add(String(submission.taskId));
+    });
+    leaderVerificationTasks.textContent = String(pendingLeaderVerification.size);
+    leaderVerificationNotice.hidden = pendingLeaderVerification.size === 0;
+};
+
 const setSubmissionFilter = (filter) => {
     submissionFilterButtons.forEach((button) => button.classList.toggle("active", button.dataset.submissionFilter === filter));
     loadSubmissions(filter);
 };
 
 submissionFilterButtons.forEach((button) => button.addEventListener("click", () => setSubmissionFilter(button.dataset.submissionFilter)));
+
+const setP2PEvaluationLocked = (locked) => {
+    if (p2pEvaluationLock) p2pEvaluationLock.hidden = !locked;
+};
+
+const peerHexagonPath = "M2.46148 12.8001C2.29321 12.5087 2.20908 12.3629 2.17615 12.208C2.14701 12.0709 2.14701 11.9293 2.17615 11.7922C2.20908 11.6373 2.29321 11.4915 2.46148 11.2001L6.53772 4.13984C6.70598 3.8484 6.79011 3.70268 6.90782 3.5967C7.01196 3.50293 7.13465 3.43209 7.26793 3.38879C7.41856 3.33984 7.58683 3.33984 7.92336 3.33984H16.0758C16.4124 3.33984 16.5806 3.33984 16.7313 3.38879C16.8645 3.43209 16.9872 3.50268 17.0914 3.5967C17.2091 3.70268 17.2932 3.8484 17.4615 4.13984L21.5377 11.2001C21.706 11.4915 21.7901 11.6373 21.823 11.7922C21.8522 11.9293 21.8522 12.0709 21.823 12.208C21.7901 12.3629 21.706 12.5087 21.5377 12.8001L17.4615 19.8604C17.2932 20.1518 17.2193 20.2975 17.0914 20.4035C16.9872 20.4975 16.8645 20.5681 16.7313 20.6114C16.5806 20.6604 16.4124 20.6604 16.0758 20.6604H7.92336C7.58683 20.6604 7.41856 20.6604 7.26793 20.6114C7.13465 20.5681 7.01196 20.4975 6.90782 20.4035C6.79011 20.2975 6.70598 20.1518 6.53772 19.8604L2.46148 12.8001Z";
+
+const renderZeroRating = (rating, hasRating) => `<button class="p2p-rating-hexagon p2p-rating-zero${hasRating && rating === 0 ? " selected" : ""}" type="button" data-rating="0" aria-label="Rate 0 out of 10"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.9485 11.0195C21.2909 11.6283 21.2909 12.3717 20.9485 12.9805L17.5735 18.9805C17.2192 19.6103 16.5529 20 15.8303 20H8.16969C7.44715 20 6.78078 19.6103 6.42654 18.9805L3.05154 12.9805C2.70908 12.3717 2.70908 11.6283 3.05154 11.0195L6.42654 5.01948C6.78078 4.38972 7.44715 4 8.16969 4H15.8303C16.5529 4 17.2192 4.38972 17.5735 5.01948L20.9485 11.0195Z"></path><path d="M12 4L11.2 6.5L12.8 9L11.4 11.5L13 14L11.6 16.5L12.5 18.2L12 20"></path></svg><span class="p2p-rating-zero-popover">Rate your swarm mate 0?</span></button>`;
+const renderPeerRating = (rating = 0, hasRating = false) => `${renderZeroRating(rating, hasRating)}${Array.from({ length: 10 }, (_, index) => {
+    const value = index + 1;
+    return `<button class="p2p-rating-hexagon${value <= rating ? " selected" : ""}" type="button" data-rating="${value}" aria-label="Rate ${value} out of 10"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${peerHexagonPath}"></path></svg></button>`;
+}).join("")}`;
+
+const savePeerRating = async (member, rating, row) => {
+    const projectId = getProjId();
+    if (!projectId || !currentUserId || row.dataset.saving === "true" || row.dataset.rated === "true") return;
+    row.dataset.saving = "true";
+    const { data: existing } = await supa().from("PEEREVAL").select("evalId").eq("projId", Number(projectId)).is("taskId", null).eq("evaluatedGrpmemId", member.grpmemId).eq("evaluatorId", currentUserId).maybeSingle();
+    row.dataset.saving = "false";
+    if (existing?.evalId) {
+        row.dataset.rated = "true";
+        row.querySelectorAll(".p2p-rating-hexagon").forEach((control) => { control.disabled = true; });
+        showAlert("This group member has already been evaluated. Ratings cannot be changed.", { title: "Evaluation Locked" });
+        return;
+    }
+    showConfirmation(`Submit a rating of ${rating}/10 for ${member.USER?.userDisplayName || "this group member"}? This evaluation cannot be changed later.`, async () => {
+        row.dataset.saving = "true";
+        const { error } = await supa().from("PEEREVAL").insert({ evaluatedGrpmemId: member.grpmemId, evaluatorId: currentUserId, confirmed: true, projId: Number(projectId), taskId: null, evalRemarks: `Rating: ${rating}/10` });
+        row.dataset.saving = "false";
+        if (error) { showAlert(`Failed to save rating: ${error.message}`, { title: "Error" }); return; }
+        row.dataset.rated = "true";
+        row.dataset.rating = String(rating);
+        row.querySelector(".p2p-rating-value").textContent = `${rating}/10`;
+        row.querySelectorAll(".p2p-rating-hexagon").forEach((control) => { control.disabled = true; });
+    }, { title: "Confirm Peer Evaluation", confirmText: "Submit Rating", cancelText: "Cancel" });
+};
+
+const loadP2PEvaluations = async () => {
+    if (!p2pEvaluationList || !currentUserId) return;
+    const projectId = getProjId();
+    const groupId = getGrpId();
+    if (!projectId || !groupId) return;
+    const { data: project } = await supa().from("PROJECT").select("projStatus").eq("projId", Number(projectId)).maybeSingle();
+    setP2PEvaluationLocked(String(project?.projStatus || PROJECT_STATUS.ongoing).toLowerCase() !== "finished");
+    p2pEvaluationList.innerHTML = `<p class="p2p-evaluation-loading">Loading members...</p>`;
+    const [{ data: allMembers, error: memberError }, { data: evaluations }, { data: projectTasks }] = await Promise.all([
+        supa().from("GROUPMEMBER").select("grpmemId, userId, USER(userDisplayName, avatarPath), ROLE(roleName)").eq("grpId", Number(groupId)),
+        supa().from("PEEREVAL").select("evalId, evaluatedGrpmemId, evaluatorId, confirmed, evalRemarks").eq("projId", Number(projectId)).is("taskId", null),
+        supa().from("TASK").select("TASKASSIGNMENT(grpmemId)").eq("projId", Number(projectId))
+    ]);
+    if (memberError) { p2pEvaluationList.innerHTML = `<p class="p2p-evaluation-loading">Unable to load members.</p>`; return; }
+    const assignedMemberIds = new Set((projectTasks || []).flatMap((task) => task.TASKASSIGNMENT || []).map((assignment) => String(assignment.grpmemId)));
+    const eligibleMembers = (allMembers || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() !== "teacher" && assignedMemberIds.has(String(member.grpmemId)));
+    const members = eligibleMembers.filter((member) => String(member.userId) !== String(currentUserId));
+    const groupUserIds = new Set(eligibleMembers.map((member) => String(member.userId)));
+    const ratings = new Map((evaluations || []).filter((evaluation) => String(evaluation.evaluatorId) === String(currentUserId)).map((evaluation) => {
+        const match = String(evaluation.evalRemarks || "").match(/(10|[0-9])\s*\/\s*10/);
+        return [String(evaluation.evaluatedGrpmemId), match ? Number(match[1]) : 0];
+    }));
+    if (!members.length) { p2pEvaluationList.innerHTML = `<p class="p2p-evaluation-loading">No other members to evaluate.</p>`; return; }
+    p2pEvaluationList.innerHTML = members.map((member) => {
+        const hasRating = ratings.has(String(member.grpmemId));
+        const rating = ratings.get(String(member.grpmemId)) || 0;
+        const name = member.USER?.userDisplayName || "Member";
+        const avatarPath = member.USER?.avatarPath;
+        const avatar = avatarPath?.startsWith("http") ? avatarPath : (avatarPath ? supa().storage.from("profilePicture").getPublicUrl(avatarPath).data?.publicUrl : "../../assets/profile-placeholder.svg");
+        const evaluatedBy = new Set((evaluations || []).filter((evaluation) => evaluation.confirmed && String(evaluation.evaluatedGrpmemId) === String(member.grpmemId) && String(evaluation.evaluatorId) !== String(member.userId) && groupUserIds.has(String(evaluation.evaluatorId))).map((evaluation) => String(evaluation.evaluatorId))).size;
+        return `<article class="p2p-evaluation-row" data-member-id="${member.grpmemId}" data-rating="${rating}"><div class="p2p-member-info"><img src="${avatar}" alt=""><strong>${name.replace(/</g, "&lt;")}</strong></div><div class="p2p-rating-wrap"><div class="p2p-rating-controls" role="radiogroup" aria-label="Rate ${name.replace(/"/g, "&quot;")}">${renderPeerRating(rating, hasRating)}</div><span class="p2p-rating-value">${hasRating ? `${rating}/10` : ""}</span></div><div class="p2p-evaluation-footer">${evaluatedBy} out of ${Math.max(eligibleMembers.length - 1, 0)} Members Evaluated</div></article>`;
+    }).join("");
+    p2pEvaluationList.querySelectorAll(".p2p-evaluation-row").forEach((row) => {
+        const member = members.find((item) => String(item.grpmemId) === row.dataset.memberId);
+        const controls = row.querySelectorAll(".p2p-rating-hexagon");
+        if (ratings.has(String(member.grpmemId))) controls.forEach((control) => { control.disabled = true; });
+        const paint = (rating) => controls.forEach((control) => control.classList.toggle("preview", Number(control.dataset.rating) > 0 && Number(control.dataset.rating) <= rating));
+        controls.forEach((control) => control.addEventListener("click", () => {
+            const value = Number(control.dataset.rating);
+            savePeerRating(member, value, row);
+        }));
+        controls.forEach((control) => {
+            control.addEventListener("mouseenter", () => paint(Number(control.dataset.rating)));
+            control.addEventListener("focus", () => paint(Number(control.dataset.rating)));
+        });
+        row.addEventListener("mouseleave", () => controls.forEach((control) => control.classList.remove("preview")));
+    });
+};
 
 const applyStatusToBtn = (btn, status) => {
     btn.textContent = STATUS_TEXT[status] || status;
@@ -846,12 +1097,22 @@ if (verifyFinishBtn) {
         }
         const taskId = verifyChoiceCallback?.taskId;
         if (taskId) {
-            const { data: approver } = await supa().from("USER").select("userDisplayName").eq("userId", currentUserId).maybeSingle();
+            const groupId = getGrpId();
+            const { data: verifierMembership } = groupId
+                ? await supa().from("GROUPMEMBER").select("ROLE(roleName)").eq("userId", currentUserId).eq("grpId", Number(groupId)).maybeSingle()
+                : { data: null };
+            const verifierRole = String(
+                Array.isArray(verifierMembership?.ROLE) ? verifierMembership.ROLE[0]?.roleName : verifierMembership?.ROLE?.roleName
+            ).trim().toLowerCase();
+            const isInstructorVerifier = verifierRole === "teacher" || currentUserIsInstructor;
+            const { data: approver } = isInstructorVerifier
+                ? await supa().from("USER").select("userDisplayName").eq("userId", currentUserId).maybeSingle()
+                : { data: null };
             await supa().from("TASK").update({
                 statId: STAT_ID.finished,
-                teacherApproved: true,
-                teacherApprovedBy: currentUserId,
-                teacherApprovedByName: approver?.userDisplayName || "Unknown Instructor",
+                teacherApproved: isInstructorVerifier,
+                teacherApprovedBy: isInstructorVerifier ? currentUserId : null,
+                teacherApprovedByName: isInstructorVerifier ? approver?.userDisplayName || "Unknown Instructor" : null,
                 taskAcmD: null
             }).eq("taskId", taskId);
         }
@@ -1077,12 +1338,10 @@ projectTabs.forEach(tab => tab.addEventListener("click", () => {
         panel.hidden = panel.id !== tab.getAttribute("aria-controls");
     });
     if (tab.id === "submissionsTab") loadSubmissions("evaluation");
+    if (tab.id === "p2pEvaluationTab") loadP2PEvaluations();
 }));
 
 const requestedProjectTab = new URLSearchParams(window.location.search).get("tab");
-if (requestedProjectTab === "submissions") {
-    document.querySelector("#submissionsTab")?.click();
-}
 
 const openPostTaskModal = async () => {
     const projDue = await loadProjectDueDate();
@@ -1330,11 +1589,36 @@ if(logoutBtn) logoutBtn.addEventListener("click",()=>{showConfirmation("Are you 
 (async()=>{
     const {data:{user}}=await supa().auth.getUser();
     currentUserId=user?.id||null;
+    const groupId = getGrpId();
+    const [{ data: membership }, { data: group }] = currentUserId && groupId
+        ? await Promise.all([
+            supa().from("GROUPMEMBER").select("ROLE(roleName)").eq("userId", currentUserId).eq("grpId", Number(groupId)).maybeSingle(),
+            supa().from("GROUP").select("teacherId").eq("grpId", Number(groupId)).maybeSingle()
+        ])
+        : [{ data: null }, { data: null }];
+    const membershipRole = String(
+        Array.isArray(membership?.ROLE) ? membership.ROLE[0]?.roleName : membership?.ROLE?.roleName
+    ).trim().toLowerCase();
+    currentGroupRole = membershipRole;
+    const leaderNotice = leaderVerificationNotice?.closest(".leader-verification-notice");
+    if (leaderNotice) leaderNotice.hidden = currentGroupRole !== "teacher";
+    const isInstructor = membershipRole === "teacher"
+        || String(group?.teacherId || "") === String(currentUserId || "");
+    currentUserIsInstructor = isInstructor;
+    if (projectActionsWrap) projectActionsWrap.hidden = !(isInstructor || currentGroupRole === "leader");
+    if (inlinePostTaskBtn) inlinePostTaskBtn.hidden = !new Set(["teacher", "leader"]).has(currentGroupRole);
+    const canPeerEvaluate = !isInstructor && new Set(["member", "leader"]).has(membershipRole);
+    if (p2pEvaluationTab) p2pEvaluationTab.hidden = !canPeerEvaluate;
     await loadProfileAvatar(currentUserId);
     const projectName=sessionStorage.getItem("hive_selected_project_name");
     const el=document.querySelector(".project-name-display h2");
     if(projectName&&el) el.textContent=projectName;
     const project = await loadProjectDetails();
+    const projectStatus = String(project?.projStatus || PROJECT_STATUS.ongoing).toLowerCase() === "finished"
+        ? PROJECT_STATUS.finished
+        : PROJECT_STATUS.ongoing;
+    document.body.dataset.projectStatus = projectStatus;
+    updateProjectActionLabel(projectStatus);
     const detailName = document.querySelector(".project-detail-name");
     if (detailName) detailName.textContent = project?.projName || projectName || "Project";
     const startDate = document.querySelector("#projectStartDate");
@@ -1345,6 +1629,7 @@ if(logoutBtn) logoutBtn.addEventListener("click",()=>{showConfirmation("Are you 
     if (dueTime) dueTime.textContent = project?.projDueT || "--:--";
     const description = document.querySelector("#projectDescription");
     if (description) description.textContent = project?.projDesc || "No project description provided.";
+    await loadLeaderVerificationNotice();
     const validationLink=document.querySelector(".validation-link");
     if(validationLink){
         const pid=getProjId(), gid=getGrpId();
@@ -1352,4 +1637,7 @@ if(logoutBtn) logoutBtn.addEventListener("click",()=>{showConfirmation("Are you 
     }
     await loadContributorSummary();
     await renderAllTasks();
+    if (requestedProjectTab === "submissions") {
+        document.querySelector("#submissionsTab")?.click();
+    }
 })();

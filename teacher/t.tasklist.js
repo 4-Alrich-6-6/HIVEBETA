@@ -31,9 +31,13 @@ const loadTasks = async (userId) => {
 		.select("grpmemId, grpId, ROLE(roleName)")
 		.eq("userId", userId);
 	if (membershipError) throw membershipError;
-	const membershipIds = (memberships || []).map(member => member.grpmemId);
+	const eligibleMemberships = (memberships || []).filter(member => {
+		const role = String(member.ROLE?.roleName || "").trim().toLowerCase();
+		return role === "member" || role === "leader";
+	});
+	const membershipIds = eligibleMemberships.map(member => member.grpmemId);
 	if (!membershipIds.length) return [];
-	const groupIds = [...new Set((memberships || []).map(member => member.grpId))];
+	const groupIds = [...new Set(eligibleMemberships.map(member => member.grpId))];
 
 	const { data: groups, error: groupError } = await supa()
 		.from("GROUP")
@@ -50,10 +54,10 @@ const loadTasks = async (userId) => {
 	const taskIds = [...new Set((assignments || []).map(assignment => assignment.taskId))];
 	if (!taskIds.length) return [];
 
-	const membershipGroups = new Map((memberships || []).map(member => [member.grpmemId, groupNames.get(member.grpId) || "Team Name"]));
-	const membershipRoles = new Map((memberships || []).map(member => [member.grpmemId, member.ROLE?.roleName || ""]));
+	const membershipGroups = new Map(eligibleMemberships.map(member => [member.grpmemId, groupNames.get(member.grpId) || "Team Name"]));
+	const membershipRoles = new Map(eligibleMemberships.map(member => [member.grpmemId, member.ROLE?.roleName || ""]));
 	const taskGroups = new Map((assignments || []).map(assignment => [assignment.taskId, membershipGroups.get(assignment.grpmemId)]));
-	const taskGroupIds = new Map((assignments || []).map(assignment => [assignment.taskId, memberships.find(member => member.grpmemId === assignment.grpmemId)?.grpId]));
+	const taskGroupIds = new Map((assignments || []).map(assignment => [assignment.taskId, eligibleMemberships.find(member => member.grpmemId === assignment.grpmemId)?.grpId]));
 	const taskIsLeader = new Map((assignments || []).map(assignment => [assignment.taskId, membershipRoles.get(assignment.grpmemId)?.toLowerCase() === "leader"]));
 
 	const { data, error } = await supa()

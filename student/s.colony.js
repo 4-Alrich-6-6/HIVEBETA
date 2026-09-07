@@ -1082,12 +1082,30 @@ if (createTeamForm) {
         throw new Error(teamError?.message || "Team creation failed.");
       }
 
-      const { data: leaderRole } = await supabase.from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle();
+      const [{ data: leaderRole }, { data: teacherRole }, { data: colony }] = await Promise.all([
+        supabase.from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle(),
+        supabase.from("ROLE").select("roleId").eq("roleName", "Teacher").maybeSingle(),
+        supabase.from("GROUP").select("teacherId").eq("grpId", Number(teamColonyId?.value || getGroupId())).maybeSingle()
+      ]);
       if (!leaderRole) throw new Error("Leader role could not be found.");
 
-      const { error: memberError } = await supabase
-        .from("GROUPMEMBER")
-        .insert({ userId: user.id, grpId: newTeam.grpId, roleId: leaderRole.roleId });
+      const colonyInstructors = currentMembers.filter((member) => normalizeText(member.roleName) === "teacher");
+      if (colony?.teacherId && !colonyInstructors.some((member) => String(member.userId) === String(colony.teacherId))) {
+        colonyInstructors.push({ userId: colony.teacherId });
+      }
+      const creatorIsInstructor = colonyInstructors.some((instructor) => String(instructor.userId) === String(user.id));
+      if (creatorIsInstructor && !teacherRole) throw new Error("Teacher role could not be found.");
+      const newSwarmMembers = [{
+        userId: user.id,
+        grpId: newTeam.grpId,
+        roleId: creatorIsInstructor ? teacherRole.roleId : leaderRole.roleId
+      }];
+      colonyInstructors.forEach((instructor) => {
+        if (String(instructor.userId) !== String(user.id) && teacherRole?.roleId) {
+          newSwarmMembers.push({ userId: instructor.userId, grpId: newTeam.grpId, roleId: teacherRole.roleId });
+        }
+      });
+      const { error: memberError } = await supabase.from("GROUPMEMBER").insert(newSwarmMembers);
       if (memberError) {
         await supabase.from("GROUP").delete().eq("grpId", newTeam.grpId);
         throw new Error(memberError.message);
@@ -1216,9 +1234,10 @@ const loadGroupFromDB = async () => {
   const deleteColonyButton = document.querySelector("#deleteColonyBtn");
   if (editColonyButton) editColonyButton.hidden = !canManageMembers;
   if (deleteColonyButton) deleteColonyButton.hidden = !canManageMembers;
-  document.querySelectorAll("#openCreateTeamModalBtn, #createTeamEmptyBtn").forEach((button) => {
-    button.hidden = !canManageMembers;
-  });
+  const hasSwarms = Boolean(document.querySelector("#teamList [data-team-id]"));
+  if (openCreateTeamModalBtn) openCreateTeamModalBtn.hidden = !canManageMembers || !hasSwarms;
+  const emptyCreateTeamButton = document.querySelector("#createTeamEmptyBtn");
+  if (emptyCreateTeamButton) emptyCreateTeamButton.hidden = !canManageMembers;
 
   // 3. Project count
   const { count: projCount = 0 } = await supabase

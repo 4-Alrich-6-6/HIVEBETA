@@ -214,8 +214,8 @@ const renderTeamList = (teams) => {
     teamList.innerHTML = `
       <div class="project-empty-state team-empty-state" id="teamListEmptyState" role="status">
         <img class="project-empty-state-illustration" src="../assets/bee-flight.svg" alt="">
-        <strong>No Teams Yet</strong>
-        <p>Click the button below to create a team and start collaborating.</p>
+        <strong>No Swarms Yet</strong>
+        <p>Click the button below to create a swarm and start collaborating.</p>
         <button class="empty-create-team-btn" type="button" id="createTeamEmptyBtn" aria-label="Add swarm" hidden>Create Swarm</button>
       </div>`;
     document.querySelector("#createTeamEmptyBtn")?.addEventListener("click", openCreateTeamModal);
@@ -1245,7 +1245,13 @@ if (createTeamForm) {
       if (colony?.teacherId && !colonyInstructors.some((member) => String(member.userId) === String(colony.teacherId))) {
         colonyInstructors.push({ userId: colony.teacherId });
       }
-      const newSwarmMembers = [{ userId: user.id, grpId: newTeam.grpId, roleId: leaderRole.roleId }];
+      if (!teacherRole && String(user.id) !== String(colony?.teacherId)) throw new Error("Teacher role could not be found.");
+      const creatorIsProjectManager = String(user.id) === String(colony?.teacherId);
+      const newSwarmMembers = [{
+        userId: user.id,
+        grpId: newTeam.grpId,
+        roleId: creatorIsProjectManager ? leaderRole.roleId : teacherRole.roleId
+      }];
       colonyInstructors.forEach((instructor) => {
         if (String(instructor.userId) !== String(user.id) && teacherRole?.roleId) {
           newSwarmMembers.push({ userId: instructor.userId, grpId: newTeam.grpId, roleId: teacherRole.roleId });

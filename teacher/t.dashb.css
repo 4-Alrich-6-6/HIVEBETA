@@ -150,6 +150,122 @@ button {
     flex-wrap: wrap;
 }
 
+.contributor-profile-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 42px;
+    margin-left: auto;
+    padding: 9px 16px;
+    border: 2px solid #b8b8b0;
+    border-radius: 9px;
+    background: var(--hive-yellow);
+    color: #111;
+    font-family: 'Kodchasan', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.contributor-profile-btn svg {
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+}
+
+.contributor-profile-btn:hover,
+.contributor-profile-btn:focus-visible {
+    background: #ffe16a;
+}
+
+.contributor-profile-btn:active {
+    transform: translate(2px, 2px);
+}
+
+.member-profile-modal-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 18px;
+}
+
+.member-profile-modal-body .member-profile-identity p {
+    margin: 0 0 4px;
+}
+
+.member-profile-modal-body .member-profile-identity p:first-child {
+    font-size: 12px;
+    color: #666;
+}
+
+.member-profile-modal-body .member-profile-identity p:nth-child(2) {
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.member-profile-modal-body .member-profile-identity p:nth-child(3) {
+    font-size: 14px;
+}
+
+.member-profile-modal-body .member-profile-identity p:last-child {
+    margin-bottom: 0;
+    font-size: 13px;
+    color: #555;
+    word-break: break-all;
+}
+
+.member-profile-modal-body .circle-avatar.large {
+    width: 78px;
+    height: 78px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e5e5e0;
+}
+
+.member-profile-modal-body .circle-avatar.large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.member-profile-modal-body .profile-average-item {
+    position: relative;
+}
+
+.member-profile-modal-body .profile-average-calculation {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    z-index: 5;
+    width: max-content;
+    max-width: min(90vw, 300px);
+    padding: 9px 12px;
+    border: 1px solid #8b4513;
+    border-radius: 6px;
+    background: #fff8ef;
+    color: #8b4513;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -4px);
+    transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.member-profile-modal-body .profile-average-calculation[hidden] {
+    display: none;
+}
+
+.member-profile-modal-body .member-profile-average-value:hover + .profile-average-calculation,
+.member-profile-modal-body .member-profile-average-value:focus-visible + .profile-average-calculation {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
 .main-content-title {
     margin-top: 0px;
     font-family: "Inter" sans-serif;
@@ -246,11 +362,33 @@ button {
 }
 
 .validation-list {
-    min-height: 132px;
+    min-height: 146px;
+    max-height: 146px;
+    overflow-y: auto;
+    scrollbar-color: #e5c400 #fffde0;
+    scrollbar-width: auto;
     padding: 9px 8px;
     border: 1px solid #d8d8d8;
     border-radius: 8px;
     background: #fff;
+}
+
+.validation-list::-webkit-scrollbar {
+    width: 10px;
+}
+
+.validation-list::-webkit-scrollbar-track {
+    background: #fffde0;
+    border-radius: 8px;
+}
+
+.validation-list::-webkit-scrollbar-thumb {
+    background: #e5c400;
+    border-radius: 8px;
+}
+
+.validation-list::-webkit-scrollbar-thumb:hover {
+    background: #c7a900;
 }
 
 .validation-list.is-empty {

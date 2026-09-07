@@ -388,7 +388,7 @@ const loadSubmissions = async (filter = "evaluation") => {
 
     const { data, error } = await supa()
         .from("SUBMISSION")
-        .select("subId, taskId, grpmemId, proofLink, submittedAt, status, leaderNote, TASK!inner(taskName, taskDueD, statId, projId, teacherApproved, TASKASSIGNMENT(GROUPMEMBER(USER(userDisplayName, avatarPath)))), GROUPMEMBER(USER(userDisplayName, avatarPath))")
+        .select("subId, taskId, grpmemId, proofLink, submittedAt, status, leaderNote, TASK!inner(taskName, taskDueD, statId, projId, teacherApproved, teacherApprovedByName, TASKASSIGNMENT(GROUPMEMBER(USER(userDisplayName, avatarPath)))), GROUPMEMBER(USER(userDisplayName, avatarPath))")
         .eq("TASK.projId", Number(projId))
         .order("submittedAt", { ascending: false });
 
@@ -474,7 +474,9 @@ const loadSubmissions = async (filter = "evaluation") => {
         card.querySelector(".submission-date").textContent = submittedAt;
         const verifyButton = card.querySelector(".submission-verify");
         if (filter === "finished") {
-            verifyButton.textContent = submission.TASK?.teacherApproved ? "Instructor Verified" : "Not Yet Instructor Verified";
+            verifyButton.textContent = submission.TASK?.teacherApproved
+                ? `Verified by Instr. ${submission.TASK.teacherApprovedByName || "Unknown Instructor"}`
+                : "Not Yet Instructor Verified";
             verifyButton.classList.add("instructor-status");
             verifyButton.classList.toggle("instructor-verified", Boolean(submission.TASK?.teacherApproved));
             verifyButton.disabled = true;

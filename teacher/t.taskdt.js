@@ -84,6 +84,8 @@ const taskDetailBack = document.querySelector("#taskDetailBack");
 
 let activeTaskIndex = null;
 let currentUserId = null;
+let currentGroupRole = null;
+let currentUserIsInstructor = false;
 
 const STAT_ID = { inactive:1, active:2, pause:3, verifying:4, finished:5, missing:6 };
 const STAT_SLUG = { 1:"inactive", 2:"active", 3:"pause", 4:"verifying", 5:"finished", 6:"missing", 7:"inactive" };
@@ -302,6 +304,7 @@ const loadTaskAssigner = async (task) => {
 
 const canManageTask = async (task) => {
     if (!task?.projectGroupId || !currentUserId) return false;
+    if (currentUserIsInstructor) return true;
     const { data: group } = await supa()
         .from("GROUP")
         .select("teacherId")
@@ -314,7 +317,10 @@ const canManageTask = async (task) => {
         .eq("grpId", Number(task.projectGroupId))
         .eq("userId", currentUserId)
         .maybeSingle();
-    return String(membership?.ROLE?.roleName || "").trim().toLowerCase() === "teacher";
+    const membershipRole = String(
+        Array.isArray(membership?.ROLE) ? membership.ROLE[0]?.roleName : membership?.ROLE?.roleName
+    ).trim().toLowerCase();
+    return membershipRole === "leader";
 };
 
 const formatAssignedDate = (assignedAt) => {
@@ -342,6 +348,7 @@ const updateNotifyCooldownLabel = (button, taskId) => {
 
 const configureUnassignedTaskActions = (task) => {
     if (!pageTaskStart) return;
+    if (pageTaskSubmit) pageTaskSubmit.hidden = true;
     pageTaskStart.textContent = "Notify Assignee(s)";
     pageTaskStart.disabled = task.assignees.length === 0 || updateNotifyCooldownLabel(pageTaskStart, task.taskId);
     pageTaskStart.onclick = async () => {
@@ -430,10 +437,12 @@ const renderTaskDetailPage = async () => {
     window._pageTaskRef = task;
     const isLocked = isTerminal(task.status) || task.status === "verifying";
     const isAssignedToCurrentUser = task.assignees.some((assignee) => assignee.userId === currentUserId);
-    if (document.body.classList.contains("leader-project-page") || !isAssignedToCurrentUser) {
+    const canWorkOnTask = !currentUserIsInstructor && ["member", "leader"].includes(currentGroupRole);
+    if (!canWorkOnTask || !isAssignedToCurrentUser) {
         configureUnassignedTaskActions(task);
         return;
     }
+    if (pageTaskSubmit) pageTaskSubmit.hidden = false;
     if (pageTaskStart) {
         pageTaskStart.textContent = task.status === "active" ? "Take a Break" : "Start Task";
         pageTaskStart.disabled = isLocked;
@@ -467,15 +476,7 @@ const renderTaskDetailPage = async () => {
             }
             if (!await updateTaskStatus(task.taskId, "verifying", task)) return;
             const grpId = getGrpId();
-            const { data: leaderRole } = await supa().from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle();
-            const { data: leaderMembership } = await supa().from("GROUPMEMBER")
-                .select("grpmemId")
-                .eq("grpId", Number(grpId))
-                .eq("userId", currentUserId)
-                .eq("roleId", leaderRole?.roleId)
-                .maybeSingle();
-            const breakdownPath = leaderMembership ? "leader/s.leaderprojectbreakdown.html" : "member/s.memberprojectbreakdown.html";
-            window.location.href = `${breakdownPath}?grpId=${encodeURIComponent(grpId || "")}`;
+            window.location.href = `t.projectbreakdown.html?projId=${encodeURIComponent(getProjId() || "")}&grpId=${encodeURIComponent(grpId || "")}&tab=submissions`;
         };
     }
 };
@@ -1372,6 +1373,18 @@ if(logoutBtn) logoutBtn.addEventListener("click",()=>{showConfirmation("Are you 
 (async()=>{
     const {data:{user}}=await supa().auth.getUser();
     currentUserId=user?.id||null;
+    const groupId = getGrpId();
+    const [{ data: membership }, { data: group }] = currentUserId && groupId
+        ? await Promise.all([
+            supa().from("GROUPMEMBER").select("ROLE(roleName)").eq("userId", currentUserId).eq("grpId", Number(groupId)).maybeSingle(),
+            supa().from("GROUP").select("teacherId").eq("grpId", Number(groupId)).maybeSingle()
+        ])
+        : [{ data: null }, { data: null }];
+    currentGroupRole = String(
+        Array.isArray(membership?.ROLE) ? membership.ROLE[0]?.roleName : membership?.ROLE?.roleName
+    ).trim().toLowerCase();
+    currentUserIsInstructor = currentGroupRole === "teacher"
+        || String(group?.teacherId || "") === String(currentUserId || "");
     await loadProfileAvatar(currentUserId);
     const projectName=sessionStorage.getItem("hive_selected_project_name");
     const el=document.querySelector(".project-name-display h2");

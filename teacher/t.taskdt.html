@@ -99,7 +99,7 @@
                             <div class="task-detail-active-time"><strong>Active Time:</strong><span id="pageTaskActiveTime">0h 0m 0s</span></div>
                             <div class="task-detail-status"><strong>Status:</strong><span id="pageTaskStatus">Not Active</span></div>
                         </div>
-                        <div class="task-detail-actions"><button type="button" id="pageTaskStart">Notify Assignee(s)</button></div>
+                        <div class="task-detail-actions"><button type="button" id="pageTaskStart">Start Task</button><button type="button" id="pageTaskSubmit">Submit</button></div>
                     </div>
                 </section>
                 <section class="project-details" aria-label="Project details">
@@ -489,7 +489,7 @@
     <script src="../lib/manage-profile.js"></script>
     <script src="../lib/settings.js"></script>
     <script src="../lib/confirmation-modal.js"></script>
-    <script src="t.taskdt.js"></script>
+    <script src="t.taskdt.js?v=member-leader-controls-3"></script>
     <script>
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js');

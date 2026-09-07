@@ -232,7 +232,7 @@ addEditLinkBtn?.addEventListener("click", (event) => {
 });
 
 const openEditGroupModal = () => {
-  if (!editGroupModalOverlay) return;
+  if (!editGroupModalOverlay || !canManageMembers) return;
   if (editGroupNameInput) editGroupNameInput.value = currentGroup.name || "";
   if (editGroupSubjectInput) editGroupSubjectInput.value = currentGroup.subject || "";
   if (editGroupDescriptionInput) editGroupDescriptionInput.value = currentGroup.description || "";
@@ -298,7 +298,7 @@ editGroupForm?.addEventListener("submit", (event) => {
 deleteGroupBtn?.addEventListener("click", () => {
   const grpId = getGroupId();
   const supabase = getSupabase();
-  if (!grpId || !supabase) return;
+  if (!canManageMembers || !grpId || !supabase) return;
   safeShowConfirmation(`Delete "${currentGroup.name}" and all of its projects and tasks? This cannot be undone.`, async () => {
     const { error } = await supabase.rpc("delete_group_cascade", { p_grp_id: Number(grpId) });
     if (error) { showAlert(`Failed to delete swarm: ${error.message}`, { title: "Error" }); return; }
@@ -328,7 +328,7 @@ const closePostCategoryModal = () => {
 };
 
 const openPostCategoryModal = () => {
-  if (!postCategoryModalOverlay) return;
+  if (!postCategoryModalOverlay || !canManageMembers) return;
   if (categoryDueDateInput) categoryDueDateInput.min = todayISO();
   postCategoryModalOverlay.classList.add("open");
   postCategoryModalOverlay.setAttribute("aria-hidden", "false");
@@ -419,14 +419,14 @@ const renderGroupProjects = (projects) => {
       <div class="project-empty-state" role="status">
         <img class="project-empty-state-illustration" src="../../assets/bee-flight.svg" alt="">
         <strong>No Projects Yet</strong>
-        <p>Click the "+" button to post a project and start breaking down tasks.</p>
-        <button type="button" class="empty-state-create-link" id="emptyCreateProjectBtn">Create Project</button>
+        <p>${canManageMembers ? "Click Create Project to start breaking down tasks." : "There are no projects in this swarm yet."}</p>
+        ${canManageMembers ? '<button type="button" class="empty-state-create-link" id="emptyCreateProjectBtn">Create Project</button>' : ""}
       </div>`;
     document.querySelector("#emptyCreateProjectBtn")?.addEventListener("click", openPostCategoryModal);
     return;
   }
 
-  if (addProjectButton) addProjectButton.hidden = false;
+  if (addProjectButton) addProjectButton.hidden = !canManageMembers;
 
   projects.forEach((project) => {
     const item = document.createElement("div");
@@ -543,7 +543,7 @@ const loadGroupFromDB = async () => {
   // Merge the group teacher with an existing membership instead of counting them twice.
   if (grp?.teacherId) {
     const existingTeacher = currentMembers.find((member) => member.userId === grp.teacherId);
-    if (existingTeacher) existingTeacher.roleName = "Teacher";
+    if (existingTeacher && normalizeText(existingTeacher.roleName) === "teacher") existingTeacher.roleName = "Teacher";
 
     const { data: teacherUser } = await supabase
       .from("USER")
@@ -570,6 +570,10 @@ const loadGroupFromDB = async () => {
     String(member.userId) === String(currentUser.id)
     && ["leader", "teacher"].includes(normalizeText(member.roleName))
   ));
+  if (projectAddBtn) projectAddBtn.hidden = !canManageMembers;
+  if (emptyCreateProjectBtn) emptyCreateProjectBtn.hidden = !canManageMembers;
+  if (editGroupBtn) editGroupBtn.hidden = !canManageMembers;
+  if (deleteGroupBtn) deleteGroupBtn.hidden = !canManageMembers;
 
   // 3. Project count
   const { count: projCount = 0 } = await supabase

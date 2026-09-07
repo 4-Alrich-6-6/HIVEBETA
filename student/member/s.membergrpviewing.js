@@ -58,6 +58,12 @@ const editGroupLinksList       = document.querySelector("#editGroupLinksList");
 const addEditScheduleBtn       = document.querySelector("#addEditScheduleBtn");
 const addEditLinkBtn           = document.querySelector("#addEditLinkBtn");
 const discardEditGroupBtn      = document.querySelector("#discardEditGroupBtn");
+const addColonyMembersBtn      = document.querySelector("#addColonyMembersBtn");
+const addColonyContributorsModalOverlay = document.querySelector("#addColonyContributorsModalOverlay");
+const addColonyContributorsList = document.querySelector("#addColonyContributorsList");
+const addColonyContributorsTitle = document.querySelector("#addColonyContributorsTitle");
+const closeAddColonyContributorsBtn = document.querySelector("#closeAddColonyContributorsBtn");
+const doneAddColonyContributorsBtn = document.querySelector("#doneAddColonyContributorsBtn");
 
 const closeEditGroupModalNow = () => {
   editGroupModalOverlay?.classList.remove("open");
@@ -335,7 +341,7 @@ const getMemberStat = (member, keys) => {
 /* ── STATE (populated by loadGroupFromDB) ────────────────────────────────── */
 let currentMembers = []; // full list of {grpmemId, userId, fullName, email, roleName, roleId}
 let canManageMembers = false;
-let currentGroup = { name: "Team", subject: "Subject", description: "", motto: "", meetingSchedule: "", links: [], createdAt: "", parentGrpId: null };
+let currentGroup = { name: "Team", subject: "Subject", description: "", motto: "", meetingSchedule: "", links: [], createdAt: "", parentGrpId: null, teacherId: null, parentName: "" };
 
 const formatGroupCreatedDate = (value) => {
   if (!value) return "Not available";
@@ -381,7 +387,9 @@ const loadGroupFromDB = async () => {
       meetingSchedule: grp.grpMeetingSchedule || "",
       links: Array.isArray(grp.grpLinks) ? grp.grpLinks : [],
       createdAt: grp.grpCreatedAt || "",
-      parentGrpId: grp.parentGrpId || null
+      parentGrpId: grp.parentGrpId || null,
+      teacherId: grp.teacherId || null,
+      parentName: ""
     };
     if (topBackBtn) {
       const backLabel = currentGroup.parentGrpId ? "Colony" : "Teams";
@@ -402,6 +410,12 @@ const loadGroupFromDB = async () => {
     if (aboutDescription) aboutDescription.textContent = currentGroup.description || `${currentGroup.name} is a ${currentGroup.subject} team. Keep your shared project context here.`;
     const createdDate = document.querySelector("#swarmCreatedDate");
     if (createdDate) createdDate.textContent = formatGroupCreatedDate(currentGroup.createdAt);
+    const projectManagerSection = document.querySelector(".group-admin-section");
+    if (projectManagerSection) projectManagerSection.hidden = !currentGroup.parentGrpId;
+    if (addColonyMembersBtn) {
+      addColonyMembersBtn.hidden = !currentGroup.parentGrpId;
+      addColonyMembersBtn.textContent = "+ Add Contributors from Colony";
+    }
     renderAboutDetails();
     loadSwarmActivityStatus(grpId);
   }
@@ -429,20 +443,34 @@ const loadGroupFromDB = async () => {
     deptName:  m.USER?.DEPARTMENT?.deptName || null,
   }));
 
-  // Merge the group teacher with an existing membership instead of counting them twice.
-  if (grp?.teacherId) {
-    const existingTeacher = currentMembers.find((member) => member.userId === grp.teacherId);
+  // Nested swarms inherit the colony instructor when their own teacherId is empty.
+  let instructorId = grp?.teacherId || null;
+  if (grp?.parentGrpId) {
+    const { data: parentGroup } = await supabase
+      .from("GROUP")
+      .select("teacherId, grpName")
+      .eq("grpId", grp.parentGrpId)
+      .maybeSingle();
+    instructorId = instructorId || parentGroup?.teacherId || null;
+    currentGroup.parentName = parentGroup?.grpName || "Colony";
+    if (addColonyMembersBtn) addColonyMembersBtn.textContent = `+ Add Contributors from ${currentGroup.parentName}`;
+    if (addColonyContributorsTitle) addColonyContributorsTitle.textContent = `Add Contributors from ${currentGroup.parentName}`;
+  }
+
+  // Merge the group instructor with an existing membership instead of counting them twice.
+  if (instructorId) {
+    const existingTeacher = currentMembers.find((member) => member.userId === instructorId);
     if (existingTeacher) existingTeacher.roleName = "Teacher";
 
     const { data: teacherUser } = await supabase
       .from("USER")
       .select("userDisplayName, userEmail, avatarPath, DEPARTMENT(deptName)")
-      .eq("userId", grp.teacherId)
+      .eq("userId", instructorId)
       .maybeSingle();
     if (teacherUser && !existingTeacher) {
       currentMembers.push({
         grpmemId:  null,
-        userId:    grp.teacherId,
+        userId:    instructorId,
         roleId:    null,
         roleName:  "Teacher",
         fullName:  teacherUser.userDisplayName || "Unknown",
@@ -533,6 +561,7 @@ const createMemberCard = (member, cardClass, avatarSize) => {
     : "";
   const isTeacher = cardClass.includes("teacher-card");
   const isLeader = normalizeText(member.roleName) === "leader";
+  const displayRole = isTeacher ? "Project Manager" : member.roleName;
 
   return `
   <article class="info-card ${cardClass}" data-member-id="${member.userId}" style="cursor:pointer;">
@@ -542,7 +571,7 @@ const createMemberCard = (member, cardClass, avatarSize) => {
     <div class="member-details">
       <div class="member-info">
         <h3>${member.fullName}</h3>
-        <p>${member.roleName}</p>
+        <p>${displayRole}</p>
       </div>
       ${canManageMembers && !isTeacher && !isLeader ? `
       <button class="member-more-btn" type="button" aria-label="More member options">
@@ -584,22 +613,31 @@ const renderGroupMembers = async (members) => {
     })
   );
 
-  const teachers      = membersWithStats.filter((m) => normalizeText(m.roleName) === "teacher");
   const leader        = membersWithStats.find((m) => normalizeText(m.roleName) === "leader");
+  const colonyProjectManagerId = currentGroup.parentGrpId
+    ? (leader?.userId || currentGroup.teacherId || null)
+    : null;
+  const teachers      = membersWithStats.filter((m) => normalizeText(m.roleName) === "teacher"
+    && String(m.userId) !== String(colonyProjectManagerId)
+    && (currentGroup.parentGrpId || String(m.userId) !== String(leader?.userId)));
   const normalMembers = membersWithStats.filter((m) => {
     const r = normalizeText(m.roleName);
-    return r !== "teacher" && r !== "leader";
+    return r !== "teacher" && String(m.userId) !== String(leader?.userId)
+      && (!currentGroup.parentGrpId || r !== "leader");
   });
 
   if (adminCard) {
-    adminCard.innerHTML = leader
-      ? `<article class="group-admin-card" data-member-id="${leader.userId}"><div class="circle-avatar medium">${resolveAvatar(leader.avatarPath) ? `<img src="${resolveAvatar(leader.avatarPath)}" alt="">` : "<img src=\"../../assets/profile-placeholder.svg\" alt=\"\">"}</div><strong>${leader.fullName}</strong></article>`
-      : "<p>Administrator unavailable</p>";
+    const projectManager = currentGroup.parentGrpId
+      ? (leader || membersWithStats.find((member) => String(member.userId) === String(currentGroup.teacherId)))
+      : null;
+    adminCard.innerHTML = projectManager
+      ? `<article class="group-admin-card" data-member-id="${projectManager.userId}"><div class="circle-avatar medium">${resolveAvatar(projectManager.avatarPath) ? `<img src="${resolveAvatar(projectManager.avatarPath)}" alt="">` : "<img src=\"../../assets/profile-placeholder.svg\" alt=\"\">"}</div><div class="group-admin-details"><strong>${projectManager.fullName}</strong><span>Project Manager</span></div></article>`
+      : "";
   }
 
   memberCards.innerHTML = `
     <div class="member-grid">
-      ${leader ? createMemberCard(leader, "leader-card", "large") : ""}
+      ${leader && !currentGroup.parentGrpId ? createMemberCard(leader, "leader-card", "large") : ""}
       ${normalMembers.map((m) => createMemberCard(m, "member-card", "medium")).join("")}
     </div>
     ${!leader && !normalMembers.length ? `<article class="info-card"><h3>No members found</h3></article>` : ""}
@@ -1160,7 +1198,9 @@ const getAvatarLightbox = () => {
 
 const openMemberProfile = async (member) => {
   if (!memberProfileOverlay || !memberProfileAvatar) return;
-  memberProfileRole.textContent  = member.roleName || "Member";
+  memberProfileRole.textContent  = normalizeText(member.roleName) === "leader" || normalizeText(member.roleName) === "teacher"
+    ? "Project Manager"
+    : (member.roleName || "Member");
   memberProfileName.textContent  = member.fullName;
   memberProfileEmail.textContent = member.email;
   memberProfileEmail.style.visibility = "hidden";
@@ -1283,6 +1323,38 @@ const openAddMembersModal = () => {
   if (groupLinkValue) groupLinkValue.value = getGroupLink();
   addMembersModalOverlay.classList.add("open");
   addMembersModalOverlay.setAttribute("aria-hidden", "false");
+};
+
+const closeAddColonyContributorsModal = () => {
+  addColonyContributorsModalOverlay?.classList.remove("open");
+  addColonyContributorsModalOverlay?.setAttribute("aria-hidden", "true");
+};
+
+const renderColonyContributorOptions = async () => {
+  if (!addColonyContributorsList || !currentGroup.parentGrpId) return;
+  const supabase = getSupabase();
+  const { data: colonyMembers } = await supabase.from("GROUPMEMBER")
+    .select("userId, ROLE(roleName), USER(userDisplayName, avatarPath)")
+    .eq("grpId", Number(currentGroup.parentGrpId));
+  const existingIds = new Set(currentMembers.map((member) => String(member.userId)));
+  const options = (colonyMembers || []).filter((member) => !existingIds.has(String(member.userId)));
+  addColonyContributorsList.innerHTML = options.length ? options.map((member) => {
+    const roleName = member.ROLE?.roleName || "Member";
+    const avatar = resolveAvatar(member.USER?.avatarPath);
+    return `<button type="button" class="colony-contributor-option" aria-pressed="false"><span class="colony-contributor-avatar">${avatar ? `<img src="${avatar}" alt="">` : "<img src=\"../../assets/profile-placeholder.svg\" alt=\"\">"}</span><span class="colony-contributor-name"><strong>${member.USER?.userDisplayName || "Unknown"}</strong><small>${roleName === "Teacher" ? "Instructor" : "Contributor"}</small></span><span class="colony-contributor-hex" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.9485 11.0195C21.2909 11.6283 21.2909 12.3717 20.9485 12.9805L17.5735 18.9805C17.2192 19.6103 16.5529 20 15.8303 20H8.16969C7.44715 20 6.78078 19.6103 6.42654 18.9805L3.05154 12.9805C2.70908 12.3717 2.70908 11.6283 3.05154 11.0195L6.42654 5.01948C6.78078 4.38972 7.44715 4 8.16969 4H15.8303C16.5529 4 17.2192 4.38972 17.5735 5.01948L20.9485 11.0195Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button>`;
+  }).join("") : "<p class='colony-contributors-empty'>No additional colony members available.</p>";
+  addColonyContributorsList.querySelectorAll(".colony-contributor-option").forEach((option) => option.addEventListener("click", () => {
+    const selected = option.getAttribute("aria-pressed") === "true";
+    option.setAttribute("aria-pressed", String(!selected));
+    option.classList.toggle("is-selected", !selected);
+  }));
+};
+
+const openAddColonyContributorsModal = async () => {
+  if (!addColonyContributorsModalOverlay) return;
+  await renderColonyContributorOptions();
+  addColonyContributorsModalOverlay.classList.add("open");
+  addColonyContributorsModalOverlay.setAttribute("aria-hidden", "false");
 };
 
 /* ── SELECT LEADER MODAL ─────────────────────────────────────────────────── */
@@ -1655,6 +1727,10 @@ if (openAddMembersModalBtn) openAddMembersModalBtn.addEventListener("click", ope
 if (openInstructorsInviteBtn) openInstructorsInviteBtn.addEventListener("click", openAddMembersModal);
 if (discardAddMembersBtn)   discardAddMembersBtn.addEventListener("click", closeAddMembersModal);
 if (addMembersModalOverlay) addMembersModalOverlay.addEventListener("click", (e) => { if (e.target === addMembersModalOverlay) closeAddMembersModal(); });
+addColonyMembersBtn?.addEventListener("click", openAddColonyContributorsModal);
+closeAddColonyContributorsBtn?.addEventListener("click", closeAddColonyContributorsModal);
+doneAddColonyContributorsBtn?.addEventListener("click", closeAddColonyContributorsModal);
+addColonyContributorsModalOverlay?.addEventListener("click", (event) => { if (event.target === addColonyContributorsModalOverlay) closeAddColonyContributorsModal(); });
 
 const copyCurrentGroupLink = async (buttonEl, inputEl) => {
   if (!buttonEl) return;

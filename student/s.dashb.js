@@ -1244,12 +1244,17 @@ const populateInvitationPreview = async (grpId) => {
             .select("grpType, parentGrpId")
             .eq("grpId", grpId)
             .maybeSingle();
+        const normalizedGroupType = String(groupData?.grpType || "COLONY").toUpperCase();
 
         if (isTeacherPerspective) {
-            window.location.href = `../teacher/t.grpviewing.html?grpId=${grpId}&from=dashboard`;
+            window.location.href = normalizedGroupType === "COLONY"
+                ? `../teacher/t.colony.html?grpId=${grpId}&from=dashboard`
+                : `../teacher/t.grpviewing.html?grpId=${grpId}&from=dashboard`;
         } else if (groupData?.parentGrpId) {
             // It's a swarm, redirect to parent colony
             window.location.href = `s.colony.html?grpId=${groupData.parentGrpId}&from=dashboard`;
+        } else if (normalizedGroupType === "COLONY") {
+            window.location.href = `s.colony.html?grpId=${grpId}&from=dashboard`;
         } else {
             // It's a top-level group, redirect to member viewing page
             window.location.href = `member/s.membergrpviewing.html?grpId=${grpId}&from=dashboard`;
