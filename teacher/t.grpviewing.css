@@ -2490,7 +2490,7 @@ body {
 
 .leader-group-page .contributors-column #memberCards,
 .leader-group-page .members-side-column #instructorCards {
-    max-height: 420px;
+    max-height: clamp(180px, calc(100dvh - 300px), 620px);
     overflow-y: auto;
     padding-right: 8px;
     scrollbar-width: thin;
@@ -2634,6 +2634,10 @@ body {
     background: #fff;
 }
 
+.leader-group-page .invite-card[hidden] {
+    display: none;
+}
+
 .leader-group-page .invite-card h3 {
     margin: 0;
     font-size: 18px;
@@ -2667,7 +2671,7 @@ body {
 
 .leader-group-page .members-side-column #instructorCards {
     grid-template-columns: 1fr;
-    max-height: 300px;
+    max-height: clamp(150px, calc(100dvh - 300px), 620px);
 }
 
 .leader-group-page .members-side-column .info-card {

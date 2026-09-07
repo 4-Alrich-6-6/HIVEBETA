@@ -634,6 +634,10 @@ button {
 .is-selected .colony-contributor-hex { color: #ffcc00; }
 .is-selected .colony-contributor-hex path { fill: #ffcc00; stroke: #ffcc00; }
 .colony-contributors-empty { margin: 24px 0; text-align: center; font-weight: 700; }
+.colony-instructors-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; padding: 24px; text-align: center; }
+.colony-instructors-empty img { width: 112px; height: 112px; margin-bottom: 12px; object-fit: contain; }
+.colony-instructors-empty strong { font: 700 20px 'Inter', sans-serif; }
+.colony-instructors-empty p { margin: 8px 0 0; font: 16px 'Kodchasan', sans-serif; color: #666; }
 
 .add-colony-contributors-actions {
     display: flex;
@@ -2595,7 +2599,8 @@ body {
     font-weight: 700;
 }
 
-.leader-group-page .add-colony-members-btn {
+.leader-group-page .add-colony-members-btn,
+.leader-group-page .add-colony-instructors-btn {
     border: 1px solid #888;
     border-radius: 8px;
     background: #ffcc00;
@@ -2652,7 +2657,7 @@ body {
 
 .leader-group-page .contributors-column #memberCards,
 .leader-group-page .members-side-column #instructorCards {
-    max-height: 420px;
+    max-height: clamp(180px, calc(100dvh - 300px), 620px);
     overflow-y: auto;
     padding-right: 8px;
     scrollbar-width: thin;
@@ -2796,6 +2801,10 @@ body {
     background: #fff;
 }
 
+.leader-group-page .invite-card[hidden] {
+    display: none;
+}
+
 .leader-group-page .invite-card h3 {
     margin: 0;
     font-size: 18px;
@@ -2829,7 +2838,7 @@ body {
 
 .leader-group-page .members-side-column #instructorCards {
     grid-template-columns: 1fr;
-    max-height: 300px;
+    max-height: clamp(150px, calc(100dvh - 300px), 620px);
 }
 
 .leader-group-page .members-side-column .info-card {
@@ -2887,6 +2896,10 @@ body {
     border-radius: 6px;
     background: #fff;
     box-shadow: none;
+}
+
+.leader-group-page .members-empty-title {
+    font-family: 'Kodchasan', sans-serif;
 }
 
 .leader-group-page .circle-avatar,

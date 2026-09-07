@@ -2643,7 +2643,7 @@ body {
 
 .leader-group-page .contributors-column #memberCards,
 .leader-group-page .members-side-column #instructorCards {
-    max-height: 420px;
+    max-height: clamp(180px, calc(100dvh - 300px), 620px);
     overflow-y: auto;
     padding-right: 8px;
     scrollbar-width: thin;
@@ -2820,7 +2820,7 @@ body {
 
 .leader-group-page .members-side-column #instructorCards {
     grid-template-columns: 1fr;
-    max-height: 300px;
+    max-height: clamp(150px, calc(100dvh - 300px), 620px);
 }
 
 .leader-group-page .members-side-column .info-card {
@@ -3000,6 +3000,13 @@ body {
     box-shadow: none;
     box-sizing: border-box;
     cursor: pointer;
+}
+
+.leader-group-page .colony-team-card.is-locked {
+    cursor: pointer;
+    filter: blur(3px);
+    opacity: 0.58;
+    user-select: none;
 }
 
 .leader-group-page .colony-team-card .group-info {

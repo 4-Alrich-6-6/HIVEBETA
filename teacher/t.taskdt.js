@@ -473,6 +473,21 @@ const renderTaskDetailPage = async () => {
                     showAlert(`Failed to submit task: ${error.message}`, { title: "Submission Error" });
                     return;
                 }
+                const grpId = getGrpId();
+                const [{ data: taskRecipients }, { data: submitter }] = await Promise.all([
+                    supa().from("GROUPMEMBER").select("userId, ROLE(roleName)").eq("grpId", Number(grpId)),
+                    supa().from("USER").select("userDisplayName").eq("userId", currentUserId).maybeSingle()
+                ]);
+                const recipientIds = (taskRecipients || [])
+                    .filter((member) => ["leader", "teacher", "project manager"].includes(String(member.ROLE?.roleName || "").trim().toLowerCase()))
+                    .map((member) => member.userId)
+                    .filter((userId) => userId !== currentUserId);
+                await hiveNotificationEvents.notifyUsers(supa(), {
+                    userIds: recipientIds,
+                    grpId,
+                    title: "Task Submitted",
+                    body: `${submitter?.userDisplayName || "An assignee"} submitted the task "${task.name}" for review.`
+                });
             }
             if (!await updateTaskStatus(task.taskId, "verifying", task)) return;
             const grpId = getGrpId();

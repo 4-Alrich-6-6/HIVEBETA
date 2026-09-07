@@ -373,6 +373,11 @@ const loadSubmissions = async (filter = "evaluation") => {
     submissionsList.innerHTML = `<div class="submissions-empty empty-state"><p>Loading submissions...</p></div>`;
     const projId = getProjId();
     if (!projId || !supa()) return;
+    const { data: projectGroup } = await supa().from("PROJECT").select("grpId").eq("projId", Number(projId)).maybeSingle();
+    const { data: projectGroupInfo } = projectGroup?.grpId
+        ? await supa().from("GROUP").select("parentGrpId").eq("grpId", Number(projectGroup.grpId)).maybeSingle()
+        : { data: null };
+    const isColonySwarm = Boolean(projectGroupInfo?.parentGrpId);
     const isLeaderView = currentGroupRole === "leader";
 
     if (filter === "evaluation") {
@@ -421,15 +426,16 @@ const loadSubmissions = async (filter = "evaluation") => {
         .map((member) => String(member.userId)));
 
     const leaderVerifiedTaskIds = new Set((data || [])
-        .filter((submission) => String(submission.status || "").toLowerCase() === "approved")
+        .filter((submission) => ["approved", "pm_approved"].includes(String(submission.status || "").toLowerCase()))
         .map((submission) => submission.taskId));
     const submissions = (data || []).filter((submission) => {
         const taskStatus = Number(submission.TASK?.statId);
         const isLeaderVerified = leaderVerifiedTaskIds.has(submission.taskId);
+        const isProjectManagerApproved = (data || []).some((item) => item.taskId === submission.taskId && String(item.status || "").toLowerCase() === "pm_approved");
         const isInstructorVerified = Boolean(submission.TASK?.teacherApproved);
         const isFinished = isInstructorVerified || (taskStatus === STAT_ID.finished && !isInstructorView);
         const isForEvaluation = isInstructorView
-            ? isLeaderVerified && !isInstructorVerified
+            ? (isColonySwarm ? isProjectManagerApproved : isLeaderVerified) && !isInstructorVerified
             : taskStatus === STAT_ID.verifying && !isLeaderVerified;
         return filter === "finished" ? isFinished : isForEvaluation;
     });
@@ -1127,7 +1133,10 @@ if (verifyReviseBtn) {
             await supa().from("SUBMISSION").update({ status: "rejected" }).eq("subId", _verifySubmissionId);
         }
         const taskId = verifyChoiceCallback?.taskId;
-        if (taskId) await supa().from("TASK").update({ statId: STAT_ID.inactive, wasRevising: true, teacherApproved: false, teacherApprovedBy: null, teacherApprovedByName: null, taskAcmD: null }).eq("taskId", taskId);
+        if (taskId) {
+            await supa().from("SUBMISSION").update({ status: "rejected" }).eq("taskId", taskId);
+            await supa().from("TASK").update({ statId: STAT_ID.inactive, wasRevising: true, teacherApproved: false, teacherApprovedBy: null, teacherApprovedByName: null, taskAcmD: null }).eq("taskId", taskId);
+        }
         verifyChoiceCallback?.onRevise?.();
         closeVerifyChoice();
     });

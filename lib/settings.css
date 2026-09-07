@@ -189,6 +189,11 @@
     padding-top: 12px;
 }
 
+.settings-privacy-section,
+.settings-help-section {
+    margin-top: 20px;
+}
+
 .settings-row-title,
 .settings-row-description {
     display: block;

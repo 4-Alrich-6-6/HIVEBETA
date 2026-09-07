@@ -6,6 +6,12 @@ document.querySelectorAll('a[href$="s.team.html"]').forEach((link) => { link.hre
 document.querySelectorAll('a[href$="s.notification.html"]').forEach((link) => { link.href = "t.notification.html"; });
 
 const loadTopbarAvatar = async () => {
+      await hiveNotificationEvents.notifyUsers(supabase, {
+        userIds: [member.userId],
+        grpId,
+        title: "Promoted to Leader",
+        body: `You have been set as the Leader of "${currentGroup.name}".`
+      });
   const profileImage = document.querySelector(".profile-trigger img");
   const supabase = getSupabase();
   if (!profileImage || !supabase) return;
@@ -44,6 +50,7 @@ const discardAddMembersBtn     = document.querySelector("#discardAddMembersBtn")
 const copyInviteLinkBtn        = document.querySelector("#copyInviteLinkBtn");
 const copyGroupLinkBtn         = document.querySelector("#copyGroupLinkBtn");
 const groupLinkValue           = document.querySelector("#groupLinkValue");
+const inviteCard               = document.querySelector(".invite-card");
 const openRemoveMembersModalBtn= document.querySelector("#openRemoveMembersModalBtn");
 const removeMembersModalOverlay= document.querySelector("#removeMembersModalOverlay");
 const removeMembersList        = document.querySelector("#removeMembersList");
@@ -361,6 +368,13 @@ postCategoryForm?.addEventListener("submit", async (event) => {
     showAlert(`Failed to post project: ${error.message}`, { title: "Error" });
     return;
   }
+  const { data: creator } = await supabase.from("USER").select("userDisplayName").eq("userId", (await supabase.auth.getUser()).data.user?.id).maybeSingle();
+  await hiveNotificationEvents.notifyGroup(supabase, {
+    grpId,
+    title: "New Project Created",
+    body: `${creator?.userDisplayName || "Someone"} created the project "${projName}".`,
+    excludeUserId: (await supabase.auth.getUser()).data.user?.id
+  });
   closePostCategoryModal();
   await loadGroupFromDB();
 });
@@ -486,7 +500,7 @@ const loadGroupFromDB = async () => {
   // 1. Group info
   const { data: grp, error: grpErr } = await supabase
     .from("GROUP")
-    .select("grpName, grpSubject, grpDescription, grpMotto, grpMeetingSchedule, grpLinks, grpCreatedAt, teacherId")
+    .select("grpName, grpSubject, grpDescription, grpMotto, grpMeetingSchedule, grpLinks, grpCreatedAt, teacherId, parentGrpId")
     .eq("grpId", grpId)
     .maybeSingle();
 
@@ -498,7 +512,8 @@ const loadGroupFromDB = async () => {
       motto: grp.grpMotto || "",
       meetingSchedule: grp.grpMeetingSchedule || "",
       links: Array.isArray(grp.grpLinks) ? grp.grpLinks : [],
-      createdAt: grp.grpCreatedAt || ""
+      createdAt: grp.grpCreatedAt || "",
+      parentGrpId: grp.parentGrpId || null
     };
     const h2 = document.querySelector(".group-label h2");
     const p  = document.querySelector(".group-label p");
@@ -509,6 +524,10 @@ const loadGroupFromDB = async () => {
     if (groupTitle) groupTitle.textContent = grp.grpName || "Team";
     if (groupMeta) groupMeta.textContent = `${grp.grpSubject || "Loading..."} | ? Members | ? Instructors`;
     if (groupLinkValue) groupLinkValue.value = String(grpId);
+    if (inviteCard) {
+      inviteCard.hidden = Boolean(currentGroup.parentGrpId);
+      inviteCard.style.display = currentGroup.parentGrpId ? "none" : "";
+    }
     const aboutDescription = document.querySelector("#aboutDescription");
     if (aboutDescription) aboutDescription.textContent = currentGroup.description || `${currentGroup.name} is a ${currentGroup.subject} team. Keep your shared project context here.`;
     const createdDate = document.querySelector("#swarmCreatedDate");
@@ -1200,6 +1219,17 @@ noteCommentForm?.addEventListener("submit", async (event) => {
     showAlert(`Failed to post comment: ${error.message}`, { title: "Error" });
     return;
   }
+  if (activeNote.userId && activeNote.userId !== user.id) {
+    const { data: commenter } = await supabase.from("USER").select("userDisplayName").eq("userId", user.id).maybeSingle();
+    await supabase.from("NOTIFICATION").insert({
+      notiTitle: "Comment on Your Note",
+      notiBody: `${commenter?.userDisplayName || "Someone"} commented on your note "${activeNote.noteTitle || "Untitled"}".`,
+      "notiDate&Time": new Date().toISOString(),
+      notiIsRead: false,
+      userId: activeNote.userId,
+      grpId: Number(getGroupId())
+    });
+  }
   noteCommentForm.reset();
   await loadNoteComments(activeNote.noteId);
 });
@@ -1239,6 +1269,12 @@ noteAddForm?.addEventListener("submit", async (event) => {
     showAlert(`Failed to post note: ${error.message}`, { title: "Error" });
     return;
   }
+  await hiveNotificationEvents.notifyGroup(supabase, {
+    grpId,
+    title: "New Note Posted",
+    body: `${(await supabase.from("USER").select("userDisplayName").eq("userId", user.id).maybeSingle()).data?.userDisplayName || "Someone"} posted a note in "${currentGroup.name}".`,
+    excludeUserId: user.id
+  });
 
   closeNoteAddModalNow();
   await renderNotes();
@@ -1912,5 +1948,6 @@ const loadSidebarProfile = async () => {
 };
 
 /* ── INIT ─────────────────────────────────────────────────────────────────── */
-loadGroupFromDB();
+window.HiveLoading?.startDataLoad("Loading swarm...");
+loadGroupFromDB().finally(() => window.HiveLoading?.finishDataLoad());
 loadSidebarProfile();

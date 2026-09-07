@@ -121,6 +121,19 @@ const loadProjects = async () => {
     return projectsWithCounts;
 };
 
+const hasSwarmContributors = async () => {
+    const grpId = getGrpId();
+    if (!supa() || !grpId) return true;
+    const { data: members } = await supa()
+        .from("GROUPMEMBER")
+        .select("ROLE(roleName)")
+        .eq("grpId", Number(grpId));
+    return (members || []).some((member) => {
+        const roleName = String(member.ROLE?.roleName || "").trim().toLowerCase();
+        return roleName !== "leader" && roleName !== "teacher";
+    });
+};
+
 // ── Create category card ──────────────────────────────────────────────────
 const createCategoryItem = (name, key, count, completedCount, dueDate, dueTime, status, description = "") => {
     const categoryItem = document.createElement("div");
@@ -159,12 +172,17 @@ const renderAllProjects = async () => {
     const projectAddBtn = document.querySelector("#openPostCategoryModalBtn");
     
     if (projects.length === 0) {
+        const hasContributors = await hasSwarmContributors();
+        const emptyTitle = hasContributors ? "No Projects Yet" : "No members yet to work on the Projects.";
+        const emptyMessage = hasContributors
+            ? "Click the button below to create your first project and start breaking down tasks!"
+            : "Please add your colony mates here first before posting projects.";
         // Create custom empty state with "Here" button
         categoryList.innerHTML = `
             <div class="project-empty-state" role="status">
                 <img class="project-empty-state-illustration" src="../../assets/bee-flight.svg" alt="">
-                <strong>No Projects Yet</strong>
-                <p>Click the button below to create your first project and start breaking down tasks!</p>
+                <strong>${emptyTitle}</strong>
+                <p>${emptyMessage}</p>
                 ${canCreateProjects ? '<button type="button" class="empty-state-create-link" id="emptyStateCreateBtn">Create Project</button>' : ""}
             </div>
         `;

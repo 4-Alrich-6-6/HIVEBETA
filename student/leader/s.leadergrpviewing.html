@@ -78,8 +78,8 @@
                                 <form class="member-search" id="memberSearchForm" role="search">
                                     <input id="memberSearchInput" type="search" placeholder="Search Contributors" aria-label="Search contributors">
                                 </form>
-                                <div class="invite-card">
-                                    <div><h3>Invite via Link</h3><p>Let’s make the colony beeeetter<br>with your members! Invite them</p></div>
+                                <div class="invite-card" hidden style="display: none;">
+                                    <div><h3>Invite via Link</h3><p>Let's make the swarm beeeetter<br>with your members! Invite them</p></div>
                                     <button type="button" class="invite-copy-btn" id="copyInviteLinkBtn" aria-label="Copy invite link">COPY</button>
                                 </div>
                                 <section class="people-subsection instructors-section" id="instructorsSection">
@@ -170,7 +170,23 @@
         <div class="add-colony-contributors-modal" role="dialog" aria-modal="true" aria-labelledby="addColonyContributorsTitle">
             <div class="add-colony-contributors-header"><h2 id="addColonyContributorsTitle">Add Contributors from Colony</h2></div>
             <div class="add-colony-contributors-list" id="addColonyContributorsList"></div>
-            <div class="add-colony-contributors-actions"><button type="button" class="colony-modal-btn colony-modal-close" id="closeAddColonyContributorsBtn">Close</button><button type="button" class="colony-modal-btn colony-modal-done" id="doneAddColonyContributorsBtn">Done</button></div>
+            <div class="add-colony-contributors-actions"><button type="button" class="colony-modal-btn colony-modal-close" id="closeAddColonyContributorsBtn">Close</button><button type="button" class="colony-modal-btn colony-modal-done" id="doneAddColonyContributorsBtn">Next</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="selectSwarmLeaderModalOverlay" aria-hidden="true">
+        <div class="add-colony-contributors-modal" role="dialog" aria-modal="true" aria-labelledby="selectSwarmLeaderTitle">
+            <div class="add-colony-contributors-header"><h2 id="selectSwarmLeaderTitle">Select a Leader</h2></div>
+            <div class="add-colony-contributors-list" id="selectSwarmLeaderList"></div>
+            <div class="add-colony-contributors-actions"><button type="button" class="colony-modal-btn colony-modal-close" id="closeSelectSwarmLeaderBtn">Close</button><button type="button" class="colony-modal-btn colony-modal-done" id="doneSelectSwarmLeaderBtn">Done</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="addColonyInstructorsModalOverlay" aria-hidden="true">
+        <div class="add-colony-contributors-modal" role="dialog" aria-modal="true" aria-labelledby="addColonyInstructorsTitle">
+            <div class="add-colony-contributors-header"><h2 id="addColonyInstructorsTitle">Add Instructors from Colony</h2></div>
+            <div class="add-colony-contributors-list" id="addColonyInstructorsList"></div>
+            <div class="add-colony-contributors-actions"><button type="button" class="colony-modal-btn colony-modal-close" id="closeAddColonyInstructorsBtn">Close</button><button type="button" class="colony-modal-btn colony-modal-done" id="doneAddColonyInstructorsBtn">Done</button></div>
         </div>
     </div>
 
@@ -216,7 +232,7 @@
             </div>
 
             <div class="confirm-leave-modal-body">
-                <p class="confirm-leave-message">Are you sure you want to leave this group? You will lose your leader privileges and become a regular member.</p>
+                <p class="confirm-leave-message">Are you sure you want to leave this group?</p>
 
                 <div class="confirm-leave-modal-actions">
                     <button type="button" class="modal-btn discard-btn" id="cancelLeaveBtn">Cancel</button>
@@ -411,6 +427,7 @@
     <script src="../../lib/manage-profile.js"></script>
     <script src="../../lib/member-profile-stats.js"></script>
     <script src="../../lib/settings.js"></script>
+    <script src="../../lib/notification-events.js"></script>
     <script src="s.leadergrpviewing.js"></script>
     <script src="s.leadercategory.js"></script>
     <script>

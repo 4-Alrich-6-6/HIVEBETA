@@ -71,15 +71,24 @@ const editProfilePicBtn = document.querySelector("#editProfilePicBtn");
 const profilePicInput = document.querySelector("#profilePicInput");
 const profilePicPreview = document.querySelector("#profilePicPreview");
 const displayNameInput = document.querySelector("#displayNameInput");
+const displayNameCounter = document.querySelector("#displayNameCounter");
 const departmentSelect = document.querySelector("#department");
+
+const updateDisplayNameCounter = () => {
+    if (displayNameCounter) displayNameCounter.textContent = `${displayNameInput?.value.length || 0}/50`;
+};
 
 const updateSaveButtonState = () => {
     if (!saveButton) return;
     saveButton.disabled = !displayNameInput?.value.trim() || !departmentSelect?.value;
 };
 
-displayNameInput?.addEventListener("input", updateSaveButtonState);
+displayNameInput?.addEventListener("input", () => {
+    updateDisplayNameCounter();
+    updateSaveButtonState();
+});
 departmentSelect?.addEventListener("change", updateSaveButtonState);
+updateDisplayNameCounter();
 updateSaveButtonState();
 
 let avatarFile = null;
@@ -277,6 +286,7 @@ if (saveButton) {
         const deptId = departmentSelect && departmentSelect.value ? Number(departmentSelect.value) : null;
 
         if (!displayName) { showNotice("Please enter a display name.", { title: "Missing Field" }); return; }
+        if (displayName.length > 50) { showNotice("Display name must be 50 characters or fewer.", { title: "Display Name Too Long" }); return; }
         if (!deptId) { showNotice("Please select a department.", { title: "Missing Field" }); return; }
 
         let posId = localStorage.getItem("hive_posId")

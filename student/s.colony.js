@@ -216,9 +216,10 @@ const renderTeamList = (teams) => {
 
   teams.forEach((team) => {
     const card = document.createElement("article");
-    card.className = "group-card colony-team-card";
+    card.className = `group-card colony-team-card${team.isMember ? "" : " is-locked"}`;
     card.dataset.teamId = String(team.grpId);
     card.setAttribute("role", "listitem");
+    card.setAttribute("aria-disabled", String(!team.isMember));
     card.setAttribute("tabindex", "0");
     card.innerHTML = `
       <div class="group-info">
@@ -228,12 +229,21 @@ const renderTeamList = (teams) => {
       <div class="card-right"><strong>${team.members} members</strong><span class="colony-team-arrow" aria-hidden="true">›</span></div>`;
     card.querySelector(".group-name > span:last-child").textContent = team.name;
     card.querySelector(".group-subject-text").textContent = team.subject;
-    card.addEventListener("click", () => openTeam(team));
-    card.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        openTeam(team);
+    card.addEventListener("click", () => {
+      if (!team.isMember) {
+        showAlert("You are not a member of this swarm.", { title: "Notice!" });
+        return;
       }
+      openTeam(team);
+    });
+    card.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      if (!team.isMember) {
+        showAlert("You are not a member of this swarm.", { title: "Notice!" });
+        return;
+      }
+      openTeam(team);
     });
     teamList.appendChild(card);
   });
@@ -669,6 +679,17 @@ noteCommentForm?.addEventListener("submit", async (event) => {
     showAlert(`Failed to post comment: ${error.message}`, { title: "Error" });
     return;
   }
+  if (activeNote.userId && activeNote.userId !== user.id) {
+    const { data: commenter } = await supabase.from("USER").select("userDisplayName").eq("userId", user.id).maybeSingle();
+    await supabase.from("NOTIFICATION").insert({
+      notiTitle: "Comment on Your Note",
+      notiBody: `${commenter?.userDisplayName || "Someone"} commented on your note "${activeNote.noteTitle || "Untitled"}".`,
+      "notiDate&Time": new Date().toISOString(),
+      notiIsRead: false,
+      userId: activeNote.userId,
+      grpId: Number(getGroupId())
+    });
+  }
   noteCommentForm.reset();
   await loadNoteComments(activeNote.noteId);
 });
@@ -708,6 +729,12 @@ noteAddForm?.addEventListener("submit", async (event) => {
     showAlert(`Failed to post note: ${error.message}`, { title: "Error" });
     return;
   }
+  await hiveNotificationEvents.notifyGroup(supabase, {
+    grpId,
+    title: "New Note Posted",
+    body: `${(await supabase.from("USER").select("userDisplayName").eq("userId", user.id).maybeSingle()).data?.userDisplayName || "Someone"} posted a note in "${currentGroup.name}".`,
+    excludeUserId: user.id
+  });
 
   closeNoteAddModalNow();
   await renderNotes();
@@ -797,7 +824,8 @@ const loadColonyTeams = async () => {
       name: team.grpName || "Unnamed Team",
       subject: team.grpSubject || "",
       members: count || 0,
-      isOwned: String(membership?.ROLE?.roleName || "").trim().toLowerCase() === "leader",
+      isMember: Boolean(membership),
+      isOwned: ["leader", "project manager"].includes(String(membership?.ROLE?.roleName || "").trim().toLowerCase()),
       leaderName: leaderMembership?.USER?.userDisplayName || "Leader unavailable"
     };
   }));
@@ -1082,12 +1110,12 @@ if (createTeamForm) {
         throw new Error(teamError?.message || "Team creation failed.");
       }
 
-      const [{ data: leaderRole }, { data: teacherRole }, { data: colony }] = await Promise.all([
-        supabase.from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle(),
+      const [{ data: projectManagerRole }, { data: teacherRole }, { data: colony }] = await Promise.all([
+        supabase.from("ROLE").select("roleId").eq("roleName", "Project Manager").maybeSingle(),
         supabase.from("ROLE").select("roleId").eq("roleName", "Teacher").maybeSingle(),
         supabase.from("GROUP").select("teacherId").eq("grpId", Number(teamColonyId?.value || getGroupId())).maybeSingle()
       ]);
-      if (!leaderRole) throw new Error("Leader role could not be found.");
+      if (!projectManagerRole) throw new Error("Project Manager role could not be found. Add it to the ROLE table first.");
 
       const colonyInstructors = currentMembers.filter((member) => normalizeText(member.roleName) === "teacher");
       if (colony?.teacherId && !colonyInstructors.some((member) => String(member.userId) === String(colony.teacherId))) {
@@ -1098,7 +1126,7 @@ if (createTeamForm) {
       const newSwarmMembers = [{
         userId: user.id,
         grpId: newTeam.grpId,
-        roleId: creatorIsInstructor ? teacherRole.roleId : leaderRole.roleId
+        roleId: creatorIsInstructor ? teacherRole.roleId : projectManagerRole.roleId
       }];
       colonyInstructors.forEach((instructor) => {
         if (String(instructor.userId) !== String(user.id) && teacherRole?.roleId) {
@@ -1315,7 +1343,7 @@ const createMemberCard = (member, cardClass, avatarSize) => {
     : "";
   const isTeacher = cardClass.includes("teacher-card");
   const isLeader = normalizeText(member.roleName) === "leader";
-  const displayRole = isLeader ? "Project Manager" : member.roleName;
+  const displayRole = member.roleName;
   const canEditMember = canManageMembers && !isTeacher && !isLeader;
 
   return `
@@ -1369,10 +1397,14 @@ const renderGroupMembers = async (members) => {
   );
 
   const teacher       = membersWithStats.find((m) => normalizeText(m.roleName) === "teacher");
+  const projectManager = membersWithStats.find((m) => normalizeText(m.roleName) === "leader");
   const normalMembers = membersWithStats.filter((m) => {
     const r = normalizeText(m.roleName);
     return r !== "teacher";
   });
+  const orderedMembers = projectManager
+    ? [projectManager, ...normalMembers.filter((member) => member !== projectManager)]
+    : normalMembers;
 
   if (adminCard) {
     adminCard.innerHTML = "";
@@ -1380,7 +1412,7 @@ const renderGroupMembers = async (members) => {
 
   memberCards.innerHTML = `
     <div class="member-grid">
-      ${normalMembers.map((m) => createMemberCard(m, "member-card", "medium")).join("")}
+      ${orderedMembers.map((m) => createMemberCard(m, "member-card", "medium")).join("")}
     </div>
     ${!normalMembers.length ? `<article class="info-card"><h3>No members found</h3></article>` : ""}
   `;
@@ -1610,6 +1642,18 @@ const openSelectLeaderModal = () => {
   selectLeaderModalOverlay.setAttribute("aria-hidden", "false");
 };
 
+const openLeaveFlow = async () => {
+  const supabase = getSupabase();
+  if (!supabase) return;
+  const { data: { user } } = await supabase.auth.getUser();
+  const currentMember = currentMembers.find((member) => member.userId === user?.id);
+  if (normalizeText(currentMember?.roleName) === "member") {
+    openConfirmLeaveModal();
+    return;
+  }
+  openSelectLeaderModal();
+};
+
 /* ── CONFIRM LEAVE MODAL ─────────────────────────────────────────────────── */
 const closeConfirmLeaveModal = () => {
   if (!confirmLeaveModalOverlay) return;
@@ -1623,12 +1667,64 @@ const openConfirmLeaveModal = () => {
   confirmLeaveModalOverlay.setAttribute("aria-hidden", "false");
 };
 
+const hasUnfinishedTasks = async (supabase, grpmemId) => {
+  const { data, error } = await supabase
+    .from("TASKASSIGNMENT")
+    .select("taskId, TASK!inner(statId)")
+    .eq("grpmemId", grpmemId);
+  if (error) throw error;
+  return (data || []).some((assignment) => Number(assignment.TASK?.statId) !== 5);
+};
+
+const clearCompletedMemberWork = async (supabase, grpmemId, userId) => {
+  const { error: peerError } = await supabase.from("PEEREVAL").delete().eq("evaluatedGrpmemId", grpmemId);
+  if (peerError) throw peerError;
+  const { error: evaluatorError } = await supabase.from("PEEREVAL").delete().eq("evaluatorId", userId);
+  if (evaluatorError) throw evaluatorError;
+  const { error: submissionError } = await supabase.from("SUBMISSION").delete().eq("grpmemId", grpmemId);
+  if (submissionError) throw submissionError;
+  const { error: assignmentError } = await supabase.from("TASKASSIGNMENT").delete().eq("grpmemId", grpmemId);
+  if (assignmentError) throw assignmentError;
+};
+
 const leaveGroup = async () => {
   const supabase = getSupabase();
   if (!selectLeaderList || !supabase) return;
   const grpId = Number(getGroupId());
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
+
+  const currentMember = currentMembers.find((member) => member.userId === user.id);
+  if (normalizeText(currentMember?.roleName) === "member") {
+    try {
+      if (await hasUnfinishedTasks(supabase, currentMember.grpmemId)) {
+        showAlert("You still have unfinished tasks. Please finish it first or tell your leader to remove you themself.", {
+          title: "Unfinished Tasks"
+        });
+        return;
+      }
+    } catch (error) {
+      showAlert(`Could not check your unfinished tasks: ${error.message}`, { title: "Error" });
+      return;
+    }
+    try {
+      await clearCompletedMemberWork(supabase, currentMember.grpmemId, currentMember.userId);
+    } catch (error) {
+      showAlert(`Could not prepare your membership for leaving: ${error.message}`, { title: "Error" });
+      return;
+    }
+    const { error } = await supabase.rpc("leave_group", { p_user_id: user.id, p_grp_id: grpId });
+    if (error) { showAlert(`Failed to leave group: ${error.message}`, { title: "Error" }); return; }
+    await hiveNotificationEvents.notifyGroup(supabase, {
+      grpId,
+      title: "Member Left",
+      body: `${currentMember.fullName || "A member"} has left "${currentGroup.name}".`,
+      excludeUserId: user.id
+    });
+    closeConfirmLeaveModal();
+    window.location.href = "../s.dashb.html";
+    return;
+  }
 
   const selected = selectLeaderList.querySelector("input[type='radio']:checked");
   const hasTeacher = currentMembers.some((m) => normalizeText(m.roleName) === "teacher");
@@ -1855,6 +1951,67 @@ if (removeMembersBtn) {
   });
 }
 
+const replaceProjectManagerInSwarms = async (supabase, colonyId, oldManagerId, newManagerId, projectManagerRoleId, memberRoleId) => {
+  const { data: swarms, error: swarmsError } = await supabase
+    .from("GROUP")
+    .select("grpId, grpName")
+    .eq("parentGrpId", colonyId);
+  if (swarmsError) throw new Error(`Failed to find colony swarms: ${swarmsError.message}`);
+
+  for (const swarm of swarms || []) {
+    const { data: memberships, error: membershipsError } = await supabase
+      .from("GROUPMEMBER")
+      .select("grpmemId, userId, roleId")
+      .eq("grpId", swarm.grpId)
+      .in("userId", [oldManagerId, newManagerId]);
+    if (membershipsError) throw new Error(`Failed to read swarm members: ${membershipsError.message}`);
+
+    const oldMembership = memberships?.find((membership) => String(membership.userId) === String(oldManagerId) && String(membership.roleId) === String(projectManagerRoleId));
+    if (!oldMembership) continue;
+
+    const newMembership = memberships?.find((membership) => String(membership.userId) === String(newManagerId));
+    if (newMembership) {
+      const { error: newManagerError } = await supabase
+        .from("GROUPMEMBER")
+        .update({ roleId: projectManagerRoleId })
+        .eq("grpmemId", newMembership.grpmemId)
+        .eq("grpId", swarm.grpId);
+      if (newManagerError) throw new Error(`Failed to assign Project Manager in swarm: ${newManagerError.message}`);
+
+      const { error: oldManagerError } = await supabase
+        .from("GROUPMEMBER")
+        .update({ roleId: memberRoleId })
+        .eq("grpmemId", oldMembership.grpmemId)
+        .eq("grpId", swarm.grpId);
+      if (oldManagerError) throw new Error(`Failed to retain the previous Project Manager in swarm: ${oldManagerError.message}`);
+    } else {
+      const { error: replaceError } = await supabase
+        .from("GROUPMEMBER")
+        .update({ userId: newManagerId })
+        .eq("grpmemId", oldMembership.grpmemId)
+        .eq("grpId", swarm.grpId);
+      if (replaceError) throw new Error(`Failed to replace the swarm Project Manager: ${replaceError.message}`);
+    }
+    await hiveNotificationEvents.notifyUsers(supabase, {
+      userIds: [newManagerId, oldManagerId],
+      grpId: swarm.grpId,
+      title: "Project Manager Updated",
+      body: `${newManagerId === oldManagerId ? "The Project Manager" : "Project Manager changed"} for "${swarm.grpName || "the swarm"}".`
+    });
+  }
+};
+
+const memberLeadsColonySwarm = async (supabase, memberId, colonyId) => {
+  const { data: swarms } = await supabase.from("GROUP").select("grpId").eq("parentGrpId", Number(colonyId));
+  const swarmIds = (swarms || []).map((swarm) => swarm.grpId);
+  if (!swarmIds.length) return false;
+  const { data: memberships } = await supabase.from("GROUPMEMBER")
+    .select("ROLE(roleName)")
+    .eq("userId", memberId)
+    .in("grpId", swarmIds);
+  return (memberships || []).some((membership) => normalizeText(membership.ROLE?.roleName) === "leader");
+};
+
 async function handleMemberAction(member, action) {
   const supabase = getSupabase();
   const grpId = Number(getGroupId());
@@ -1863,13 +2020,18 @@ async function handleMemberAction(member, action) {
   if (!user) return;
 
   if (action === "leader") {
-    safeShowConfirmation(`Set ${member.fullName} as the new leader? You will lose leadership of this colony.`, async () => {
-      const [{ data: leaderRole }, { data: memberRole }] = await Promise.all([
+    if (await memberLeadsColonySwarm(supabase, member.userId, grpId)) {
+      showAlert(`${member.fullName} already leads a swarm in this colony and cannot become the colony Leader.`, { title: "Cannot Set Leader" });
+      return;
+    }
+    safeShowConfirmation(`Set ${member.fullName} as the new Leader? You will lose leadership of this colony.`, async () => {
+      const [{ data: leaderRole }, { data: projectManagerRole }, { data: memberRole }] = await Promise.all([
         supabase.from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle(),
+        supabase.from("ROLE").select("roleId").eq("roleName", "Project Manager").maybeSingle(),
         supabase.from("ROLE").select("roleId").eq("roleName", "Member").maybeSingle()
       ]);
-      if (!leaderRole || !memberRole) {
-        showAlert("Leader and Member roles must be configured.", { title: "Role Setup Required" });
+      if (!leaderRole || !projectManagerRole || !memberRole) {
+        showAlert("Leader, Project Manager, and Member roles must be configured.", { title: "Role Setup Required" });
         return;
       }
       const currentLeader = currentMembers.find((candidate) => normalizeText(candidate.roleName) === "leader");
@@ -1878,7 +2040,13 @@ async function handleMemberAction(member, action) {
         if (error) { showAlert(`Failed to demote the current leader: ${error.message}`, { title: "Error" }); return; }
       }
       const { error } = await supabase.from("GROUPMEMBER").update({ roleId: leaderRole.roleId }).eq("grpmemId", member.grpmemId).eq("grpId", grpId);
-      if (error) { showAlert(`Failed to set leader: ${error.message}`, { title: "Error" }); return; }
+      if (error) { showAlert(`Failed to set Leader: ${error.message}`, { title: "Error" }); return; }
+      try {
+        await replaceProjectManagerInSwarms(supabase, grpId, currentLeader?.userId || user.id, member.userId, projectManagerRole.roleId, memberRole.roleId);
+      } catch (swarmError) {
+        showAlert(swarmError.message, { title: "Swarm Update Incomplete" });
+        return;
+      }
       await loadGroupFromDB();
     }, { title: "Set as Leader", confirmText: "Set Leader", cancelText: "Cancel" });
     return;
@@ -1976,7 +2144,7 @@ if (copyGroupLinkBtn) {
   });
 }
 
-if (leaveBtn)               leaveBtn.addEventListener("click", openSelectLeaderModal);
+if (leaveBtn)               leaveBtn.addEventListener("click", openLeaveFlow);
 if (discardSelectLeaderBtn) discardSelectLeaderBtn.addEventListener("click", closeSelectLeaderModal);
 if (selectLeaderModalOverlay) selectLeaderModalOverlay.addEventListener("click", (e) => { if (e.target === selectLeaderModalOverlay) closeSelectLeaderModal(); });
 if (leaveGroupBtn)          leaveGroupBtn.addEventListener("click", openConfirmLeaveModal);
@@ -2020,5 +2188,6 @@ const loadSidebarProfile = async () => {
 };
 
 /* ── INIT ─────────────────────────────────────────────────────────────────── */
-loadGroupFromDB();
+window.HiveLoading?.startDataLoad("Loading colony...");
+loadGroupFromDB().finally(() => window.HiveLoading?.finishDataLoad());
 loadSidebarProfile();

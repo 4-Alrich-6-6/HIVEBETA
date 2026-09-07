@@ -2108,13 +2108,29 @@ body {
 }
 
 .leader-project-page .contributor-summary-list {
+    --leaderboard-row-height: 52px;
     display: flex;
     flex-direction: column;
-    max-height: 100%;
-    height: 100%;
+    height: calc(var(--leaderboard-row-height) * 4.5);
+    max-height: calc(var(--leaderboard-row-height) * 4.5);
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-width: thin;
+    scrollbar-color: #ffcc00 #fff7bf;
+}
+
+.leader-project-page .contributor-summary-list::-webkit-scrollbar {
+    width: 10px;
+}
+
+.leader-project-page .contributor-summary-list::-webkit-scrollbar-track {
+    background: #fff7bf;
+}
+
+.leader-project-page .contributor-summary-list::-webkit-scrollbar-thumb {
+    background: #ffcc00;
+    border-radius: 999px;
+    border: 2px solid #fff7bf;
 }
 
 .leader-project-page .contributor-summary-row {
@@ -2122,7 +2138,8 @@ body {
     grid-template-columns: minmax(0, 1fr) 58px minmax(132px, auto);
     gap: 10px;
     align-items: center;
-    min-height: 34px;
+    height: var(--leaderboard-row-height);
+    min-height: var(--leaderboard-row-height);
     padding: 4px 12px;
     border-bottom: 1px solid #ecece7;
     font-size: 14px;
@@ -2185,7 +2202,8 @@ body {
 
 .leader-project-page .reputation-leaderboard-row {
     grid-template-columns: minmax(0, 1fr) 58px minmax(132px, auto);
-    min-height: 34px;
+    height: var(--leaderboard-row-height);
+    min-height: var(--leaderboard-row-height);
     padding: 4px 12px;
     font-weight: 400;
 }

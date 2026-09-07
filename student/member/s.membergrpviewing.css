@@ -579,13 +579,15 @@ button {
 .colony-contributor-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .colony-contributor-name { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .colony-contributor-name strong { font-size: 24px; line-height: 1.1; }
-.colony-contributor-name small { font-size: 13px; color: #666; }
-.is-selected .colony-contributor-name small { color: #ffcc00; }
 .colony-contributor-hex { width: 40px; height: 40px; margin-left: auto; color: #111; }
 .colony-contributor-hex svg { display: block; width: 100%; height: 100%; }
 .is-selected .colony-contributor-hex { color: #ffcc00; }
 .is-selected .colony-contributor-hex path { fill: #ffcc00; stroke: #ffcc00; }
 .colony-contributors-empty { margin: 24px 0; text-align: center; font-weight: 700; }
+.colony-instructors-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; padding: 24px; text-align: center; }
+.colony-instructors-empty img { width: 112px; height: 112px; margin-bottom: 12px; object-fit: contain; }
+.colony-instructors-empty strong { font: 700 20px 'Inter', sans-serif; }
+.colony-instructors-empty p { margin: 8px 0 0; font: 16px 'Kodchasan', sans-serif; color: #666; }
 .add-colony-contributors-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 20px 70px 24px; border-top: 1px solid #c9c9c0; background: #fffed0; }
 .colony-modal-btn { min-width: 120px; min-height: 32px; border: 0; border-radius: 6px; font-size: 16px; font-weight: 700; cursor: pointer; }
 .colony-modal-close { background: #fff; color: #111; }
@@ -2528,7 +2530,8 @@ body {
     font-weight: 700;
 }
 
-.leader-group-page .add-colony-members-btn {
+.leader-group-page .add-colony-members-btn,
+.leader-group-page .add-colony-instructors-btn {
     border: 1px solid #888;
     border-radius: 8px;
     background: #ffcc00;
@@ -2585,7 +2588,7 @@ body {
 
 .leader-group-page .contributors-column #memberCards,
 .leader-group-page .members-side-column #instructorCards {
-    max-height: 420px;
+    max-height: clamp(180px, calc(100dvh - 300px), 620px);
     overflow-y: auto;
     padding-right: 8px;
     scrollbar-width: thin;
@@ -2729,6 +2732,10 @@ body {
     background: #fff;
 }
 
+.leader-group-page .invite-card[hidden] {
+    display: none;
+}
+
 .leader-group-page .invite-card h3 {
     margin: 0;
     font-size: 18px;
@@ -2762,7 +2769,7 @@ body {
 
 .leader-group-page .members-side-column #instructorCards {
     grid-template-columns: 1fr;
-    max-height: 300px;
+    max-height: clamp(150px, calc(100dvh - 300px), 620px);
 }
 
 .leader-group-page .members-side-column .info-card {

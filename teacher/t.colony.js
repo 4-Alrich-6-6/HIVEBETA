@@ -47,18 +47,11 @@ const removeMembersModalOverlay= document.querySelector("#removeMembersModalOver
 const removeMembersList        = document.querySelector("#removeMembersList");
 const discardRemoveMembersBtn  = document.querySelector("#discardRemoveMembersBtn");
 const removeMembersBtn         = document.querySelector("#removeMembersBtn");
-const moveMemberModalOverlay   = document.querySelector("#moveMemberModalOverlay");
-const moveMemberModalMessage   = document.querySelector("#moveMemberModalMessage");
-const moveMemberSwarmSelect    = document.querySelector("#moveMemberSwarmSelect");
-const cancelMoveMemberBtn      = document.querySelector("#cancelMoveMemberBtn");
-const confirmMoveMemberBtn     = document.querySelector("#confirmMoveMemberBtn");
 const addSwarmMembersModalOverlay = document.querySelector("#addSwarmMembersModalOverlay");
 const addSwarmMembersModalMessage = document.querySelector("#addSwarmMembersModalMessage");
 const addSwarmMembersList      = document.querySelector("#addSwarmMembersList");
 const cancelAddSwarmMembersBtn = document.querySelector("#cancelAddSwarmMembersBtn");
 const confirmAddSwarmMembersBtn = document.querySelector("#confirmAddSwarmMembersBtn");
-const worksFilterButtons       = Array.from(document.querySelectorAll("[data-works-filter]"));
-const worksList                = document.querySelector("#worksList");
 const leaveBtn                 = document.querySelector("#leaveBtn");
 const selectLeaderModalOverlay = document.querySelector("#selectLeaderModalOverlay");
 const discardSelectLeaderBtn   = document.querySelector("#discardSelectLeaderBtn");
@@ -235,13 +228,9 @@ const renderTeamList = (teams) => {
         <h3 class="group-name">${team.isOwned ? '<svg class="owned-team-crown" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 839.663678 779.689007" aria-label="You lead this swarm" focusable="false"><g transform="translate(-30.164795,869.832005) scale(0.100000,-0.100000)" fill="currentColor" stroke="none"><path d="M4415 8689 c-29 -7 -58 -28 -108 -77 -91 -89 -101 -109 -102 -207 0 -67 4 -90 28 -139 15 -32 27 -70 27 -84 0 -19 -34 -60 -142 -169 -79 -79 -158 -155 -177 -170 -45 -35 -102 -35 -139 -1 -34 32 -60 46 -123 64 -71 21 -80 41 -83 171 -3 131 -9 143 -108 239 -66 65 -78 72 -126 79 -60 8 -145 -1 -182 -20 -14 -7 -55 -44 -91 -82 -56 -58 -68 -76 -78 -121 -14 -66 -14 -78 0 -144 10 -45 22 -63 78 -121 81 -85 100 -95 192 -103 97 -9 114 -26 123 -120 4 -38 25 -121 46 -184 22 -63 46 -161 54 -217 12 -87 21 -114 61 -188 36 -66 60 -97 107 -134 33 -27 74 -52 90 -55 17 -3 351 -6 742 -6 563 1 719 4 748 14 66 24 133 90 183 182 40 74 49 99 65 202 10 64 32 154 49 199 17 46 37 124 45 175 18 113 27 122 126 132 91 8 110 19 191 103 59 61 68 76 79 127 13 62 7 130 -15 181 -7 17 -43 60 -82 96 -61 59 -75 68 -128 79 -60 12 -152 8 -184 -10 -39 -20 -157 -152 -168 -188 -6 -20 -12 -80 -12 -132 -1 -115 -11 -134 -84 -155 -49 -14 -69 -24 -131 -68 -37 -27 -88 -24 -128 7 -18 14 -97 90 -175 169 -161 162 -161 161 -115 255 23 48 27 70 27 137 -1 98 -11 118 -102 207 -53 53 -78 69 -113 77 -54 13 -111 12 -165 0z"/><path d="M1330 6289 c-61 -6 -103 -17 -153 -40 -37 -17 -96 -37 -130 -45 -38 -9 -77 -27 -100 -45 -20 -16 -56 -39 -80 -49 -45 -20 -100 -66 -206 -171 -136 -134 -244 -297 -270 -404 -7 -27 -25 -77 -42 -111 -63 -131 -63 -497 0 -641 16 -37 35 -90 42 -118 12 -52 27 -82 84 -175 89 -146 284 -344 395 -400 24 -12 60 -35 80 -51 21 -17 61 -34 101 -44 37 -8 95 -28 130 -45 94 -44 254 -57 488 -41 142 10 193 18 266 41 50 16 119 34 155 40 36 6 90 15 120 21 30 5 89 25 130 44 41 19 111 41 154 50 44 8 93 24 110 35 67 43 115 60 178 63 58 2 63 0 66 -20 2 -12 -13 -59 -32 -104 -48 -109 -47 -142 1 -168 31 -16 3335 -16 3366 0 48 26 48 57 1 166 -19 46 -34 93 -32 106 3 20 8 22 66 20 63 -3 111 -20 178 -63 17 -11 72 -29 122 -40 50 -10 114 -31 144 -46 68 -35 92 -41 216 -60 57 -8 135 -26 173 -40 114 -41 406 -63 592 -45 87 9 124 17 185 45 43 18 95 37 117 41 46 8 89 28 129 62 15 13 44 30 63 38 90 38 321 272 376 382 15 28 31 54 37 58 16 10 46 75 59 130 7 28 26 80 42 117 63 144 63 492 0 635 -16 37 -35 91 -42 118 -12 52 -27 82 -84 175 -89 146 -284 344 -395 400 -24 12 -60 35 -80 51 -20 17 -61 34 -98 43 -34 8 -92 28 -128 45 -55 26 -88 33 -188 42 -216 20 -494 -3 -618 -52 -27 -10 -104 -28 -171 -40 -80 -13 -145 -31 -187 -51 -36 -16 -100 -38 -142 -49 -43 -10 -108 -34 -145 -53 -38 -18 -93 -39 -123 -45 -30 -7 -84 -29 -120 -50 -36 -21 -87 -44 -115 -50 -27 -7 -79 -30 -115 -51 -36 -21 -84 -44 -108 -50 -23 -6 -57 -24 -76 -40 -36 -32 -77 -39 -98 -16 -7 8 -38 45 -68 83 -102 126 -231 241 -307 274 -23 10 -64 33 -92 53 -31 21 -74 39 -109 46 -31 7 -90 25 -130 41 -114 45 -185 54 -422 54 -232 -1 -285 -8 -405 -55 -38 -16 -96 -33 -127 -40 -34 -6 -78 -25 -105 -44 -27 -18 -69 -42 -95 -54 -81 -36 -209 -151 -326 -295 -73 -88 -94 -95 -148 -47 -19 16 -53 34 -76 40 -24 6 -69 27 -101 46 -32 20 -87 44 -122 54 -35 10 -90 34 -122 54 -32 19 -88 42 -125 50 -37 9 -91 29 -120 45 -29 17 -89 39 -133 50 -44 10 -106 31 -138 46 -31 14 -94 34 -140 42 -84 16 -167 36 -296 72 -133 37 -376 50 -581 30z"/><path d="M2729 3281 c-17 -13 -23 -29 -23 -57 1 -73 24 -229 45 -304 12 -41 31 -134 44 -207 25 -145 62 -243 107 -285 l28 -28 1570 0 1570 0 28 28 c42 39 82 141 99 246 8 50 29 156 48 236 33 143 48 239 49 314 0 28 -6 44 -23 57 -22 18 -79 19 -1771 19 -1692 0 -1749 -1 -1771 -19z"/><path d="M3226 1784 c-26 -25 -19 -57 20 -95 34 -32 59 -62 159 -193 49 -63 255 -258 310 -293 22 -14 54 -38 70 -54 17 -15 51 -37 76 -48 25 -11 63 -34 84 -51 21 -16 56 -35 79 -41 23 -6 75 -24 116 -40 119 -48 167 -59 295 -65 165 -9 272 6 393 54 53 22 114 42 134 46 21 4 57 22 82 40 24 19 65 44 92 55 27 12 63 35 79 51 17 15 44 36 61 47 83 50 245 208 347 338 34 43 86 104 115 135 57 62 67 101 33 120 -13 7 -429 10 -1275 10 -1127 0 -1256 -2 -1270 -16z"/></g></svg>' : ""}<span></span></h3>
         <p><span class="group-subject-text"></span><small>Lead by ${team.leaderName}</small></p>
       </div>
-      <div class="card-right"><strong>${team.members} members</strong>${isColonyInstructor ? '<button type="button" class="swarm-card-menu-btn" aria-label="Add members to this swarm">...</button>' : ''}<span class="colony-team-arrow" aria-hidden="true">›</span></div>`;
+      <div class="card-right"><strong>${team.members} members</strong><span class="colony-team-arrow" aria-hidden="true">›</span></div>`;
     card.querySelector(".group-name > span:last-child").textContent = team.name;
     card.querySelector(".group-subject-text").textContent = team.subject;
-    card.querySelector(".swarm-card-menu-btn")?.addEventListener("click", (event) => {
-      event.stopPropagation();
-      openAddSwarmMembersModal(team);
-    });
     card.addEventListener("click", () => openTeam(team));
     card.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
@@ -683,6 +672,17 @@ noteCommentForm?.addEventListener("submit", async (event) => {
     showAlert(`Failed to post comment: ${error.message}`, { title: "Error" });
     return;
   }
+  if (activeNote.userId && activeNote.userId !== user.id) {
+    const { data: commenter } = await supabase.from("USER").select("userDisplayName").eq("userId", user.id).maybeSingle();
+    await supabase.from("NOTIFICATION").insert({
+      notiTitle: "Comment on Your Note",
+      notiBody: `${commenter?.userDisplayName || "Someone"} commented on your note "${activeNote.noteTitle || "Untitled"}".`,
+      "notiDate&Time": new Date().toISOString(),
+      notiIsRead: false,
+      userId: activeNote.userId,
+      grpId: Number(getGroupId())
+    });
+  }
   noteCommentForm.reset();
   await loadNoteComments(activeNote.noteId);
 });
@@ -722,6 +722,12 @@ noteAddForm?.addEventListener("submit", async (event) => {
     showAlert(`Failed to post note: ${error.message}`, { title: "Error" });
     return;
   }
+  await hiveNotificationEvents.notifyGroup(supabase, {
+    grpId,
+    title: "New Note Posted",
+    body: `${(await supabase.from("USER").select("userDisplayName").eq("userId", user.id).maybeSingle()).data?.userDisplayName || "Someone"} posted a note in "${currentGroup.name}".`,
+    excludeUserId: user.id
+  });
 
   closeNoteAddModalNow();
   await renderNotes();
@@ -842,56 +848,6 @@ const loadColonySwarms = async () => {
   return data || [];
 };
 
-const closeMoveMemberModal = () => {
-  moveMemberModalOverlay?.classList.remove("open");
-  moveMemberModalOverlay?.setAttribute("aria-hidden", "true");
-  memberToMove = null;
-};
-
-const openMoveMemberModal = async (member) => {
-  const swarms = await loadColonySwarms();
-  if (!moveMemberModalOverlay || !moveMemberSwarmSelect || !swarms.length) {
-    showAlert("No other swarms are available in this colony.", { title: "Move Member" });
-    return;
-  }
-  const swarmIds = swarms.map((swarm) => swarm.grpId);
-  const { data: memberships } = await getSupabase().from("GROUPMEMBER")
-    .select("grpmemId, grpId")
-    .eq("userId", member.userId)
-    .in("grpId", swarmIds);
-  const sourceMembership = memberships?.[0];
-  if (!sourceMembership) {
-    showAlert(`${member.fullName} is not assigned to a swarm yet.`, { title: "Move Member" });
-    return;
-  }
-  const destinations = swarms.filter((swarm) => Number(swarm.grpId) !== Number(sourceMembership.grpId));
-  if (!destinations.length) {
-    showAlert("No other swarms are available in this colony.", { title: "Move Member" });
-    return;
-  }
-  memberToMove = { ...member, sourceMembershipId: sourceMembership.grpmemId, sourceGrpId: sourceMembership.grpId };
-  if (moveMemberModalMessage) moveMemberModalMessage.textContent = `Choose a destination swarm for ${member.fullName}.`;
-  moveMemberSwarmSelect.innerHTML = destinations.map((swarm) => `<option value="${swarm.grpId}">${swarm.grpName || "Unnamed swarm"}</option>`).join("");
-  moveMemberModalOverlay.classList.add("open");
-  moveMemberModalOverlay.setAttribute("aria-hidden", "false");
-};
-
-const moveMemberToSwarm = async () => {
-  const supabase = getSupabase();
-  const destinationId = Number(moveMemberSwarmSelect?.value);
-  if (!supabase || !memberToMove?.grpmemId || !destinationId) return;
-  const { error } = await supabase.from("GROUPMEMBER")
-    .update({ grpId: destinationId })
-    .eq("grpmemId", memberToMove.sourceMembershipId)
-    .eq("grpId", Number(memberToMove.sourceGrpId));
-  if (error) {
-    showAlert(`Failed to move member: ${error.message}`, { title: "Move Member" });
-    return;
-  }
-  closeMoveMemberModal();
-  await loadGroupFromDB();
-};
-
 const closeAddSwarmMembersModal = () => {
   addSwarmMembersModalOverlay?.classList.remove("open");
   addSwarmMembersModalOverlay?.setAttribute("aria-hidden", "true");
@@ -933,35 +889,6 @@ const addMembersToSwarm = async () => {
   }
   closeAddSwarmMembersModal();
   await loadColonyTeams();
-};
-
-const loadWorks = async (filter = "tasks") => {
-  if (!worksList) return;
-  worksList.innerHTML = "<p>Loading works...</p>";
-  const supabase = getSupabase();
-  const colonyId = Number(getGroupId());
-  if (!supabase || !colonyId) return;
-  const { data: swarms, error: swarmError } = await supabase.from("GROUP").select("grpId, grpName").eq("parentGrpId", colonyId);
-  if (swarmError) { worksList.innerHTML = `<p>Unable to load works.</p>`; return; }
-  const swarmIds = (swarms || []).map((swarm) => swarm.grpId);
-  if (!swarmIds.length) { worksList.innerHTML = "<p>No works have been verified yet.</p>"; return; }
-  const { data: projects, error: projectError } = await supabase.from("PROJECT").select("projId, projName, grpId").in("grpId", swarmIds);
-  if (projectError) { worksList.innerHTML = `<p>Unable to load works.</p>`; return; }
-  const projectIds = (projects || []).map((project) => project.projId);
-  if (!projectIds.length) { worksList.innerHTML = "<p>No works have been verified yet.</p>"; return; }
-  const { data: tasks, error: taskError } = await supabase.from("TASK")
-    .select("taskId, taskName, teacherApproved, projId, PROJECT(projName, grpId)")
-    .in("projId", projectIds)
-    .eq("teacherApproved", true);
-  if (taskError) { worksList.innerHTML = `<p>Unable to load works.</p>`; return; }
-  if (filter === "tasks") {
-    worksList.innerHTML = tasks?.length ? tasks.map((task) => `<article class="works-item"><h3>${task.taskName || "Untitled task"}</h3><p>${task.PROJECT?.projName || "Project"}</p></article>`).join("") : "<p>No verified tasks yet.</p>";
-    return;
-  }
-  const verifiedByProject = new Map();
-  (tasks || []).forEach((task) => verifiedByProject.set(task.projId, (verifiedByProject.get(task.projId) || 0) + 1));
-  const worksProjects = (projects || []).filter((project) => verifiedByProject.has(project.projId));
-  worksList.innerHTML = worksProjects.length ? worksProjects.map((project) => `<article class="works-item"><h3>${project.projName || "Untitled project"}</h3><p>${verifiedByProject.get(project.projId)} verified task(s)</p></article>`).join("") : "<p>No verified projects yet.</p>";
 };
 
 const requestCloseCreateTeamModal = () => {
@@ -1282,7 +1209,6 @@ const renderCreatedTeam = (team) => {
 let currentMembers = []; // full list of {grpmemId, userId, fullName, email, roleName, roleId}
 let isColonyLeader = false;
 let isColonyInstructor = false;
-let memberToMove = null;
 let swarmToAddMembers = null;
 let canManageMembers = false;
 let currentGroup = { name: "Team", subject: "Subject", description: "", motto: "", meetingSchedule: "", links: [] };
@@ -1503,7 +1429,6 @@ const createMemberCard = (member, cardClass, avatarSize) => {
         </svg>
       </button>
       <div class="member-options-menu" role="menu">
-        <button type="button" role="menuitem" data-member-action="move">Move to Swarm</button>
         <button type="button" role="menuitem" data-member-action="remove">Remove from Colony</button>
         <button type="button" role="menuitem" data-member-action="leader">Set as Leader</button>
       </div>` : ""}
@@ -1681,8 +1606,7 @@ document.querySelector("#groupInfoStack")?.addEventListener("click", (e) => {
     e.stopPropagation();
     const member = currentMembers.find((m) => String(m.userId) === card.dataset.memberId);
     card.querySelector(".member-options-menu")?.classList.remove("open");
-    if (member && action === "move") openMoveMemberModal(member);
-    else if (member) handleMemberAction(member, action);
+    if (member) handleMemberAction(member, action);
     return;
   }
   const member = currentMembers.find((m) => String(m.userId) === card.dataset.memberId);
@@ -1923,22 +1847,9 @@ groupTabs.forEach((tab) => {
       panel.classList.toggle("active", selected);
       panel.hidden = !selected;
     });
-    if (tab.id === "worksTab") loadWorks("tasks");
   });
 });
 
-worksFilterButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    worksFilterButtons.forEach((item) => item.classList.toggle("active", item === button));
-    loadWorks(button.dataset.worksFilter || "tasks");
-  });
-});
-
-cancelMoveMemberBtn?.addEventListener("click", closeMoveMemberModal);
-confirmMoveMemberBtn?.addEventListener("click", moveMemberToSwarm);
-moveMemberModalOverlay?.addEventListener("click", (event) => {
-  if (event.target === moveMemberModalOverlay) closeMoveMemberModal();
-});
 cancelAddSwarmMembersBtn?.addEventListener("click", closeAddSwarmMembersModal);
 confirmAddSwarmMembersBtn?.addEventListener("click", addMembersToSwarm);
 addSwarmMembersList?.addEventListener("change", () => {
@@ -2043,6 +1954,47 @@ if (removeMembersBtn) {
   });
 }
 
+const memberLeadsColonySwarm = async (supabase, memberId, colonyId) => {
+  const { data: swarms } = await supabase.from("GROUP").select("grpId").eq("parentGrpId", Number(colonyId));
+  const swarmIds = (swarms || []).map((swarm) => swarm.grpId);
+  if (!swarmIds.length) return false;
+  const { data: memberships } = await supabase.from("GROUPMEMBER")
+    .select("ROLE(roleName)")
+    .eq("userId", memberId)
+    .in("grpId", swarmIds);
+  return (memberships || []).some((membership) => normalizeText(membership.ROLE?.roleName) === "leader");
+};
+
+const replaceColonyLeaderInSwarms = async (supabase, colonyId, oldLeaderId, newLeaderId, projectManagerRoleId, memberRoleId) => {
+  const { data: swarms, error: swarmsError } = await supabase.from("GROUP").select("grpId, grpName").eq("parentGrpId", Number(colonyId));
+  if (swarmsError) throw new Error(`Failed to find colony swarms: ${swarmsError.message}`);
+  for (const swarm of swarms || []) {
+    const { data: memberships, error: membershipsError } = await supabase.from("GROUPMEMBER")
+      .select("grpmemId, userId, roleId")
+      .eq("grpId", swarm.grpId)
+      .in("userId", [oldLeaderId, newLeaderId]);
+    if (membershipsError) throw new Error(`Failed to read swarm members: ${membershipsError.message}`);
+    const oldMembership = memberships?.find((membership) => String(membership.userId) === String(oldLeaderId) && String(membership.roleId) === String(projectManagerRoleId));
+    if (!oldMembership) continue;
+    const newMembership = memberships?.find((membership) => String(membership.userId) === String(newLeaderId));
+    if (newMembership) {
+      const { error: promoteError } = await supabase.from("GROUPMEMBER").update({ roleId: projectManagerRoleId }).eq("grpmemId", newMembership.grpmemId).eq("grpId", swarm.grpId);
+      if (promoteError) throw new Error(`Failed to assign the new Project Manager: ${promoteError.message}`);
+      const { error: demoteError } = await supabase.from("GROUPMEMBER").update({ roleId: memberRoleId }).eq("grpmemId", oldMembership.grpmemId).eq("grpId", swarm.grpId);
+      if (demoteError) throw new Error(`Failed to demote the previous Project Manager: ${demoteError.message}`);
+    } else {
+      const { error: replaceError } = await supabase.from("GROUPMEMBER").update({ userId: newLeaderId }).eq("grpmemId", oldMembership.grpmemId).eq("grpId", swarm.grpId);
+      if (replaceError) throw new Error(`Failed to replace the swarm Project Manager: ${replaceError.message}`);
+    }
+    await hiveNotificationEvents.notifyUsers(supabase, {
+      userIds: [newLeaderId, oldLeaderId],
+      grpId: swarm.grpId,
+      title: "Project Manager Updated",
+      body: `Project Manager changed for "${swarm.grpName || "the swarm"}".`
+    });
+  }
+};
+
 async function handleMemberAction(member, action) {
   const supabase = getSupabase();
   const grpId = Number(getGroupId());
@@ -2051,13 +2003,18 @@ async function handleMemberAction(member, action) {
   if (!user) return;
 
   if (action === "leader") {
+    if (await memberLeadsColonySwarm(supabase, member.userId, grpId)) {
+      showAlert(`${member.fullName} already leads a swarm in this colony and cannot become the colony Leader.`, { title: "Cannot Set Leader" });
+      return;
+    }
     safeShowConfirmation(`Set ${member.fullName} as the new leader? The current leader will become a member.`, async () => {
-      const [{ data: leaderRole }, { data: memberRole }] = await Promise.all([
+      const [{ data: leaderRole }, { data: projectManagerRole }, { data: memberRole }] = await Promise.all([
         supabase.from("ROLE").select("roleId").eq("roleName", "Leader").maybeSingle(),
+        supabase.from("ROLE").select("roleId").eq("roleName", "Project Manager").maybeSingle(),
         supabase.from("ROLE").select("roleId").eq("roleName", "Member").maybeSingle()
       ]);
-      if (!leaderRole || !memberRole) {
-        showAlert("Leader and Member roles must be configured.", { title: "Role Setup Required" });
+      if (!leaderRole || !projectManagerRole || !memberRole) {
+        showAlert("Leader, Project Manager, and Member roles must be configured.", { title: "Role Setup Required" });
         return;
       }
       const currentLeader = currentMembers.find((candidate) => normalizeText(candidate.roleName) === "leader");
@@ -2067,6 +2024,12 @@ async function handleMemberAction(member, action) {
       }
       const { error } = await supabase.from("GROUPMEMBER").update({ roleId: leaderRole.roleId }).eq("grpmemId", member.grpmemId).eq("grpId", grpId);
       if (error) { showAlert(`Failed to set leader: ${error.message}`, { title: "Error" }); return; }
+      try {
+        await replaceColonyLeaderInSwarms(supabase, grpId, currentLeader?.userId || user.id, member.userId, projectManagerRole.roleId, memberRole.roleId);
+      } catch (swarmError) {
+        showAlert(swarmError.message, { title: "Swarm Update Incomplete" });
+        return;
+      }
       await loadGroupFromDB();
     }, { title: "Set as Leader", confirmText: "Set Leader", cancelText: "Cancel" });
     return;
@@ -2209,5 +2172,6 @@ const loadSidebarProfile = async () => {
 };
 
 /* ── INIT ─────────────────────────────────────────────────────────────────── */
-loadGroupFromDB();
+window.HiveLoading?.startDataLoad("Loading colony...");
+loadGroupFromDB().finally(() => window.HiveLoading?.finishDataLoad());
 loadSidebarProfile();

@@ -5,8 +5,9 @@
     <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Dashboard</title>
+    <title>Instructor  Dashboard</title>
     <link rel="stylesheet" href="t.dashb.css">
+    <link rel="stylesheet" href="../lib/loading.css">
     <script src="../lib/offline-banner.js" defer></script>
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#000000">
@@ -194,7 +195,7 @@
                 </div>
                 <div class="title-row">
                     <h1 class="main-content-title">Dashboard</h1>
-                    <a class="contributor-profile-btn" href="t.profiling.html" aria-label="Open My Contributor Profile">
+                    <a class="contributor-profile-btn" href="t.profiling.html" aria-label="Open My Contributor Profile" hidden style="display: none;">
                         <svg fill="#000000" version="1.1" viewBox="0 0 45.975 45.975" aria-hidden="true" focusable="false">
                             <path d="M44.168 24.877 33.837 13.609l-.031.029c-.25-2.079-1.088-3.98-2.342-5.533l3.438-4.618c.651-.877.472-2.119-.406-2.772-.88-.653-2.119-.471-2.773.407l-3.271 4.396c-1.611-.939-3.484-1.479-5.479-1.479-1.984 0-3.848.533-5.453 1.464l-3.261-4.381c-.652-.878-1.895-1.06-2.773-.407-.877.654-1.06 1.896-.406 2.772l3.42 4.595c-1.263 1.553-2.105 3.458-2.358 5.542l-.017-.015L1.806 24.877c-1.241 1.354-1.879 3.113-1.799 4.951.081 1.837.874 3.532 2.229 4.774 1.273 1.166 2.926 1.81 4.651 1.81.101 0 .202-.002.302-.007 1.838-.08 3.533-.871 4.776-2.229l.706-.772c1.277 3.645 4.438 6.409 8.346 7.117v3.149c0 1.094.896 1.981 1.991 1.981s1.989-.889 1.989-1.981v-3.157c3.858-.719 7.012-3.488 8.281-7.135l.731.798c1.241 1.356 2.939 2.147 4.776 2.229.101.004.201.007.303.007 1.727 0 3.377-.645 4.65-1.81 1.354-1.242 2.146-2.938 2.229-4.775.081-1.837-.557-3.596-1.798-4.95ZM9.764 32.169c-.707.771-1.666 1.222-2.709 1.268l-.17.003c-.979 0-1.918-.364-2.64-1.026-.772-.707-1.222-1.67-1.267-2.713-.045-1.044.318-2.043 1.024-2.812l8.058-8.808v11.577l-2.296 2.511ZM29.901 29.791h-13.86v-4.977h13.86v4.977Zm0-9.88h-13.86v-4.976h13.86v4.976Zm13.096 9.786c-.045 1.044-.494 2.008-1.267 2.714-.724.663-1.66 1.026-2.642 1.026l-.172-.003c-1.043-.046-2.016-.495-2.72-1.267l-2.317-2.523V18.058l8.091 8.826c.707.771 1.072 1.77 1.026 2.813Z"/>
                         </svg>
@@ -379,7 +380,6 @@
 
                     <div class="invite-preview-actions">
                         <button type="button" class="group-modal-btn group-discard-btn" id="closeInvitationPreviewBtn">Close</button>
-                        <button type="button" class="group-modal-btn group-create-btn" id="joinAsContributorBtn">Join as a Contributor</button>
                         <button type="button" class="group-modal-btn group-create-btn" id="joinAsInstructorBtn">Join as an Instructor</button>
                     </div>
                 </section>
@@ -396,6 +396,7 @@
     <script src="../lib/settings.js"></script>
     <script src="../lib/confirmation-modal.js"></script>
     <script src="../lib/member-profile-stats.js"></script>
+    <script src="../lib/loading.js"></script>
     <script src="t.dashb.js"></script>
     <script type="module" src="s.leaderpreviewing.js"></script>
     <script>

@@ -43,6 +43,8 @@ const submissionFilterButtons = Array.from(document.querySelectorAll("[data-subm
 const submissionsList = document.querySelector("#submissionsList");
 const p2pEvaluationList = document.querySelector("#p2pEvaluationList");
 const p2pEvaluationLock = document.querySelector("#p2pEvaluationLock");
+const p2pEvaluationTab = document.querySelector("#p2pEvaluationTab");
+const p2pEvaluationPanel = document.querySelector("#p2pEvaluationPanel");
 const pauseFinishChoiceOverlay = document.querySelector("#pauseFinishChoiceOverlay");
 const pauseFinishPauseBtn = document.querySelector("#pauseFinishPauseBtn");
 const pauseFinishFinishBtn = document.querySelector("#pauseFinishFinishBtn");
@@ -84,6 +86,7 @@ const detailTaskTimeActive = document.querySelector("#detailTaskTimeActive");
 
 let activeTaskIndex = null;
 let currentUserId = null;
+let colonySwarmContext = null;
 
 const participationSummaryTab = document.querySelector("#participationSummaryTab");
 const reputationSummaryTab = document.querySelector("#reputationSummaryTab");
@@ -102,6 +105,22 @@ const isPastDue  = (t) => !(!t.dueDate || !t.dueTime) && Date.now() > new Date(`
 const supa       = () => window.hiveSupabase;
 const getProjId  = () => sessionStorage.getItem("hive_selected_project");
 const getGrpId   = () => sessionStorage.getItem("hive_grpId");
+const getColonySwarmContext = async () => {
+    if (colonySwarmContext) return colonySwarmContext;
+    const groupId = getGrpId();
+    if (!groupId || !supa()) return { isColonySwarm: false, isCurrentUserProjectManager: false };
+    const [{ data: group }, { data: membership }] = await Promise.all([
+        supa().from("GROUP").select("parentGrpId").eq("grpId", Number(groupId)).maybeSingle(),
+        currentUserId ? supa().from("GROUPMEMBER").select("ROLE(roleName)").eq("grpId", Number(groupId)).eq("userId", currentUserId).maybeSingle() : Promise.resolve({ data: null })
+    ]);
+    const isColonySwarm = Boolean(group?.parentGrpId);
+    colonySwarmContext = {
+        isColonySwarm,
+        isCurrentUserProjectManager: isColonySwarm && String(membership?.ROLE?.roleName || "").trim().toLowerCase() === "project manager"
+    };
+    return colonySwarmContext;
+};
+const isExcludedProjectManager = (member, context) => context.isColonySwarm && String(member.ROLE?.roleName || "").trim().toLowerCase() === "project manager";
 const setP2PEvaluationLocked = (locked) => {
     if (p2pEvaluationLock) p2pEvaluationLock.hidden = !locked;
 };
@@ -286,6 +305,7 @@ const loadContributorSummary = async () => {
     const projectId = getProjId();
     const groupId = getGrpId();
     if (!projectId || !groupId) return;
+    const context = await getColonySwarmContext();
 
     const { data: members } = await supa()
         .from("GROUPMEMBER")
@@ -309,7 +329,7 @@ const loadContributorSummary = async () => {
         ratings.push(rating);
         reputationByMember.set(String(evaluation.evaluatedGrpmemId), ratings);
     });
-    const contributors = (members || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() !== "teacher").map((member) => {
+    const contributors = (members || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() !== "teacher" && !isExcludedProjectManager(member, context)).map((member) => {
         const performance = calculateTaskPerformance(tasks, assignments, submissions, member.grpmemId);
         return {
             name: member.USER?.userDisplayName || "Member",
@@ -366,6 +386,7 @@ const loadSubmissions = async (filter = "evaluation") => {
     submissionsList.innerHTML = `<div class="submissions-empty empty-state"><p>Loading submissions...</p></div>`;
     const projId = getProjId();
     if (!projId || !supa()) return;
+    const workflowContext = await getColonySwarmContext();
 
     if (filter === "evaluation") {
         const { data: verifyingTasks } = await supa()
@@ -399,14 +420,20 @@ const loadSubmissions = async (filter = "evaluation") => {
     }
 
     const leaderVerifiedTaskIds = new Set((data || [])
-        .filter((submission) => String(submission.status || "").toLowerCase() === "approved")
+        .filter((submission) => ["approved", "pm_approved"].includes(String(submission.status || "").toLowerCase()))
         .map((submission) => submission.taskId));
     const submissions = (data || []).filter((submission) => {
         const status = String(submission.status || "").toLowerCase();
         const taskStatus = Number(submission.TASK?.statId);
         const isLeaderVerified = leaderVerifiedTaskIds.has(submission.taskId);
-        const isFinished = taskStatus === STAT_ID.finished || isLeaderVerified;
-        const isForEvaluation = taskStatus === STAT_ID.verifying && !isLeaderVerified;
+        const hasLeaderApproval = (data || []).some((item) => item.taskId === submission.taskId && String(item.status || "").toLowerCase() === "approved");
+        const hasProjectManagerApproval = (data || []).some((item) => item.taskId === submission.taskId && String(item.status || "").toLowerCase() === "pm_approved");
+        const isFinished = workflowContext.isCurrentUserProjectManager
+            ? Boolean(submission.TASK?.teacherApproved)
+            : taskStatus === STAT_ID.finished || isLeaderVerified;
+        const isForEvaluation = workflowContext.isCurrentUserProjectManager
+            ? hasLeaderApproval && !hasProjectManagerApproval && !submission.TASK?.teacherApproved
+            : taskStatus === STAT_ID.verifying && !isLeaderVerified;
         return filter === "finished" ? isFinished : isForEvaluation;
     });
 
@@ -481,11 +508,12 @@ const loadSubmissions = async (filter = "evaluation") => {
             verifyButton.classList.toggle("instructor-verified", Boolean(submission.TASK?.teacherApproved));
             verifyButton.disabled = true;
         } else {
-            verifyButton.textContent = submission.leaderEvaluated ? "Verified" : "Verify";
-            verifyButton.classList.toggle("verified", submission.leaderEvaluated);
+            const isProjectManagerView = workflowContext.isCurrentUserProjectManager;
+            verifyButton.textContent = submission.leaderEvaluated && !isProjectManagerView ? "Verified" : "Verify";
+            verifyButton.classList.toggle("verified", submission.leaderEvaluated && !isProjectManagerView);
         }
         verifyButton.addEventListener("click", () => {
-            if (submission.leaderEvaluated) return;
+            if (submission.leaderEvaluated && !workflowContext.isCurrentUserProjectManager) return;
             openVerifyChoice(
                 submission.taskId,
                 () => setSubmissionFilter("finished"),
@@ -522,6 +550,11 @@ const renderPeerRating = (rating = 0, hasRating = false) => `${renderZeroRating(
 const savePeerRating = async (member, rating, row) => {
     const projectId = getProjId();
     if (!projectId || !currentUserId) return;
+    const context = await getColonySwarmContext();
+    if (isExcludedProjectManager(member, context) || context.isCurrentUserProjectManager) {
+        showAlert("Project Managers cannot participate in peer evaluations.", { title: "Not Allowed" });
+        return;
+    }
     if (row.dataset.saving === "true" || row.dataset.rated === "true") return;
     row.dataset.saving = "true";
     const { data: existing } = await supa().from("PEEREVAL")
@@ -565,6 +598,11 @@ const loadP2PEvaluations = async () => {
     const projectId = getProjId();
     const groupId = getGrpId();
     if (!projectId || !groupId || !currentUserId) return;
+    const context = await getColonySwarmContext();
+    if (context.isCurrentUserProjectManager) {
+        p2pEvaluationList.innerHTML = `<p class="p2p-evaluation-loading">Project Managers cannot participate in peer evaluations.</p>`;
+        return;
+    }
     const { data: project } = await supa().from("PROJECT").select("projStatus").eq("projId", Number(projectId)).maybeSingle();
     setP2PEvaluationLocked(String(project?.projStatus || PROJECT_STATUS.ongoing).toLowerCase() !== "finished");
     p2pEvaluationList.innerHTML = `<p class="p2p-evaluation-loading">Loading members...</p>`;
@@ -578,7 +616,7 @@ const loadP2PEvaluations = async () => {
         return;
     }
     const assignedMemberIds = new Set((projectTasks || []).flatMap((task) => task.TASKASSIGNMENT || []).map((assignment) => String(assignment.grpmemId)));
-    const eligibleMembers = (allMembers || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() !== "teacher" && assignedMemberIds.has(String(member.grpmemId)));
+    const eligibleMembers = (allMembers || []).filter((member) => String(member.ROLE?.roleName || "").trim().toLowerCase() !== "teacher" && !isExcludedProjectManager(member, context) && assignedMemberIds.has(String(member.grpmemId)));
     const members = eligibleMembers.filter((member) => String(member.userId) !== String(currentUserId));
     const groupUserIds = new Set(eligibleMembers.map((member) => String(member.userId)));
     const ratings = new Map((evaluations || []).filter((evaluation) => String(evaluation.evaluatorId) === String(currentUserId)).map((evaluation) => {
@@ -636,7 +674,7 @@ const loadTasks = async () => {
     if (!projId) return [];
     const { data, error } = await supa()
         .from("TASK")
-        .select("taskId, taskName, taskDesc, taskDueD, taskIntensity, taskPrio, taskResource, taskSpan, taskAcmD, statId, wasRevising, teacherApproved, STATUS(statName), TASKASSIGNMENT(grpmemId, assignedAt, GROUPMEMBER(userId, USER(userDisplayName)))")
+        .select("taskId, taskName, taskDesc, taskDueD, taskIntensity, taskPrio, taskResource, taskSpan, taskAcmD, statId, wasRevising, teacherApproved, STATUS(statName), TASKASSIGNMENT(grpmemId, assignedAt, GROUPMEMBER(userId, ROLE(roleName), USER(userDisplayName)))")
         .eq("projId", Number(projId));
     if (error || !data) return [];
     const tasks = data.map((t, originalIndex) => ({
@@ -657,7 +695,7 @@ const loadTasks = async () => {
         teacherApproved: t.teacherApproved || false,
         status: STAT_SLUG[t.statId] || t.STATUS?.statName?.toLowerCase() || "inactive",
         statId: t.statId || 1,
-        assignees: (t.TASKASSIGNMENT || []).map(a => ({
+        assignees: (t.TASKASSIGNMENT || []).filter(a => !(colonySwarmContext?.isColonySwarm && String(a.GROUPMEMBER?.ROLE?.roleName || "").trim().toLowerCase() === "project manager")).map(a => ({
             grpmemId: a.grpmemId,
             assignedAt: a.assignedAt || null,
             userId: a.GROUPMEMBER?.userId,
@@ -713,7 +751,15 @@ const getTotalElapsedMs = (task) => {
 };
 
 const updateTaskStatus = async (taskId, slugStatus, task) => {
-    const updates = { statId: STAT_ID[slugStatus] || 1 };
+    let effectiveStatus = slugStatus;
+    if (slugStatus === "finished") {
+        const workflowContext = await getColonySwarmContext();
+        const { data: membership } = await supa().from("GROUPMEMBER").select("ROLE(roleName)")
+            .eq("grpId", Number(getGrpId())).eq("userId", currentUserId).maybeSingle();
+        const role = String(membership?.ROLE?.roleName || "").trim().toLowerCase();
+        if (workflowContext.isColonySwarm && role !== "project manager" && role !== "teacher") effectiveStatus = "verifying";
+    }
+    const updates = { statId: STAT_ID[effectiveStatus] || 1 };
     const now = new Date().toISOString();
 
     if (slugStatus === "active") {
@@ -730,15 +776,23 @@ const updateTaskStatus = async (taskId, slugStatus, task) => {
         task.acmD = null;
     }
 
-    if (slugStatus === "finished") updates.wasRevising = false;
+    if (effectiveStatus === "finished") updates.wasRevising = false;
     const { error: taskError } = await supa().from("TASK").update(updates).eq("taskId", taskId);
     if (taskError) {
         showAlert(`Could not update the task: ${taskError.message}`, { title: "Task Update Error" });
         return false;
     }
+    if (task) task.statId = updates.statId;
 
     // Send notification when leader finishes a task
-    if (slugStatus === "finished") {
+    if (effectiveStatus === "verifying") {
+        const { data: assignments } = await supa().from("TASKASSIGNMENT").select("grpmemId").eq("taskId", taskId);
+        for (const assignment of assignments || []) {
+            const { data: existing } = await supa().from("SUBMISSION").select("subId").eq("taskId", taskId).eq("grpmemId", assignment.grpmemId).maybeSingle();
+            if (!existing) await supa().from("SUBMISSION").insert({ taskId, grpmemId: assignment.grpmemId, submittedAt: now, status: "pending", isRevised: false });
+        }
+    }
+    if (effectiveStatus === "finished") {
         try {
             const { data: { user } } = await supa().auth.getUser();
             const { data: membership } = await supa().from("GROUPMEMBER").select("ROLE(roleName)").eq("grpId", Number(getGrpId())).eq("userId", user?.id).maybeSingle();
@@ -778,9 +832,10 @@ const loadGroupMembers = async () => {
         .select("grpmemId, userId, ROLE(roleName), USER(userDisplayName)")
         .eq("grpId", grpId);
     if (error || !data) return [];
+    const context = await getColonySwarmContext();
     const seen = {};
     return data
-        .filter(m => m.ROLE?.roleName?.toLowerCase() !== "teacher")
+        .filter(m => m.ROLE?.roleName?.toLowerCase() !== "teacher" && !isExcludedProjectManager(m, context))
         .reduce((acc, m) => {
             if (!seen[m.userId]) {
                 seen[m.userId] = true;
@@ -1022,8 +1077,17 @@ if (verifyFinishBtn) {
                 showAlert("This submission is missing its task reference.", { title: "Verification Error" });
                 return;
             }
+            const workflowContext = await getColonySwarmContext();
+            const { data: verifierMembership } = await supa().from("GROUPMEMBER")
+                .select("ROLE(roleName)")
+                .eq("grpId", Number(getGrpId()))
+                .eq("userId", currentUserId)
+                .maybeSingle();
+            const verifierRole = String(verifierMembership?.ROLE?.roleName || "").trim().toLowerCase();
+            const isColonyLeaderVerifier = workflowContext.isColonySwarm && verifierRole === "leader";
+            const isColonyProjectManagerVerifier = workflowContext.isColonySwarm && verifierRole === "project manager";
             const { error: taskError } = await supa().from("TASK")
-                .update({ statId: STAT_ID.finished, taskAcmD: null, wasRevising: false })
+                .update({ statId: isColonyLeaderVerifier || isColonyProjectManagerVerifier ? STAT_ID.verifying : STAT_ID.finished, taskAcmD: null, wasRevising: false })
                 .eq("taskId", taskId);
             if (taskError) {
                 showAlert(`Could not mark the task as finished: ${taskError.message}`, { title: "Verification Error" });
@@ -1031,7 +1095,7 @@ if (verifyFinishBtn) {
             }
             if (_verifySubmissionId) {
                 const { error: submissionError } = await supa().from("SUBMISSION")
-                    .update({ status: "approved" })
+                    .update({ status: isColonyProjectManagerVerifier ? "pm_approved" : "approved" })
                     .eq("subId", _verifySubmissionId);
                 if (submissionError) {
                     showAlert(`Could not approve the submission: ${submissionError.message}`, { title: "Verification Error" });
@@ -1088,10 +1152,10 @@ if (leaderActiveChoiceOverlay) leaderActiveChoiceOverlay.addEventListener("click
 const attachLeaderStatusBtn = (btn, task, isOwnTask) => {
     const setStatus = async (s) => {
         if (!await updateTaskStatus(task.taskId, s, task)) return;
-        task.status = s;
+        task.status = s === "finished" && Number(task.statId) === STAT_ID.verifying ? "verifying" : s;
         if (s === "active") { task.acmD = new Date().toISOString(); }
         else { task.acmD = null; }
-        applyStatusToBtn(btn, s);
+        applyStatusToBtn(btn, task.status);
 
         const card = btn.closest("article");
         const taskLeft = card?.querySelector(".task-left");
@@ -1118,7 +1182,11 @@ const attachLeaderStatusBtn = (btn, task, isOwnTask) => {
         }
 
         // After finishing: check if leader is assigned to this task
-        if (s === "finished") {
+        if (s === "finished" && task.status === "verifying") {
+            const { data: membership } = await supa().from("GROUPMEMBER").select("ROLE(roleName)")
+                .eq("grpId", Number(getGrpId())).eq("userId", currentUserId).maybeSingle();
+            if (String(membership?.ROLE?.roleName || "").trim().toLowerCase() === "leader") await submitLeaderEvaluation(task.taskId);
+        } else if (s === "finished") {
             // Check if current user is in the assignees
             const isLeaderAssigned = task.assignees.some(a => a.userId === currentUserId);
             if (isLeaderAssigned && task.assignees.length > 0) {
@@ -1520,6 +1588,11 @@ if(logoutBtn) logoutBtn.addEventListener("click",()=>{showConfirmation("Are you 
 (async()=>{
     const {data:{user}}=await supa().auth.getUser();
     currentUserId=user?.id||null;
+    const workflowContext = await getColonySwarmContext();
+    if (workflowContext.isCurrentUserProjectManager) {
+        p2pEvaluationTab?.remove();
+        p2pEvaluationPanel?.remove();
+    }
     await loadProfileAvatar(currentUserId);
     const projectName=sessionStorage.getItem("hive_selected_project_name");
     const el=document.querySelector(".project-name-display h2");

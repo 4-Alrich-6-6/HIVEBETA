@@ -75,8 +75,8 @@
                                 <form class="member-search" id="memberSearchForm" role="search">
                                     <input id="memberSearchInput" type="search" placeholder="Search Contributors" aria-label="Search contributors">
                                 </form>
-                                <div class="invite-card">
-                                    <div><h3>Invite via Link</h3><p>Let’s make the colony beeeetter<br>with your members! Invite them</p></div>
+                                <div class="invite-card" hidden style="display: none;">
+                                    <div><h3>Invite via Link</h3><p>Let's make the swarm beeeetter<br>with your members! Invite them</p></div>
                                     <button type="button" class="invite-copy-btn" id="copyInviteLinkBtn" aria-label="Copy invite link">COPY</button>
                                 </div>
                                 <section class="people-subsection instructors-section" id="instructorsSection">
@@ -205,7 +205,7 @@
             </div>
 
             <div class="confirm-leave-modal-body">
-                <p class="confirm-leave-message">Are you sure you want to leave this group? You will lose your leader privileges and become a regular member.</p>
+                <p class="confirm-leave-message">Are you sure you want to leave this group?</p>
 
                 <div class="confirm-leave-modal-actions">
                     <button type="button" class="modal-btn discard-btn" id="cancelLeaveBtn">Cancel</button>
@@ -400,6 +400,7 @@
     <script src="../../lib/manage-profile.js"></script>
     <script src="../../lib/member-profile-stats.js"></script>
     <script src="../../lib/settings.js"></script>
+    <script src="../../lib/notification-events.js"></script>
     <script src="t.grpviewing.js"></script>
     <script>
     if ('serviceWorker' in navigator) {

@@ -528,10 +528,10 @@ const applyDashbData = (data) => {
                 : "dashboard";
             sessionStorage.setItem("hive_group_return_page", returnPage);
             const isColony = String(group.grpType || "").toUpperCase() === "COLONY";
-            if (group.isTeacher) {
-                window.location.href = `t.grpviewing.html?grpId=${group.grpId}&from=${returnPage}`;
-            } else if (isColony) {
+            if (isColony) {
                 window.location.href = `t.colony.html?grpId=${group.grpId}&from=${returnPage}`;
+            } else if (group.isTeacher) {
+                window.location.href = `t.grpviewing.html?grpId=${group.grpId}&from=${returnPage}`;
             } else {
                 window.location.href = `t.grpviewing.html?grpId=${group.grpId}&from=${returnPage}`;
             }
@@ -761,7 +761,8 @@ const applyDashbData = (data) => {
 };
 
 // Load on page start
-loadDashbData();
+window.HiveLoading?.startDataLoad("Loading dashboard...");
+loadDashbData().finally(() => window.HiveLoading?.finishDataLoad());
 
 const teamPageTabs = Array.from(document.querySelectorAll(".team-page-tab"));
 const teamPagePanels = Array.from(document.querySelectorAll(".team-page-tab-panel"));
@@ -812,7 +813,6 @@ const openJoinGroupModalBtn = document.querySelector("#openJoinGroupModal");
 const discardJoinGroupBtn = document.querySelector("#discardJoinGroup");
 const joinGroupBtn = document.querySelector("#joinGroupBtn");
 const closeInvitationPreviewBtn = document.querySelector("#closeInvitationPreviewBtn");
-const joinAsContributorBtn = document.querySelector("#joinAsContributorBtn");
 const joinAsInstructorBtn = document.querySelector("#joinAsInstructorBtn");
 const groupLinkInput = document.querySelector("#groupLinkInput");
 const openEditOwnedGroupModalBtn = document.querySelector("#openEditOwnedGroupModal");
@@ -822,38 +822,6 @@ const saveEditOwnedGroupBtn = document.querySelector("#saveEditOwnedGroup");
 const editOwnedGroupNameInput = document.querySelector("#editOwnedGroupNameInput");
 const editOwnedGroupSubjectInput = document.querySelector("#editOwnedGroupSubjectInput");
 const editOwnedGroupMottoInput = document.querySelector("#editOwnedGroupMottoInput");
-let pendingCreationRole = null;
-
-const chooseCreationRole = (onChoice) => {
-    let overlay = document.querySelector("#creationRoleModal");
-    if (!overlay) {
-        overlay = document.createElement("div");
-        overlay.id = "creationRoleModal";
-        overlay.className = "modal-overlay open";
-        overlay.setAttribute("aria-hidden", "false");
-        overlay.innerHTML = `
-            <div class="group-modal" role="dialog" aria-modal="true" aria-labelledby="creationRoleTitle" style="max-width:460px">
-                <div class="group-modal-header"><h2 id="creationRoleTitle">Choose Your Role</h2></div>
-                <div class="group-modal-form">
-                    <p style="margin:0;color:#555">What role do you want in this Colony or Swarm?</p>
-                    <button type="button" class="group-modal-btn group-create-btn" data-creation-role="Leader">Contributor (Leader)</button>
-                    <button type="button" class="group-modal-btn group-create-btn" data-creation-role="Teacher">Instructor</button>
-                    <button type="button" class="group-modal-btn group-discard-btn" data-creation-role="cancel">Cancel</button>
-                </div>
-            </div>`;
-        document.body.appendChild(overlay);
-    }
-    overlay.classList.add("open");
-    overlay.setAttribute("aria-hidden", "false");
-    overlay.querySelectorAll("[data-creation-role]").forEach((button) => {
-        button.onclick = () => {
-            const role = button.dataset.creationRole;
-            overlay.classList.remove("open");
-            overlay.setAttribute("aria-hidden", "true");
-            if (role !== "cancel") onChoice(role);
-        };
-    });
-};
 const invitePreviewIntro = document.querySelector("#invitePreviewIntro");
 const invitePreviewTitle = document.querySelector("#invitePreviewTitle");
 const invitePreviewTeamName = document.querySelector("#invitePreviewTeamName");
@@ -1159,15 +1127,7 @@ if (createAddGroupBtn) {
             groupScheduleList.querySelector("input, select")?.reportValidity();
             return;
         }
-        if (!pendingCreationRole) {
-            chooseCreationRole((role) => {
-                pendingCreationRole = role;
-                createAddGroupBtn.click();
-            });
-            return;
-        }
-        const creationRole = pendingCreationRole;
-        pendingCreationRole = null;
+        const creationRole = "Teacher";
         const groupLinks = groupLinksList
             ? [...groupLinksList.querySelectorAll(".group-link-row")]
                 .map((row) => ({
@@ -1227,15 +1187,7 @@ if (createTeamForm) {
         const teamSubject = teamSubjectInput?.value.trim() || "";
         const teamDescription = teamDescriptionInput?.value.trim() || "";
         if (!teamName || !teamSubject || !teamDescription) return;
-        if (!pendingCreationRole) {
-            chooseCreationRole((role) => {
-                pendingCreationRole = role;
-                createTeamForm.requestSubmit();
-            });
-            return;
-        }
-        const creationRole = pendingCreationRole;
-        pendingCreationRole = null;
+        const creationRole = "Teacher";
         const teamLinks = [...(teamLinksList?.querySelectorAll(".group-link-row") || [])]
             .map((row) => ({ type: row.querySelector("select")?.value || "other", url: row.querySelector("input")?.value.trim() || "" }))
             .filter((link) => link.url);
@@ -1455,7 +1407,6 @@ const populateInvitationPreview = async (grpId) => {
         window.location.href = `t.grpviewing.html?grpId=${grpId}&from=dashboard`;
     };
 
-    if (joinAsContributorBtn) joinAsContributorBtn.onclick = () => pendingJoin("Member");
     if (joinAsInstructorBtn) joinAsInstructorBtn.onclick = () => pendingJoin("Teacher");
 };
 

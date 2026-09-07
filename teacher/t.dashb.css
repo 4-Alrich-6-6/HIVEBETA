@@ -167,6 +167,10 @@ button {
     text-decoration: none;
 }
 
+.contributor-profile-btn[hidden] {
+    display: none;
+}
+
 .contributor-profile-btn svg {
     width: 22px;
     height: 22px;

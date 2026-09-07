@@ -287,6 +287,15 @@ const formatAssignedDate = (assignedAt) => {
 
 const notifyCooldownKey = (taskId) => `hive_task_notify_${currentUserId}_${taskId}`;
 
+const isCurrentUserProjectManager = async (groupId) => {
+    if (!groupId || !currentUserId || !supa()) return false;
+    const [{ data: group }, { data: membership }] = await Promise.all([
+        supa().from("GROUP").select("parentGrpId").eq("grpId", Number(groupId)).maybeSingle(),
+        supa().from("GROUPMEMBER").select("ROLE(roleName)").eq("grpId", Number(groupId)).eq("userId", currentUserId).maybeSingle()
+    ]);
+    return Boolean(group?.parentGrpId && String(membership?.ROLE?.roleName || "").trim().toLowerCase() === "project manager");
+};
+
 const updateNotifyCooldownLabel = (button, taskId) => {
     const cooldownUntil = Number(localStorage.getItem(notifyCooldownKey(taskId)) || 0);
     const remainingMs = cooldownUntil - Date.now();
@@ -302,10 +311,12 @@ const updateNotifyCooldownLabel = (button, taskId) => {
     return true;
 };
 
-const configureUnassignedTaskActions = (task) => {
+const configureUnassignedTaskActions = (task, projectManagerView = false) => {
     if (!pageTaskStart || !pageTaskSubmit) return;
     pageTaskStart.textContent = "Notify Assignee(s)";
     pageTaskSubmit.textContent = "Volunteer";
+    pageTaskSubmit.hidden = projectManagerView;
+    if (taskDetailMoreBtn) taskDetailMoreBtn.hidden = projectManagerView;
     pageTaskStart.disabled = task.assignees.length === 0 || updateNotifyCooldownLabel(pageTaskStart, task.taskId);
     pageTaskSubmit.disabled = isTerminal(task.status) || task.status === "verifying";
     pageTaskStart.onclick = async () => {
@@ -418,8 +429,13 @@ const renderTaskDetailPage = async () => {
     const isStartLocked = isTerminal(task.status) || task.status === "verifying";
     const isSubmitLocked = task.status === "finished" || task.status === "verifying";
     const isAssignedToCurrentUser = task.assignees.some((assignee) => assignee.userId === currentUserId);
+    const projectManagerView = await isCurrentUserProjectManager(task.projectGroupId);
+    if (projectManagerView) {
+        configureUnassignedTaskActions(task, true);
+        return;
+    }
     if (!isAssignedToCurrentUser) {
-        configureUnassignedTaskActions(task);
+        configureUnassignedTaskActions(task, false);
         return;
     }
     if (pageTaskStart) {
@@ -452,6 +468,21 @@ const renderTaskDetailPage = async () => {
                     showAlert(`Failed to submit task: ${error.message}`, { title: "Submission Error" });
                     return;
                 }
+                const grpId = getGrpId();
+                const [{ data: taskRecipients }, { data: submitter }] = await Promise.all([
+                    supa().from("GROUPMEMBER").select("userId, ROLE(roleName)").eq("grpId", Number(grpId)),
+                    supa().from("USER").select("userDisplayName").eq("userId", currentUserId).maybeSingle()
+                ]);
+                const recipientIds = (taskRecipients || [])
+                    .filter((member) => ["leader", "teacher", "project manager"].includes(String(member.ROLE?.roleName || "").trim().toLowerCase()))
+                    .map((member) => member.userId)
+                    .filter((userId) => userId !== currentUserId);
+                await hiveNotificationEvents.notifyUsers(supa(), {
+                    userIds: recipientIds,
+                    grpId,
+                    title: "Task Submitted",
+                    body: `${submitter?.userDisplayName || "An assignee"} submitted the task "${task.name}" for review.`
+                });
             }
             if (!await updateTaskStatus(task.taskId, "verifying", task)) return;
             const grpId = getGrpId();

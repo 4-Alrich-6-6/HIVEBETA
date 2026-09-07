@@ -594,7 +594,8 @@ const applyDashbData = (data) => {
 };
 
 // Load on page start
-loadDashbData();
+window.HiveLoading?.startDataLoad("Loading dashboard...");
+loadDashbData().finally(() => window.HiveLoading?.finishDataLoad());
 
 const teamPageTabs = Array.from(document.querySelectorAll(".team-page-tab"));
 const teamPagePanels = Array.from(document.querySelectorAll(".team-page-tab-panel"));
