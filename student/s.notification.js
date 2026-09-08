@@ -30,7 +30,10 @@ const loadTopbarAvatar = async () => {
 loadTopbarAvatar();
 
 if (menuBtn && sidebar) {
-    menuBtn.addEventListener("click", () => sidebar.classList.toggle("open"));
+    menuBtn.addEventListener("click", () => {
+        const isOpen = sidebar.classList.toggle("open");
+        menuBtn.setAttribute("aria-expanded", String(isOpen));
+    });
 }
 
 const openNotifModal = async (notif) => {

@@ -912,6 +912,128 @@ to { opacity: 1; transform: translateY(0); }
     }
 }
 
+@media (max-width: 560px) {
+    .modal-overlay {
+        width: 100%;
+        padding: 12px;
+        overflow: hidden;
+    }
+
+    .group-modal {
+        width: min(100%, 520px);
+        max-width: calc(100vw - 32px);
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .group-modal-form {
+        min-width: 0;
+        overflow-x: hidden;
+    }
+
+    .schedule-fields {
+        grid-template-columns: 92px minmax(96px, 1fr) 30px;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .schedule-fields > select {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .schedule-time-group {
+        display: flex;
+        grid-column: 2;
+        grid-row: 1;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .schedule-time-group span,
+    .schedule-time-separator {
+        font-size: 11px;
+    }
+
+    .schedule-time-separator {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .schedule-end-time {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    .remove-schedule-btn {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+    }
+
+    .group-link-row {
+        grid-template-columns: 28px 112px minmax(96px, 1fr) 30px;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .group-link-icon {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+    }
+
+    .group-link-row select {
+        grid-column: 2;
+        grid-row: 1;
+        width: 100%;
+    }
+
+    .group-link-row input {
+        grid-column: 3;
+        grid-row: 1;
+        width: 100%;
+    }
+
+    .remove-group-link-btn {
+        grid-column: 4;
+        grid-row: 1;
+    }
+}
+
+@media (min-width: 901px) {
+    .team-page .layout {
+        min-height: 100vh;
+        padding-left: 240px;
+        padding-right: 0;
+    }
+
+    .team-page .sidebar {
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 240px;
+        height: 100vh;
+    }
+
+    .team-page .main-content-container {
+        width: 100%;
+        min-height: 100vh;
+        padding: 76px 24px 24px;
+    }
+
+    .team-page .profile-row {
+        left: 240px;
+    }
+
+    .team-page .team-page-tabs,
+    .team-page .team-page-tab-panels,
+    .team-page .group-section {
+        width: 100%;
+        max-width: 1100px;
+        margin-inline: auto;
+    }
+}
+
 @media (max-width: 600px) {
     .schedule-fields { grid-template-columns: 1fr; }
 }
@@ -1052,6 +1174,12 @@ to { opacity: 1; transform: translateY(0); }
     background: var(--canvas);
 }
 
+@media (min-width: 901px) {
+    .team-page .layout {
+        padding-left: 240px;
+    }
+}
+
 .team-page .main-header {
     position: static;
     display: block;
@@ -1063,7 +1191,7 @@ to { opacity: 1; transform: translateY(0); }
 .team-page .profile-row {
     position: fixed;
     top: 0;
-    left: 163px;
+    left: 240px;
     right: 0;
     height: 62px;
     display: flex;
@@ -1107,10 +1235,10 @@ to { opacity: 1; transform: translateY(0); }
 
 .team-page .title-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    min-height: 168px;
-    padding-top: 72px;
+    min-height: 82px;
+    padding-top: 0;
 }
 
 .team-page .profile-trigger .profile-chevron {
@@ -1464,21 +1592,26 @@ to { opacity: 1; transform: translateY(0); }
 }
 
 .team-page .card-right strong {
-    display: block;
-    width: 22px;
-    overflow: hidden;
-    color: transparent;
-    font-size: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    width: auto;
+    overflow: visible;
+    color: #AAA;
     font-family: 'Kodchasan', sans-serif;
 }
 
-.team-page .card-right strong::after {
-    content: "›";
+.team-page .card-right strong > span {
+    display: none;
+}
+
+.team-page .card-arrow-icon {
+    display: block;
+    width: 24px;
+    height: 24px;
     color: #AAA;
-    font-family: Arial, sans-serif;
-    font-size: 34px;
-    line-height: 1;
-    font-weight: 200;
+    flex: 0 0 24px;
 }
 
 .team-page .group-info p,
@@ -2064,5 +2197,606 @@ body {
 @media (max-width: 560px) {
     .team-page .team-collection-row {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .team-page .colony-collection-row,
+    .team-page .team-collection-row {
+        grid-template-columns: minmax(0, 1fr) !important;
+        width: 100%;
+    }
+
+    .team-page #colonyList .group-card,
+    .team-page #ownedGroupsList .group-card,
+    .team-page #joinedGroupsList .group-card,
+    .team-page #colonyList .placeholder-colony-card {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    .team-page .group-info h3,
+    .team-page .group-info h3 span,
+    .team-page .group-name > span,
+    .team-page .group-subject-text {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
+    .team-page .colony-collection-row .section-add,
+    .team-page .team-collection-row .section-add {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 1200;
+        display: grid;
+        place-items: center;
+        width: 58px;
+        height: 58px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: #ffcc00;
+        color: #111;
+        clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+        font-family: 'Inter', sans-serif;
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .team-page .colony-collection-row .section-add:hover,
+    .team-page .colony-collection-row .section-add:focus-visible,
+    .team-page .team-collection-row .section-add:hover,
+    .team-page .team-collection-row .section-add:focus-visible {
+        background: #e6b800;
+        outline: 2px solid #111;
+        outline-offset: 3px;
+    }
+}
+
+@media (max-width: 900px) {
+    .team-page .colony-collection-row,
+    .team-page .team-collection-row {
+        grid-template-columns: 1fr;
+    }
+
+    .team-page .colony-collection-row > *,
+    .team-page .team-collection-row > * {
+        min-width: 0;
+    }
+
+    .team-page #colonyList .group-card,
+    .team-page #ownedGroupsList .group-card,
+    .team-page #joinedGroupsList .group-card,
+    .team-page #colonyList .placeholder-colony-card {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+    }
+
+    .team-page .group-info h3,
+    .team-page .group-info h3 span,
+    .team-page .group-name > span,
+    .team-page .group-subject-text {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+}
+
+/* Responsive teams navigation and content */
+html {
+    overflow-x: clip;
+    scrollbar-color: #ffcc00 #fffbe4;
+    scrollbar-width: auto;
+}
+
+html::-webkit-scrollbar {
+    width: 12px;
+}
+
+html::-webkit-scrollbar-track {
+    background: #fffbe4;
+}
+
+html::-webkit-scrollbar-thumb {
+    background: #ffcc00;
+    border: 3px solid #fffbe4;
+    border-radius: 999px;
+}
+
+.layout {
+    min-height: 100vh;
+    padding: 0 0 0 240px;
+}
+
+.sidebar {
+    top: 0;
+    width: 240px;
+    min-height: 100vh;
+    background: #fffff5;
+    border-right: 1px solid #bfbcbc;
+}
+
+.team-page .sidebar {
+    width: 240px;
+    justify-content: flex-start;
+}
+
+.team-page .main-content-container {
+    min-height: 100vh;
+    padding: 76px 80px 24px;
+    background: #fffff5;
+}
+
+.team-page .profile-row {
+    left: 240px;
+    right: 0;
+    justify-content: flex-end;
+}
+
+.profile-row .menu-btn {
+    display: none;
+}
+
+.side-nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    width: calc(100% - 24px);
+    min-width: 0;
+    padding: 8px 14px;
+    color: #ffcc00;
+    text-align: left;
+    text-decoration: none;
+}
+
+.team-page .side-nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: calc(100% - 24px);
+    height: 46px;
+    padding: 8px 14px;
+}
+
+.team-page .side-nav {
+    gap: 18px;
+    margin-top: 32px;
+}
+
+.team-page .side-nav-bottom {
+    gap: 18px;
+    margin-top: auto;
+}
+
+.team-page .side-nav-link.active {
+    padding: 7.5px;
+}
+
+.side-nav-link svg {
+    width: 29px;
+    height: 29px;
+    flex: 0 0 29px;
+}
+
+.team-page .side-nav-link svg {
+    width: 29px;
+    height: 29px;
+}
+
+.side-nav-link > span {
+    overflow: hidden;
+    color: #ffcc00;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.side-nav-link.active {
+    background: #ffcc00;
+}
+
+.side-nav-link.active svg,
+.side-nav-link.active > span {
+    color: #fff;
+}
+
+.side-nav-bottom .notification-link,
+.side-nav-bottom .settings-link {
+    background: transparent;
+    color: #ffcc00;
+}
+
+.side-nav-bottom .notification-link.active,
+.side-nav-bottom .settings-link.active {
+    background: #ffcc00;
+    color: #fff;
+}
+
+.side-nav-bottom .notification-link.active > span,
+.side-nav-bottom .settings-link.active > span {
+    color: #fff;
+}
+
+.team-page-tabs {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto 20px;
+}
+
+.team-page .team-page-tabs {
+    max-width: none;
+    margin-inline: 0;
+}
+
+.team-page-tab-panels,
+.team-page .group-section {
+    width: 100%;
+    max-width: 1100px;
+    margin-inline: auto;
+}
+
+@media (max-width: 900px) {
+    .layout {
+        padding: 0 0 24px;
+    }
+
+    .team-page .main-content-container {
+        padding: 76px 16px 24px;
+    }
+
+    .team-page .profile-row {
+        left: 0;
+        padding-inline: 16px;
+        justify-content: space-between;
+        z-index: 5000 !important;
+        overflow: visible;
+    }
+
+    .team-page .title-row {
+        min-height: 58px;
+        padding-top: 0;
+    }
+
+    .profile-row .menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border: 1px solid #cfcfc7;
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+        position: relative;
+        z-index: 5001;
+    }
+
+    .profile-row .menu-btn svg {
+        width: 24px;
+        height: 24px;
+        transform: rotate(0deg);
+        transition: transform 280ms ease;
+    }
+
+    .profile-row .menu-btn[aria-expanded="true"] svg {
+        transform: rotate(90deg);
+    }
+
+    .sidebar {
+        top: 62px;
+        bottom: 0;
+        width: min(240px, 82vw);
+        min-height: 0;
+        height: auto;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0 28px;
+        transform: translateX(-100%);
+        transition: transform .25s ease;
+        z-index: 1100;
+    }
+
+    .team-page .sidebar {
+        top: 62px;
+        width: min(240px, 82vw);
+        height: auto;
+        min-height: 0;
+        transform: translateX(-100%);
+    }
+
+    .team-page .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .team-page .side-nav-link.active svg,
+    .team-page .side-nav-link.active > span {
+        color: #fff;
+    }
+
+    .brand-mark {
+        display: block;
+        width: 96px;
+        height: 76px;
+    }
+
+    .brand-mark img {
+        width: 96px;
+        height: 76px;
+    }
+
+    .side-nav,
+    .side-nav-bottom {
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        margin: 32px 0 0;
+    }
+
+    .team-page .side-nav,
+    .team-page .side-nav-bottom {
+        gap: 18px;
+    }
+
+    .team-page .side-nav {
+        margin-top: 102px;
+    }
+
+    .team-page .side-nav-bottom {
+        transform: translateY(69px);
+    }
+
+    .side-nav-bottom {
+        margin-top: auto;
+    }
+
+    .team-page-tabs {
+        margin-bottom: 14px;
+    }
+
+    .team-page .team-collection-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+}
+
+@media (max-width: 560px) {
+    .main-content-container {
+        padding-inline: 12px;
+    }
+
+    .main-content-title {
+        font-size: 30px;
+    }
+
+    .team-page .main-content-title {
+        font-size: 30px;
+    }
+
+    .team-page .title-row {
+        min-height: 58px;
+        padding-top: 0;
+        align-items: flex-start;
+    }
+
+    .profile-row {
+        padding-inline: 12px;
+    }
+
+    .team-page-tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .team-page .team-collection-row {
+        grid-template-columns: 1fr;
+    }
+
+    .team-page .group-card {
+        min-height: 116px;
+    }
+
+    .group-modal,
+    .confirmation-modal {
+        width: calc(100vw - 24px);
+        max-height: calc(100vh - 24px);
+    }
+
+    .group-modal-actions,
+    .confirmation-modal-actions {
+        flex-direction: column;
+    }
+
+    .group-modal-btn,
+    .modal-btn {
+        width: 100%;
+    }
+
+    .schedule-fields,
+    .group-link-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .schedule-time-group,
+    .schedule-time-separator,
+    .remove-schedule-btn,
+    .group-link-icon,
+    .remove-group-link-btn {
+        grid-column: auto;
+    }
+}
+
+@media (max-width: 560px) {
+    .modal-overlay {
+        width: 100%;
+        padding: 12px;
+        overflow: hidden;
+    }
+
+    .group-modal {
+        width: min(100%, 520px);
+        max-width: calc(100vw - 24px);
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .group-modal-form {
+        min-width: 0;
+        overflow-x: hidden;
+    }
+
+    .schedule-fields {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 32px;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .schedule-fields > select {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .schedule-time-group {
+        display: flex;
+        grid-column: 2;
+        grid-row: 1;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .schedule-time-group span,
+    .schedule-time-separator {
+        font-size: 11px;
+    }
+
+    .schedule-time-separator {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .schedule-end-time {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    .remove-schedule-btn {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+    }
+
+    .group-link-row {
+        grid-template-columns: 28px minmax(0, 1fr) 30px;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .group-link-icon {
+        grid-column: 1;
+        grid-row: 1 / span 2;
+    }
+
+    .group-link-row select {
+        grid-column: 2;
+        grid-row: 1;
+        width: 100%;
+    }
+
+    .group-link-row input {
+        grid-column: 2;
+        grid-row: 2;
+        width: 100%;
+    }
+
+    .remove-group-link-btn {
+        grid-column: 3;
+        grid-row: 1 / span 2;
+    }
+}
+
+/* Final compact mobile modal grid */
+@media (max-width: 560px) {
+    .group-modal {
+        max-width: calc(100vw - 32px) !important;
+    }
+
+    .schedule-fields {
+        width: min(100%, 350px);
+        grid-template-columns: 70px 16px minmax(84px, 1fr) 16px minmax(84px, 1fr) 30px !important;
+        justify-content: start;
+        align-items: center;
+    }
+
+    .schedule-fields > select {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+    }
+
+    .schedule-time-group {
+        display: contents;
+    }
+
+    .schedule-time-group span {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+    }
+
+    .schedule-time-separator {
+        grid-column: 4 !important;
+        grid-row: 1 !important;
+    }
+
+    .schedule-time-group input[type="time"] {
+        grid-column: 3 !important;
+        grid-row: 1 !important;
+        width: 100%;
+    }
+
+    .schedule-end-time {
+        grid-column: 5 !important;
+        grid-row: 1 !important;
+        width: 100%;
+    }
+
+    .remove-schedule-btn {
+        grid-column: 6 !important;
+        grid-row: 1 !important;
+    }
+
+    .group-link-row {
+        width: min(100%, 334px);
+        grid-template-columns: 28px 112px 140px 30px !important;
+        justify-content: start;
+    }
+
+    .group-link-icon {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+    }
+
+    .group-link-row select {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+    }
+
+    .group-link-row input {
+        grid-column: 3 !important;
+        grid-row: 1 !important;
+    }
+
+    .remove-group-link-btn {
+        grid-column: 4 !important;
+        grid-row: 1 !important;
     }
 }

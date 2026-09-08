@@ -9,10 +9,30 @@ body {
 }
 
 body {
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: #fffff5;
   color: #111;
   font-family: 'Inter', sans-serif;
+}
+
+html {
+  scrollbar-color: #ffcc00 #fffbe4;
+  scrollbar-width: auto;
+}
+
+html::-webkit-scrollbar {
+  width: 12px;
+}
+
+html::-webkit-scrollbar-track {
+  background: #fffbe4;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: #ffcc00;
+  border: 3px solid #fffbe4;
+  border-radius: 999px;
 }
 
 .profiling-page {
@@ -61,7 +81,7 @@ body {
 }
 
 .title-logo {
-  width: 150px;
+  width: clamp(88px, 12vw, 130px);
   height: auto;
   display: block;
 }
@@ -81,7 +101,7 @@ body {
   z-index: 1;
   width: min(100%, 410px);
   min-height: 280px;
-  padding: 44px 42px 34px;
+  padding: clamp(28px, 4vw, 44px) clamp(20px, 4vw, 42px) 34px;
   border: 1px solid #cfcfcf;
   border-radius: 9px;
   background: #fff;
@@ -106,7 +126,7 @@ body {
 .tutorial-skip {
   position: absolute;
   top: -45px;
-  right: -10px;
+  right: 0;
   border: 0;
   background: transparent;
   color: #111;
@@ -253,5 +273,58 @@ body {
   .tutorial-card {
     width: min(calc(100vw - 36px), 390px);
     padding: 36px 26px 28px;
+  }
+
+  .navbar {
+    min-height: 68px;
+    padding: 10px 16px;
+  }
+
+  .tutorial-skip {
+    top: -38px;
+    font-size: 15px;
+  }
+
+  .tutorial-tabs {
+    margin-inline: 0;
+  }
+
+  .tutorial-step {
+    padding-inline: 4px;
+  }
+}
+
+@media (max-width: 430px) {
+  .tutorial-main {
+    padding: 22px 14px 36px;
+  }
+
+  .tutorial-card {
+    width: 100%;
+    padding: 30px 18px 24px;
+  }
+
+  .tutorial-card h1 {
+    font-size: 34px;
+  }
+
+  .tutorial-eyebrow {
+    font-size: 15px;
+  }
+
+  .tutorial-tab {
+    font-size: 12px;
+  }
+
+  .tutorial-step h2 {
+    font-size: 18px;
+  }
+
+  .tutorial-step p {
+    font-size: 14px;
+  }
+
+  .tutorial-arrow {
+    width: 48px;
   }
 }

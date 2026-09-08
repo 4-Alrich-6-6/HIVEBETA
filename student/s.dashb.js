@@ -14,7 +14,8 @@ const profileDropdownEmail = document.querySelector("#profileDropdownEmail");
 
 if (menuBtn && sidebar) {
     menuBtn.addEventListener("click", () => {
-        sidebar.classList.toggle("open");
+        const isOpen = sidebar.classList.toggle("open");
+        menuBtn.setAttribute("aria-expanded", String(isOpen));
     });
 }
 
@@ -386,7 +387,7 @@ const applyDashbData = (data) => {
                 <p>${groupSubject}</p>
             </div>
             <div class="card-right">
-                <strong>Occupied Members : ${group.members}</strong>
+                <strong><span>Occupied Members : ${group.members}</span><svg class="card-arrow-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 4l8 8-8 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></strong>
                 ${isOwned ? '<button class="more-btn" type="button" aria-label="Edit owned group">•••</button>' : ''}
             </div>
         `;

@@ -1096,3 +1096,218 @@ body {
         font-size: 36px;
     }
 }
+
+/* Match the responsive shell used by the dashboard, teams, and task pages. */
+.layout {
+    min-height: 100vh;
+    padding: 0 0 0 240px;
+}
+
+.sidebar {
+    top: 0;
+    width: 240px;
+}
+
+.main-content-container {
+    min-height: 100vh;
+    padding: 76px 80px 24px;
+}
+
+.main-header {
+    position: static;
+    min-height: 82px;
+    padding-top: 0;
+    margin-bottom: 0;
+    background: transparent;
+}
+
+.profile-row {
+    left: 240px;
+    right: 0;
+    justify-content: flex-end;
+}
+
+.profile-row .menu-btn {
+    display: none;
+}
+
+.header-actions {
+    position: static;
+}
+
+.header-actions .action-btn {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.header-actions .btn-icon {
+    align-items: center;
+    justify-content: center;
+}
+
+.notif-section {
+    width: 100%;
+    margin: 0;
+}
+
+@media (max-width: 900px) {
+    .layout {
+        padding: 0;
+    }
+
+    .sidebar {
+        top: 62px;
+        width: min(240px, 82vw);
+        height: auto;
+        min-height: 0;
+        transform: translateX(-100%);
+        transition: transform .25s ease;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main-content-container {
+        padding: 76px 16px 24px;
+    }
+
+    .main-header {
+        min-height: 58px;
+    }
+
+    .profile-row {
+        left: 0;
+        padding-inline: 16px;
+        justify-content: space-between;
+    }
+
+    .profile-row .menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border: 1px solid #cfcfc7;
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+    }
+
+    .profile-row .menu-btn svg {
+        display: block;
+        width: 24px;
+        height: 24px;
+        transition: transform 280ms ease;
+    }
+
+    .profile-row .menu-btn[aria-expanded="true"] svg {
+        transform: rotate(90deg);
+    }
+
+    .header-actions {
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .action-btn {
+        flex: 1 1 150px;
+        min-height: 36px;
+    }
+
+    .notif-card {
+        padding: 14px 16px;
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 560px) {
+    .main-content-container {
+        padding-inline: 12px;
+    }
+
+    .profile-row {
+        padding-inline: 12px;
+    }
+
+    .main-content-title {
+        font-size: 30px;
+    }
+
+    .notification-empty-placeholder {
+        min-height: 220px;
+    }
+
+    .notification-empty-placeholder .empty-state-icon {
+        width: min(100%, 150px);
+    }
+
+    .notification-empty-placeholder h3 {
+        font-size: 20px;
+    }
+
+    .notification-empty-placeholder p {
+        font-size: 14px;
+    }
+}
+
+/* Use the labeled sidebar treatment from the dashboard pages. */
+.side-nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    width: calc(100% - 24px);
+    min-width: 0;
+    padding: 8px 14px;
+    text-align: left;
+}
+
+.side-nav-link svg {
+    width: 29px;
+    height: 29px;
+    flex: 0 0 29px;
+}
+
+.side-nav-link > span:not(.notif-badge) {
+    overflow: hidden;
+    color: #ffcc00;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.side-nav-link.active > span:not(.notif-badge),
+.side-nav-link.active svg {
+    color: #fff;
+}
+
+.side-nav-bottom .notification-link,
+.side-nav-bottom .settings-link {
+    background: transparent;
+    color: #ffcc00;
+}
+
+.side-nav-bottom .notification-link.active,
+.side-nav-bottom .settings-link.active {
+    background: #ffcc00;
+    color: #fff;
+}
+
+.side-nav-bottom .notification-link.active {
+    padding: 8px 14px;
+}
+
+@media (max-width: 900px) {
+    .side-nav-link {
+        width: calc(100% - 24px);
+    }
+}

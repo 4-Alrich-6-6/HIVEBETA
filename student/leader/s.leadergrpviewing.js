@@ -17,6 +17,25 @@ const loadTopbarAvatar = async () => {
 
 loadTopbarAvatar();
 
+const menuBtn = document.querySelector(".menu-btn");
+const sidebar = document.querySelector("#sidebar");
+
+if (menuBtn && sidebar) {
+  menuBtn.addEventListener("click", () => {
+    const isOpen = sidebar.classList.toggle("open");
+    menuBtn.setAttribute("aria-expanded", String(isOpen));
+  });
+}
+
+document.querySelectorAll(".leader-group-page .side-nav-link").forEach((link) => {
+  if (link.querySelector("span")) return;
+  const label = link.getAttribute("aria-label");
+  if (!label) return;
+  const labelElement = document.createElement("span");
+  labelElement.textContent = label;
+  link.append(labelElement);
+});
+
 /* ── ELEMENTS ─────────────────────────────────────────────────────────────── */
 const topBackBtn               = document.querySelector("#TopBackBtn");
 // NOTE: #backBtn does not exist in the HTML — TopBackBtn handles all back navigation
